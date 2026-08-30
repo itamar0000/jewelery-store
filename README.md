@@ -2,11 +2,11 @@
 
 Hebrew, RTL, Israel‑only jewelry storefront.
 
-**Current state: Phase 1 — application foundation.**
-Design tokens, RTL, fonts, money, environment validation, local PostgreSQL and
-the Prisma client boundary all exist and are tested. There is still no
-storefront, catalog, cart, checkout, admin or authentication, and the database
-has no business models.
+**Current state: Phase 2B — production data model.**
+The full database schema (38 models), its migration, the inventory reservation
+domain, validation schemas and a demo seed all exist and are tested against a
+real PostgreSQL. There is still no storefront, admin UI, cart UI, checkout,
+payment or authentication screens.
 
 ## Documents
 
@@ -33,6 +33,8 @@ has no business models.
 npm install          # postinstall also runs `prisma generate`
 cp .env.example .env # development-only credentials, matching docker-compose.yml
 npm run db:up        # starts PostgreSQL 16 and waits for its healthcheck
+npm run db:migrate   # applies the migration
+npm run db:seed      # loads clearly-marked demo catalog data
 npm run dev
 ```
 
@@ -61,15 +63,29 @@ container. `.env.example` already points at it.
 
 ### Prisma
 
-The schema ([prisma/schema.prisma](prisma/schema.prisma)) currently declares a
-datasource and a generator and **nothing else**. Business models and the first
-migration are Phase 2.
+The schema is [prisma/schema.prisma](prisma/schema.prisma) — 38 models, 18
+enums. It is the source of truth; [DATA_MODEL.md](DATA_MODEL.md) is the design
+rationale that preceded it.
 
 ```bash
+npm run db:migrate   # apply pending migrations
 npm run db:generate  # regenerate the client into src/generated/prisma
 npm run db:validate  # check the schema
 npm run db:format    # format the schema
+npm run db:seed      # reload demo catalog data
+npm run db:reset     # drop, re-migrate and re-seed  (destroys local data)
 ```
+
+> **The migration is hand-edited and must not be regenerated.** It carries 35
+> CHECK constraints, a `NULLS NOT DISTINCT` wishlist index, the order-number
+> sequences and the trigram search indexes — none of which Prisma's schema
+> language can express. Re-running `prisma migrate dev --create-only` over it
+> would silently drop all of them. A banner at the top of the file says so, and
+> [docs/DECISIONS.md](docs/DECISIONS.md) D2.6 explains each constraint.
+
+Adding a schema change: edit `schema.prisma`, run
+`npx prisma migrate dev --name <change> --create-only`, hand-add any raw SQL the
+change needs, then `npm run db:migrate`.
 
 Prisma 7 changed the setup materially — connection config lives in
 [prisma.config.ts](prisma.config.ts), not in the schema, and the client
@@ -97,24 +113,32 @@ absent: no provider has been chosen, and no code reads them.
 ## Validation
 
 ```bash
+npm run db:up   # integration tests need a real database
 npm run verify
 ```
 
-runs lint → typecheck → test → build. Per IMPLEMENTATION_PLAN, "validation is a
+runs lint → typecheck → test → build.
+
+**Tests require PostgreSQL.** The inventory reservation race, the CHECK
+constraints and the wishlist index live in the database and cannot be asserted
+against a mock, so integration tests run against a real `jewelry_test` database
+that Vitest creates and migrates. They fail loudly when the database is missing
+rather than skipping silently — a skipped concurrency test is worse than none. Per IMPLEMENTATION_PLAN, "validation is a
 gate, not a step": a phase is not complete while `npm run verify` fails.
 
-| Script                                              | What it does               |
-| --------------------------------------------------- | -------------------------- |
-| `npm run dev`                                       | Development server         |
-| `npm run build`                                     | Production build           |
-| `npm run start`                                     | Serve the production build |
-| `npm run lint` / `lint:fix`                         | ESLint                     |
-| `npm run typecheck`                                 | `tsc --noEmit`             |
-| `npm test` / `test:watch`                           | Vitest                     |
-| `npm run format` / `format:check`                   | Prettier                   |
-| `npm run db:up` / `db:down`                         | Local PostgreSQL           |
-| `npm run db:generate` / `db:validate` / `db:format` | Prisma                     |
-| `npm run verify`                                    | **The phase gate.**        |
+| Script                                               | What it does               |
+| ---------------------------------------------------- | -------------------------- |
+| `npm run dev`                                        | Development server         |
+| `npm run build`                                      | Production build           |
+| `npm run start`                                      | Serve the production build |
+| `npm run lint` / `lint:fix`                          | ESLint                     |
+| `npm run typecheck`                                  | `tsc --noEmit`             |
+| `npm test` / `test:watch`                            | Vitest                     |
+| `npm run format` / `format:check`                    | Prettier                   |
+| `npm run db:up` / `db:down`                          | Local PostgreSQL           |
+| `npm run db:migrate` / `db:generate` / `db:validate` | Prisma                     |
+| `npm run db:seed` / `db:reset`                       | Demo data                  |
+| `npm run verify`                                     | **The phase gate.**        |
 
 ## Layout
 

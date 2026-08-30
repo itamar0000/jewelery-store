@@ -1,10 +1,46 @@
 # DATA MODEL
 
-**Status:** Proposal (Phase 1). **No migrations have been created** — the repository is not yet structured for Prisma, so per the Phase 1 instruction the model is documented rather than implemented.
+**Status:** IMPLEMENTED (Phase 2B). The schema is live in
+[`prisma/schema.prisma`](prisma/schema.prisma) and applied by the migration in
+`prisma/migrations/`.
 **Source of truth:** [MASTER_SPECIFICATION.md](MASTER_SPECIFICATION.md), especially §11–§21, §37–§39, §43.
-**Companion:** [ARCHITECTURE.md](ARCHITECTURE.md)
+**Companions:** [ARCHITECTURE.md](ARCHITECTURE.md), [docs/DATA_MODEL_REVIEW.md](docs/DATA_MODEL_REVIEW.md), [docs/DECISIONS.md](docs/DECISIONS.md)
 
-The schema below is written in Prisma-flavoured notation for precision. It is a **design document**, not a migration.
+> ### ⚠ THIS DOCUMENT IS NO LONGER THE SCHEMA
+>
+> It was the Phase 1 *proposal*. `prisma/schema.prisma` is now the schema, and
+> where the two disagree, the Prisma file wins.
+>
+> The review in [docs/DATA_MODEL_REVIEW.md](docs/DATA_MODEL_REVIEW.md) found 26
+> issues here (F1–F26) and the implementation fixes them. The most significant
+> divergences from what is written below:
+>
+> | Below | Implemented | Why |
+> |---|---|---|
+> | `ProductCategory`, `CustomRequestEvent` referenced but never defined | Both defined | F1, F2 |
+> | `ProductOption @@unique([productId, type])` | `@@unique([productId, code])` | F5 — only one `OTHER` option per product was possible |
+> | No variant-combination uniqueness | `optionSignature` + `@@unique([productId, optionSignature])` | F3 — duplicate "14K Yellow" variants were possible |
+> | `DiamondSpec` variant-only | Product **or** variant, with a CHECK | F6 — six variants stored six identical copies |
+> | `Inventory.reserved` a bare counter | `InventoryReservation` rows + `InventoryMovement` ledger | F7 — the counter could not be expired or attributed |
+> | `Coupon.timesUsed` counter | Removed; usage derived from redemptions | F10 — two sources of truth |
+> | `targetCollectionIds String[]` | `CouponTarget` with real FKs | F13 |
+> | `OrderItem.customization` values only | Self-describing array with labels and field types | F14 — renaming a field retitled old orders |
+> | Order address inline on `Order` | `OrderAddress` model | D2.1 |
+> | Certificate fields on `DiamondSpec` | `DiamondCertificate` model | D2.1 |
+> | No CHECK constraints | 35, in raw SQL in the migration | F8, D2.6 |
+> | `@@unique` on `WishlistItem` | Raw-SQL index with `NULLS NOT DISTINCT` | F9 — the plain constraint did not work |
+> | `Order.orderNumber String` | `Int`, sequence-backed | D2.2 |
+>
+> Also added: `fulfillmentStatus` on `Order`, `personalizationAgorot` and
+> `selections` on `OrderItem`, `min/maxPriceAgorot` on `Product`,
+> `emailNormalized` on `Customer`, `codeNormalized` on `Coupon`,
+> `customerEmailNormalized` on `CouponRedemption`, `archivedAt` and `updatedAt`
+> across the model, and `CANCELLED` on `CustomRequestStatus`.
+>
+> **Final model list: 38 models, 18 enums.** See `prisma/schema.prisma`.
+
+The schema below is retained as the design rationale — most of the reasoning in
+it still holds and is not repeated in the Prisma file.
 
 ---
 
@@ -822,14 +858,17 @@ Gold karat (14K/18K) and colour (yellow/white/rose) from §12 are **data in `Pro
 
 ## 13. Open modelling questions
 
-Carried into [TBD.md](TBD.md); none is resolved here:
+Status as of Phase 2B:
 
-1. **Is ring/necklace/bracelet size a variant axis or a line-item selection?** The schema supports both via `isVariantAxis`; the business rule is undecided.
-2. **Money as `Int` agorot vs `Decimal`.** Needs confirmation before data exists — the least reversible decision in the model.
-3. **Low-stock threshold value** (§13). Null until set; no messaging until then.
-4. **Coupon stacking and applicability to made-to-order items** (§37).
-5. **Automatic collection rules** for New Arrivals and Best Sellers (§28).
-6. **Certificate issuer taxonomy** (§21) — free text until decided.
-7. **Ring-size scale** (Israeli vs EU vs US) and the exact size/length ranges (§15–§17).
-8. **VAT rate and registration status** (§23) — configuration, not a code constant.
-9. **Data retention** for guest customer records and custom-request uploads — a privacy decision (§52).
+| # | Question | Status |
+|---|---|---|
+| 1 | **Is size a variant axis or a line-item selection?** | **Still open** (TBD.md B11). `ProductOption.isVariantAxis` supports both, per product, as data. The seed demonstrates size as a *selection*. |
+| 2 | **Money as `Int` agorot vs `Decimal`** | **DECIDED — integer agorot.** Implemented throughout; every monetary column is `Int` (D0.1, D1.4). |
+| 3 | **Low-stock threshold value** (§13) | **Still open.** `lowStockThreshold Int?`; null means no messaging, which the availability resolver honours and a test asserts. |
+| 4 | **Coupon stacking** (§37) | **DECIDED — no stacking, one coupon per order** (D2.3). Enforced by `CouponRedemption.orderId @unique`. Whether coupons apply to made-to-order items remains open. |
+| 5 | **Automatic collection rules** (§28) | **Still open** (TBD.md B15). `isAutomatic` and `rules` exist and stay unused. |
+| 6 | **Certificate issuer taxonomy** (§21) | **Still open** (TBD.md B16). `DiamondCertificate.issuer` is free text. |
+| 7 | **Ring-size scale and ranges** (§15–§17) | **Still open.** Sizes are `ProductOptionValue` rows; the scale is data. |
+| 8 | **VAT rate and registration status** (§23) | **Still open** (TBD.md B21). `Order.vatRateBps` + `vatAmountAgorot` snapshot per order; no rate is hard-coded. |
+| 9 | **Data retention** for guest records and uploads | **Still open** (TBD.md I11). The order-level contact snapshots make pseudonymisation possible without deleting orders. |
+| 10 | **Order number format** (§23) | **DECIDED — sequence-backed integer from 100001** (D2.2, TBD.md B22). The display format remains changeable in one file. |

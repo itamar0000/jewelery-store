@@ -53,12 +53,48 @@ describe('prisma schema', () => {
     expect(schema).toMatch(/datasource\s+db\s*\{[^}]*provider\s*=\s*"postgresql"/);
   });
 
-  it('still declares no business models', () => {
-    // Phase 1 is datasource and generator only; the entity design in
-    // DATA_MODEL.md lands in Phase 2 together with the first migration. When
-    // that happens this expectation is the one to delete - deliberately, not
-    // by accident.
+  it('declares the full Phase 2B model set', () => {
+    // Replaces the Phase 1 guard that asserted NO models existed. That guard
+    // fired on the first commit of this schema, exactly as intended.
+    //
+    // The count is asserted as a floor rather than an exact number: a later
+    // phase adding a model should not fail this test, but a model silently
+    // disappearing should.
     const schema = readFileSync('prisma/schema.prisma', 'utf8');
-    expect(schema).not.toMatch(/^\s*model\s+\w+/m);
+    const models = schema.match(/^model\s+\w+/gm) ?? [];
+
+    expect(models.length).toBeGreaterThanOrEqual(38);
+
+    // The models whose absence would break a documented invariant.
+    for (const required of [
+      'model Product',
+      'model ProductVariant',
+      'model ProductCategory', // DATA_MODEL_REVIEW F1
+      'model Inventory',
+      'model InventoryReservation', // F7
+      'model InventoryMovement', // F23
+      'model Order',
+      'model OrderItem',
+      'model CouponTarget', // F13
+      'model CustomRequestEvent', // F2
+    ]) {
+      expect(schema).toContain(required);
+    }
+  });
+
+  it('keeps every monetary column an integer', () => {
+    // The least reversible decision in the project (D0.1). A Float or Decimal
+    // on an agorot column would be silent and expensive.
+    const schema = readFileSync('prisma/schema.prisma', 'utf8');
+    const moneyLines = schema
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => /^\w*Agorot\s/.test(line));
+
+    expect(moneyLines.length).toBeGreaterThan(15);
+    for (const line of moneyLines) {
+      expect(line).toMatch(/\bInt\b/);
+      expect(line).not.toMatch(/\bFloat\b|\bDecimal\b/);
+    }
   });
 });

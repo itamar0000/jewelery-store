@@ -31,18 +31,18 @@ Per Development Rule 1, none of these is guessed. Where a *technical* default wa
 | B8 | **Ring size scale** (Israeli / EU / US) and the offered range | §15 | Phase 4 | none — affects the size guide, which must be factually correct | Moderate — sizes become order data |
 | B9 | **Necklace lengths** offered | §16 | Phase 4 | none. §16's 40/45/50cm are illustrative examples, not a decision | Trivial — data |
 | B10 | **Bracelet lengths** offered | §17 | Phase 4 | none. §17's 16–19cm likewise illustrative | Trivial — data |
-| B11 | **Is size a stocked variant axis or a made-to-order selection?** | §11, §15 | Phase 2 | Schema supports **both** via `ProductOption.isVariantAxis`. Gold = axis; size/length = selection. **The business rule is not decided.** | Low — per-product data flip, no migration |
+| B11 | **Is size a stocked variant axis or a made-to-order selection?** | §11, §15 | Phase 2 | **STILL OPEN.** Implemented schema supports **both** via `ProductOption.isVariantAxis`; the seed demonstrates size as a selection. **Caveat now that inventory is real:** while size is a selection, per-size stock is impossible by construction — "size 52 in stock, size 58 made-to-order" needs a per-product flip to axis plus variant creation. | Low — per-product data flip, no migration |
 | B12 | **Customization fields per product** | §18 | Phase 4 | none. Fields are product data, deliberately not global | Trivial — data |
 | B13 | **Final filter list per category** | §10 | Phase 3 | none. Driven by `Category.filterConfig` data | Low — data |
 | B14 | **Final collection taxonomy** | §28 | Phase 8 | none | Low — data |
 | B15 | **Automatic rules** for New Arrivals / Best Sellers | §28 | Phase 8 | none — "best selling" by what measure, over what window? | Low |
 | B16 | **Diamond certificate issuer** | §21 | Phase 2 | Stored as free text, not an enum — an enum would encode an unmade decision | Trivial |
-| B17 | **Coupon stacking rules**; do coupons apply to made-to-order items? | §37 | Phase 5 | none. Schema supports scoping; rules not invented | Low |
+| B17 | ~~Coupon stacking rules~~; do coupons apply to made-to-order items? | §37 | Phase 5 | **STACKING DECIDED (Phase 2B): ONE coupon per order, no stacking.** Enforced by `CouponRedemption.orderId @unique` plus single FKs on `Cart` and `Order` (D2.3). Whether coupons apply to made-to-order items **remains open**. | Low — the applicability question is data/rules only |
 | B18 | **Gift navigation structure** (§29 explicitly says do not lock this) | §29 | Phase 8 | none | Low |
 | B19 | **WhatsApp business number and placement** | §36 | Phase 3 | none | Trivial |
 | B20 | **Product pricing ranges** | §57 | Phase 2 | none | n/a |
 | B21 | **VAT rate and business VAT registration status** | §23 | Phase 6a | Rate is **configuration**, stored per order at purchase time. No rate hard-coded | Low — but historical orders keep their own rate |
-| B22 | **Order number format** | §23 | Phase 6a | Non-sequential human-readable reference, so order volume is not leaked | Low — before first order only |
+| B22 | ~~Order number format~~ | §23 | ~~Phase 6a~~ **DECIDED Phase 2B** | **Sequence-backed integer starting at 100001**, separate from `Order.id`, generated as a database default so it cannot be forgotten or raced (D2.2). Accepted tradeoff: a monotonic sequence leaks order volume, which the earlier note wanted to avoid. Display formatting lives in one file, so the visual format stays changeable. | Resolved |
 | B23 | **Return / cancellation window** as an operational rule | §52 | Phase 9 | none — see L2 | n/a |
 
 ---
@@ -75,9 +75,9 @@ Per Development Rule 1, none of these is guessed. Where a *technical* default wa
 | I1 | **Image / media storage provider** | §42 | Phase 2 | `StorageProvider` port; local-disk adapter for development only, which **throws in production** | Low — port isolates it; stored keys are provider-neutral |
 | I2 | **Email provider** | §42 | Phase 6b | `EmailProvider` port, no implementation | Low |
 | I3 | **Managed Postgres host** | §42 | Phase 9 | Docker Postgres 16 locally; production host undecided | Low — connection string only |
-| I4 | **Money as integer agorot vs `Decimal`** | — | Phase 1 | **Integer agorot** | ⚠️ **HIGH once data exists.** This is the single most urgent item in this register — confirm during Phase 1 |
+| I4 | ~~Money as integer agorot vs `Decimal`~~ | — | ~~Phase 1~~ **CLOSED Phase 2B** | **Integer agorot**, implemented in `@/lib/money` and in every monetary column of the schema (D0.1, D1.4). No `Float` holds money anywhere. | Resolved |
 | I5 | **Package manager** | — | Phase 0 | **npm** — the only one installed | Trivial |
-| I6 | **OneDrive syncing `node_modules` / `.next`** | — | Phase 0 | none. Node runs fine from the Hebrew path (verified); OneDrive sync churn was **not** tested. Recommend excluding both directories from sync, or relocating the working copy | Low — but the pain is felt daily until resolved |
+| I6 | ~~OneDrive syncing `node_modules` / `.next`~~ | — | ~~Phase 0~~ **CLOSED Phase 0** | The working copy lives at `C:\dev\אתר חנות תכשיטים`, outside the OneDrive root (D0.3). A stale copy of the specification documents remains on the OneDrive Desktop and should be deleted. | Resolved |
 | I7 | **Error monitoring provider** | §46 | Phase 9 | none | Low |
 | I8 | **Analytics accounts** (GA4 / GTM / Meta Pixel IDs) | §45 | Phase 9 | `track()` wrapper, no vendor wired | Low |
 | I9 | **Semantic search timing and provider** | §27 | P2 | Postgres trigram behind `SearchProvider`. **Postgres ships no Hebrew text-search configuration**, so trigram + a curated synonym table is the MVP approach | Low — port isolates it |
@@ -112,9 +112,9 @@ Per Development Rule 1, none of these is guessed. Where a *technical* default wa
 
 Ordered by *when the cost of deciding late starts rising*, not by importance:
 
-1. **I4 — money representation.** Cheap during Phase 1, expensive the moment real data exists. Confirm first.
+1. ~~**I4 — money representation.**~~ **Resolved in Phase 2B:** integer agorot, implemented and tested.
 2. **B11 — is size a variant axis?** Shapes catalog data entry and the entire admin product form. The schema supports both, but the business needs to answer before catalog work begins.
 3. **D3, D4, D9 — typography, palette, image standard.** Needed before catalog photography and before any visual polish; D9 in particular is expensive to change after a hundred products are shot.
 4. **B1, B2 — payment and invoicing providers.** Hard blockers on Phase 6b. Israeli provider onboarding involves business verification and can take weeks, so starting the selection early matters more than deciding quickly.
 5. **B4, B5 — shipping price and SLA.** Checkout cannot show a total without them.
-6. **I6 — OneDrive sync.** Small, but it degrades every working day until handled.
+6. ~~**I6 — OneDrive sync.**~~ **Resolved:** the working copy is outside OneDrive.

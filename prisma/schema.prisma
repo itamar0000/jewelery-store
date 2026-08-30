@@ -1,18 +1,1421 @@
-// Prisma schema — Phase 1 foundation.
+// ===========================================================================
+// JEWELRY E-COMMERCE — DATABASE SCHEMA
 //
-// Datasource and generator only. No business models exist yet: the entity
-// design in DATA_MODEL.md is implemented in Phase 2, together with the first
-// migration. Do not add models here without that phase.
+// Source of truth: MASTER_SPECIFICATION.md
+// Design review:   docs/DATA_MODEL_REVIEW.md  (findings referenced as F1-F26)
+// Decisions:       docs/DECISIONS.md          (D0.x, D1.x, D2.x)
 //
-// The connection URL is NOT declared here. Prisma 7 moved CLI connection
-// configuration to `prisma.config.ts`, and the application connects through a
-// driver adapter in `src/lib/db`. See docs/DECISIONS.md D1.7.
+// Conventions that hold everywhere in this file:
+//
+//   MONEY is always `Int`, in agorot (1 ILS = 100 agorot). Never Float, never
+//   Decimal. Column names end in `Agorot` so a wrong type is visible on sight.
+//   Percentages are `Int` basis points (1500 = 15%). See D0.1 / D1.4.
+//
+//   DECIMAL is reserved for physical measurement — carat weight, gram weight.
+//   Never for money.
+//
+//   IDs are cuid(). Nothing customer-visible exposes a database identifier;
+//   `Order.orderNumber` is a separate sequence-backed public reference (D2.2).
+//
+//   ARCHIVE, NEVER DELETE anything an order can reference (spec section 43.12).
+//   `archivedAt` marks a record withdrawn from sale while keeping history
+//   readable. `onDelete: Restrict` is the database backstop.
+//
+//   Constraints Prisma cannot express — CHECK, NULLS NOT DISTINCT, the order
+//   number sequence, trigram indexes — live in raw SQL inside the migration.
+//   Every one of them is documented there and in docs/DECISIONS.md D2.6.
+// ===========================================================================
 
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
+
+  // Emit explicit `.ts` extensions on the client's internal imports.
+  // Without this the generated files import each other extensionlessly, which
+  // Node's ESM resolver cannot follow when running a TypeScript file directly
+  // (`node prisma/seed.ts`). Bundlers resolve either form. See D2.8.
+  importFileExtension = "ts"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// ===========================================================================
+// CATALOG
+// ===========================================================================
+
+/// Hierarchical merchandising taxonomy (spec section 5, 8, 9).
+/// Self-referencing because navigation is two-level today and may deepen.
+model Category {
+  id             String  @id @default(cuid())
+  slug           String  @unique
+  nameHe         String
+  descriptionHe  String? @db.Text
+  seoTitle       String?
+  seoDescription String?
+  imageKey       String?
+
+  parentId String?
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children Category[] @relation("CategoryTree")
+
+  position Int     @default(0)
+  isActive Boolean @default(true)
+
+  /// Which facets this category displays (spec section 10). Data, not code, so
+  /// the filter list can change without a deployment. Also declares the allowed
+  /// keys for `Product.attributes` — see D2.5.
+  filterConfig Json?
+
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  /// Products whose canonical URL and breadcrumb this category owns.
+  primaryProducts Product[]         @relation("PrimaryCategory")
+  /// Additional (non-canonical) category memberships.
+  productLinks    ProductCategory[]
+  couponTargets   CouponTarget[]
+
+  @@index([parentId, position])
+  @@index([slug])
+}
+
+/// Additional category memberships beyond the primary one (F1 — this model was
+/// referenced throughout DATA_MODEL.md but never defined).
+///
+/// A product has exactly one PRIMARY category, which determines its canonical
+/// URL and breadcrumbs (spec section 44); a single primary avoids ambiguous
+/// canonical URLs, which is a real SEO hazard. This table lets the same ring
+/// also appear under "Engagement Rings" without a second canonical URL.
+model ProductCategory {
+  productId  String
+  categoryId String
+  position   Int    @default(0)
+
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@id([productId, categoryId])
+  @@index([categoryId])
+}
+
+/// A sellable item. Product != SKU (spec section 11): price, inventory, images
+/// and availability live on ProductVariant.
+model Product {
+  id                 String  @id @default(cuid())
+  slug               String  @unique
+  nameHe             String
+  descriptionHe      String? @db.Text
+  shortDescriptionHe String?
+
+  primaryCategoryId String
+  primaryCategory   Category @relation("PrimaryCategory", fields: [primaryCategoryId], references: [id], onDelete: Restrict)
+
+  productType ProductType
+
+  /// Fallback price when a variant declares none. Lets "one price for all six
+  /// gold variants" be a single edit, which matters for the non-technical owner
+  /// in spec section 41.
+  basePriceAgorot Int
+  compareAtAgorot Int?
+
+  /// Denormalised effective-price range across active variants (F19).
+  /// Maintained on write by lib/catalog; makes the section 10 price filter and
+  /// price sorting an indexed range scan instead of a correlated subquery.
+  minPriceAgorot Int?
+  maxPriceAgorot Int?
+
+  hasDiamonds       Boolean @default(false)
+  /// Default made-to-order preparation time; a variant may override it.
+  defaultPrepDays   Int?
+  /// null = no low-stock messaging at all. Correct default while the threshold
+  /// is undecided (spec section 13) — silence beats an invented rule.
+  lowStockThreshold Int?
+
+  /// Long-tail facets with no typed home — today only "style" and
+  /// "pendantType". NOT an EAV bag: allowed keys are declared per category in
+  /// `Category.filterConfig` and validated server-side. See D2.5.
+  attributes Json?
+
+  seoTitle       String?
+  seoDescription String?
+  /// Denormalised Hebrew search text, queried by trigram similarity because
+  /// PostgreSQL ships no Hebrew text-search configuration (ARCHITECTURE 9).
+  searchDocument String? @db.Text
+
+  isActive    Boolean   @default(false)
+  publishedAt DateTime?
+  archivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  variants      ProductVariant[]
+  images        ProductImage[]
+  options       ProductOption[]
+  customFields  CustomizationField[]
+  collections   ProductCollection[]
+  categories    ProductCategory[]
+  reviews       Review[]
+  wishlistItems WishlistItem[]
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  diamondSpec   DiamondSpec?
+  couponTargets CouponTarget[]
+
+  @@index([primaryCategoryId, isActive])
+  @@index([isActive, publishedAt])
+  @@index([archivedAt])
+  @@index([productType])
+}
+
+/// A choosable dimension of a product: gold karat, gold colour, ring size,
+/// length, style, pendant type.
+///
+/// F5: the key is `[productId, code]`, NOT `[productId, type]`. `OptionType`
+/// has a catch-all OTHER, so keying on type would allow only one custom option
+/// per product — yet spec section 10 needs Style AND Pendant type on the same
+/// necklace. `type` survives as a non-unique classifier driving UI treatment.
+model ProductOption {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  /// Stable per-product machine key: "gold_karat", "gold_color", "ring_size",
+  /// "length", "style", "pendant_type".
+  code   String
+  type   OptionType
+  nameHe String
+
+  /// THE FLEXIBILITY HINGE (TBD.md B11, D0.2).
+  /// true  — values generate variants, each with its own SKU and stock.
+  /// false — a selection recorded on the cart/order line, produced to order.
+  /// Gold defaults to an axis; size and length default to selections. Flipping
+  /// this per product is a data change, never a migration.
+  isVariantAxis Boolean @default(true)
+
+  isRequired Boolean  @default(true)
+  position   Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  values ProductOptionValue[]
+
+  @@unique([productId, code])
+  @@index([productId, position])
+}
+
+model ProductOptionValue {
+  id       String        @id @default(cuid())
+  optionId String
+  option   ProductOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  /// Canonical machine value: "14K", "YELLOW", "52", "45CM".
+  value    String
+  /// Display label in Hebrew.
+  labelHe  String
+  /// Swatch colour for gold-colour options.
+  hexColor String?
+  position Int     @default(0)
+  isActive Boolean @default(true)
+
+  variantLinks VariantOptionValue[]
+
+  @@unique([optionId, value])
+  @@index([optionId, position])
+}
+
+/// One purchasable combination. Carries SKU, price, inventory and images
+/// (spec section 11, 12; data-model principles 1, 2, 4).
+model ProductVariant {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  sku String @unique
+
+  /// null inherits Product.basePriceAgorot.
+  priceAgorot     Int?
+  compareAtAgorot Int?
+  /// null inherits Product.defaultPrepDays.
+  prepDays        Int?
+
+  /// Physical measurement, not money — Decimal is correct here.
+  weightGrams Decimal? @db.Decimal(8, 3)
+
+  /// F3 — canonical, deterministic encoding of this variant's sorted option
+  /// value IDs. Without it nothing stops two identical "14K / Yellow Gold"
+  /// variants existing side by side, splitting stock and showing the customer
+  /// two identical choices. Combination uniqueness is not expressible as a
+  /// plain unique constraint, so it is denormalised into this column and
+  /// recomputed by lib/catalog/option-signature.ts on every write.
+  /// Empty string is the signature of a product with no variant axes.
+  optionSignature String
+
+  isActive   Boolean   @default(true)
+  position   Int       @default(0)
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  optionValues  VariantOptionValue[]
+  inventory     Inventory?
+  diamondSpec   DiamondSpec?
+  images        ProductImage[]
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  wishlistItems WishlistItem[]
+  reservations  InventoryReservation[]
+  movements     InventoryMovement[]
+
+  @@unique([productId, optionSignature])
+  @@index([productId, isActive])
+  @@index([sku])
+}
+
+model VariantOptionValue {
+  variantId String
+  valueId   String
+
+  variant ProductVariant     @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  value   ProductOptionValue @relation(fields: [valueId], references: [id], onDelete: Restrict)
+
+  @@id([variantId, valueId])
+  @@index([valueId])
+}
+
+/// Images and video. A null variantId means a product-level asset
+/// (data-model principle 3). Gallery resolution: variant assets when a variant
+/// is selected, falling back to product-level.
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  /// F16 — Cascade, not SetNull. SetNull would silently promote a white-gold
+  /// close-up into the shared gallery when its variant was removed.
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  /// Storage key, never a URL — the storage provider is TBD (TBD.md I1) and
+  /// keys survive a provider change.
+  storageKey String
+  /// Required: accessibility is not optional (spec section 47).
+  altHe      String
+  width      Int?
+  height     Int?
+  position   Int       @default(0)
+  isPrimary  Boolean   @default(false)
+  mediaType  MediaType @default(IMAGE)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([productId, position])
+  @@index([variantId, position])
+}
+
+/// Diamond characteristics (spec section 21).
+///
+/// F6 — attaches to EITHER a product (the default for all its variants) OR a
+/// single variant (an override, for spec section 11's "possibly different
+/// technical specifications"). Variant-only scoping forced a six-gold-variant
+/// ring to store six identical copies of the same stone data, which then drift.
+///
+/// Nullable @unique is exactly right here: PostgreSQL treats NULLs as distinct
+/// in unique indexes, so many rows may have productId = NULL while still
+/// permitting at most one spec per product and one per variant. A CHECK in the
+/// migration enforces that exactly one of the two is set.
+model DiamondSpec {
+  id String @id @default(cuid())
+
+  productId String?         @unique
+  product   Product?        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantId String?         @unique
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  isLabGrown Boolean @default(true)
+
+  /// Physical measurement — Decimal, not money.
+  totalCaratWeight Decimal? @db.Decimal(6, 2)
+  stoneCount       Int?
+  /// D-Z. Free text rather than an enum: the grading scale in use is a business
+  /// matter, and an enum would encode an unmade decision.
+  color            String?
+  /// VS1, VVS2, SI1 ...
+  clarity          String?
+  cut              String?
+  shape            String?
+
+  notesHe String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  certificate DiamondCertificate?
+}
+
+/// The certificate document for a diamond (spec section 21).
+///
+/// Separate from DiamondSpec because a certificate belongs to a physical stone
+/// and is frequently unknown when the product is created — a made-to-order
+/// piece is certified after production. Keeping it separate means a
+/// product-level DiamondSpec (shared defaults) carries no certificate, while a
+/// variant-level spec can.
+///
+/// The issuer is free text, deliberately not an enum: the certificate provider
+/// is TBD (TBD.md B16) and an enum would encode an unmade decision.
+model DiamondCertificate {
+  id            String      @id @default(cuid())
+  diamondSpecId String      @unique
+  diamondSpec   DiamondSpec @relation(fields: [diamondSpecId], references: [id], onDelete: Cascade)
+
+  issuer    String
+  number    String
+  issuedAt  DateTime?
+  /// Storage key for the scanned certificate, not a URL.
+  fileKey   String?
+  /// Public verification URL published by the issuer, when one exists.
+  verifyUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([issuer, number])
+}
+
+/// Per-product personalization field definitions (spec section 18: "do not
+/// hard-code all customization fields globally"). Two products can carry
+/// entirely different field sets because the fields ARE product data.
+model CustomizationField {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  /// Stable machine key, snapshotted onto the order line.
+  key       String
+  labelHe   String
+  fieldType CustomFieldType
+
+  isRequired Boolean @default(false)
+  maxLength  Int?
+  /// Allowed values for SELECT / LANGUAGE: [{ value, labelHe }].
+  options    Json?
+  /// Server-side validation pattern. Enforced on the server, never only in the
+  /// browser (spec section 48).
+  pattern    String?
+  helpTextHe String?
+  position   Int     @default(0)
+
+  /// Personalization surcharge, if any.
+  priceDeltaAgorot Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, key])
+  @@index([productId, position])
+}
+
+/// Merchandising groups, fully independent of categories (data-model principle
+/// 7; spec section 28). A product may belong to many.
+model Collection {
+  id            String  @id @default(cuid())
+  slug          String  @unique
+  nameHe        String
+  descriptionHe String? @db.Text
+  imageKey      String?
+  position      Int     @default(0)
+  isActive      Boolean @default(true)
+
+  /// New Arrivals / Best Sellers are derived rather than curated. The rule set
+  /// is TBD (TBD.md B15); Phase 2B implements MANUAL collections only and
+  /// `rules` stays null.
+  isAutomatic Boolean @default(false)
+  rules       Json?
+
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  products      ProductCollection[]
+  couponTargets CouponTarget[]
+
+  @@index([isActive, position])
+}
+
+model ProductCollection {
+  productId    String
+  collectionId String
+  position     Int    @default(0)
+
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@id([productId, collectionId])
+  @@index([collectionId, position])
+}
+
+// ===========================================================================
+// INVENTORY
+//
+// Availability is DERIVED, never stored as a display string:
+//   available = onHand - reserved
+//   available > 0                            -> IN_STOCK
+//   available <= 0, policy = MADE_TO_ORDER   -> MADE_TO_ORDER (show prepDays)
+//   available <= 0, policy = DENY            -> OUT_OF_STOCK
+// See src/lib/inventory/availability.ts.
+// ===========================================================================
+
+model Inventory {
+  id        String         @id @default(cuid())
+  variantId String         @unique
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  onHand   Int @default(0)
+  /// Held during checkout. NOT a bare counter — every unit here is owned by an
+  /// InventoryReservation row, so it can be attributed, expired and reconciled
+  /// (F7). CHECK constraints in the migration make `reserved > onHand`
+  /// impossible for DENY variants even if application logic is bypassed.
+  reserved Int @default(0)
+
+  policy            InventoryPolicy @default(MADE_TO_ORDER)
+  /// null inherits Product.lowStockThreshold; still null means no messaging.
+  lowStockThreshold Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// F7 — gives every reserved unit an owner, an expiry and a lifecycle.
+///
+/// A bare `reserved` counter cannot say which checkout holds a unit, whether a
+/// hold has expired, or whether a crashed checkout already reserved. In
+/// practice it ratchets upward on every abandoned payment and stock silently
+/// disappears. These rows are what the sweeper releases.
+model InventoryReservation {
+  id        String         @id @default(cuid())
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+
+  quantity Int
+
+  /// Owner context. A reservation is created at payment initiation, so it
+  /// normally carries an order; cartId is kept for traceability.
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  cartId  String?
+  cart    Cart?   @relation(fields: [cartId], references: [id], onDelete: SetNull)
+
+  status ReservationStatus @default(ACTIVE)
+
+  expiresAt  DateTime
+  releasedAt DateTime?
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  /// Drives the expiry sweeper: find ACTIVE rows past expiresAt.
+  @@index([status, expiresAt])
+  @@index([variantId, status])
+  @@index([orderId])
+}
+
+/// Append-only stock ledger. The first time on-hand stock is wrong, the only
+/// question that matters is what changed it — and that cannot be reconstructed
+/// retroactively (F23).
+///
+/// Never updated, never deleted. `Inventory` stays the fast authoritative
+/// counter; this table explains how it got there.
+model InventoryMovement {
+  id        String         @id @default(cuid())
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+
+  /// Signed change to Inventory.onHand.
+  onHandDelta   Int @default(0)
+  /// Signed change to Inventory.reserved. Both are recorded because a
+  /// reservation moves `reserved` without touching `onHand`, and consuming one
+  /// moves both.
+  reservedDelta Int @default(0)
+
+  reason        InventoryMovementReason
+  /// Values AFTER this movement, so the ledger is auditable without replaying
+  /// every prior row.
+  onHandAfter   Int
+  reservedAfter Int
+
+  orderId       String?
+  reservationId String?
+  actorUserId   String?
+  actor         User?   @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  note          String?
+
+  createdAt DateTime @default(now())
+
+  @@index([variantId, createdAt])
+  @@index([reason, createdAt])
+}
+
+// ===========================================================================
+// IDENTITY
+//
+// Three distinct concepts (ARCHITECTURE 7):
+//   User     - login identity
+//   Account  - OAuth provider link (Auth.js convention, not a customer)
+//   Customer - commercial profile, which may exist with NO User at all
+// ===========================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+
+  /// Argon2id hash. NEVER a plaintext password, and never logged.
+  /// null for OAuth-only users (spec section 25).
+  passwordHash String?
+
+  role UserRole @default(CUSTOMER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts            Account[]
+  sessions            Session[]
+  customer            Customer?
+  inventoryMoves      InventoryMovement[]
+  orderStatusEvents   OrderStatusEvent[]
+  customRequestEvents CustomRequestEvent[]
+  moderatedReviews    Review[]             @relation("ReviewModerator")
+}
+
+/// OAuth provider link. Named per the Auth.js convention; this is NOT the
+/// customer's commercial profile.
+model Account {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type              String
+  provider          String
+  providerAccountId String
+
+  refresh_token String? @db.Text
+  access_token  String? @db.Text
+  expires_at    Int?
+  token_type    String?
+  scope         String?
+  id_token      String? @db.Text
+  session_state String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires      DateTime
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+/// Commercial profile.
+///
+/// `userId` is NULLABLE, and that is what makes guest checkout structural
+/// rather than a special case (spec section 24: account creation must never be
+/// required to purchase).
+///
+/// `email` is deliberately NOT unique: the same address may appear on separate
+/// guest checkouts before any account exists, and uniqueness would make a
+/// second guest purchase fail. `emailNormalized` exists so the guest-to-account
+/// link can match case-insensitively through an index (F20).
+model Customer {
+  id     String  @id @default(cuid())
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  email           String
+  /// Lowercased, trimmed. Indexed, NOT unique.
+  emailNormalized String
+
+  firstName String?
+  lastName  String?
+  phone     String?
+
+  /// Explicit opt-in only, never implied by a purchase (spec section 51).
+  marketingOptIn Boolean @default(false)
+  notesInternal  String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  addresses      Address[]
+  carts          Cart[]
+  orders         Order[]
+  reviews        Review[]
+  wishlists      Wishlist[]
+  customRequests CustomRequest[]
+  redemptions    CouponRedemption[]
+
+  @@index([emailNormalized])
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  fullName     String
+  phone        String
+  street       String
+  houseNumber  String
+  apartment    String?
+  city         String
+  /// Optional: Israeli customers frequently do not know it.
+  postalCode   String?
+  instructions String?
+  /// Israel only (spec section 4); stored for future-proofing.
+  country      String  @default("IL")
+
+  isDefault Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+}
+
+// ===========================================================================
+// CART
+//
+// The cart stores NO PRICES. Line and cart totals are recomputed server-side
+// on every read and again before checkout (spec section 48). A cart that
+// cached prices would silently sell at stale amounts after a price change.
+//
+// A cart holds NO inventory reservation. Reservation begins at payment
+// initiation (ARCHITECTURE 6.4), so browsing never locks stock.
+// ===========================================================================
+
+model Cart {
+  id    String @id @default(cuid())
+  /// Opaque token carried in a signed cookie, so guests keep a cart.
+  token String @unique
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  /// MVP: at most ONE coupon per cart (D2.3). Enforced structurally by this
+  /// being a single nullable FK rather than a join table.
+  couponId String?
+  coupon   Coupon? @relation(fields: [couponId], references: [id], onDelete: SetNull)
+
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  items        CartItem[]
+  reservations InventoryReservation[]
+
+  @@index([customerId])
+  @@index([expiresAt])
+}
+
+model CartItem {
+  id     String @id @default(cuid())
+  cartId String
+  cart   Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  /// F17 — Cascade. Archiving a product must never be blocked by somebody's
+  /// abandoned cart.
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  quantity Int @default(1)
+
+  /// Non-axis option choices — ring size, length — when the option is a
+  /// selection rather than a variant axis (TBD.md B11).
+  /// Shape: [{ optionCode, optionLabelHe, value, valueLabelHe }]
+  selections Json?
+
+  /// Personalization values, validated server-side against the product's
+  /// CustomizationField rows before being written.
+  /// Shape: [{ key, labelHe, fieldType, value, valueLabelHe? }]
+  customization Json?
+
+  addedAt   DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([cartId])
+  @@index([variantId])
+}
+
+// ===========================================================================
+// ORDERS
+//
+// An order is a DOCUMENT, not a view over current data. Rendering an order
+// must never read Product, ProductVariant, CustomizationField or Coupon
+// (data-model principles 8-11, Rule 6).
+// ===========================================================================
+
+model Order {
+  id String @id @default(cuid())
+
+  /// Public reference. Sequence-backed integer, independent of `id`, generated
+  /// by the database so it cannot be forgotten or raced (D2.2). Never
+  /// COUNT(*)+1. Display formatting lives in the application, so the visual
+  /// format can change without touching stored data.
+  orderNumber Int @unique @default(dbgenerated("nextval('order_number_seq')"))
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  /// Overall customer-facing lifecycle (spec section 39).
+  status            OrderStatus       @default(PENDING_PAYMENT)
+  /// Set by payment webhooks only.
+  paymentStatus     PaymentStatus     @default(PENDING)
+  /// Set by admin fulfilment actions only.
+  fulfillmentStatus FulfillmentStatus @default(UNFULFILLED)
+
+  // --- Contact snapshot, frozen at purchase (principle 9) ------------------
+  email        String
+  phone        String
+  customerName String
+
+  // --- Money. All agorot, all frozen (principle 10) ------------------------
+  subtotalAgorot  Int
+  discountAgorot  Int    @default(0)
+  shippingAgorot  Int    @default(0)
+  totalAgorot     Int
+  /// VAT rate as basis points AT TIME OF PURCHASE, so a future rate change
+  /// cannot rewrite past orders. The rate is configuration, never a constant
+  /// (TBD.md B21).
+  vatRateBps      Int?
+  vatAmountAgorot Int?
+  currency        String @default("ILS")
+
+  /// Snapshot of the shipping option chosen. Provider-neutral, so it does not
+  /// depend on the undecided shipping provider (TBD.md B3-B5).
+  shippingMethodLabel String?
+
+  // --- Coupon. At most ONE per order (D2.3) --------------------------------
+  couponId       String?
+  coupon         Coupon? @relation(fields: [couponId], references: [id], onDelete: Restrict)
+  /// Snapshot: survives the coupon being renamed or archived.
+  couponCodeUsed String?
+
+  // --- External invoicing (ARCHITECTURE 11; provider TBD) ------------------
+  invoiceDocumentId String?
+  invoiceUrl        String?
+  invoiceIssuedAt   DateTime?
+
+  notesInternal String?  @db.Text
+  placedAt      DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  items          OrderItem[]
+  addresses      OrderAddress[]
+  statusEvents   OrderStatusEvent[]
+  payments       Payment[]
+  redemptions    CouponRedemption[]
+  reservations   InventoryReservation[]
+  customRequests CustomRequest[]
+
+  @@index([customerId, placedAt])
+  @@index([status, placedAt])
+  @@index([paymentStatus])
+  @@index([orderNumber])
+}
+
+/// Address snapshot, COPIED at purchase and never referenced back to
+/// `Address` — a customer editing their address must not rewrite where a past
+/// order was shipped.
+///
+/// Modelled as its own table rather than eight columns on `Order` so that
+/// adding a billing address later is a row, not a migration. Only SHIPPING is
+/// collected today (spec section 23 asks for no billing address).
+model OrderAddress {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  type OrderAddressType @default(SHIPPING)
+
+  fullName     String
+  phone        String
+  street       String
+  houseNumber  String
+  apartment    String?
+  city         String
+  postalCode   String?
+  instructions String?
+  country      String  @default("IL")
+
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, type])
+}
+
+/// The immutable purchase record for one line.
+///
+/// EVERY DISPLAY FIELD IS DUPLICATED HERE. Rendering an order never joins back
+/// to Product, so renaming a product, changing its price, editing its
+/// customization fields or archiving it leaves history untouched.
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  /// Soft references, for REPORTING ONLY — never read for display.
+  /// Restrict implements "archive, never delete" at the database level
+  /// (principle 12).
+  productId String?
+  product   Product?        @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Restrict)
+
+  // --- Snapshot: typed columns, queryable for reporting --------------------
+  productNameHe  String
+  variantLabelHe String
+  sku            String
+  goldKarat      String?
+  goldColor      String?
+  sizeValue      String?
+  lengthValue    String?
+  imageKey       String?
+
+  // --- Snapshot: JSON, for shapes that are per-product ---------------------
+  /// F14 — SELF-DESCRIBING. An array of
+  /// [{ key, labelHe, fieldType, value, valueLabelHe? }], never a bare
+  /// { key: value } map. Labels change, fields get deleted, SELECT values are
+  /// codes, and order matters — so the label, the field type and the display
+  /// value are all frozen alongside the raw value. Principle 11 requires the
+  /// personalization to be immutable WITHIN the order record, and a value with
+  /// no label is not a record of what the customer chose.
+  customization   Json?
+  /// Non-axis option choices as sold: [{ optionCode, optionLabelHe, value, valueLabelHe }]
+  selections      Json?
+  /// Diamond specs as sold, including certificate details if any.
+  diamondSnapshot Json?
+  /// Full serialized configuration, for anything not covered above.
+  productSnapshot Json
+
+  // --- Money, frozen at purchase -------------------------------------------
+  quantity              Int
+  unitPriceAgorot       Int
+  /// F15 — the personalization surcharge, recorded separately so it is
+  /// auditable rather than buried inside the unit price.
+  personalizationAgorot Int @default(0)
+  lineDiscountAgorot    Int @default(0)
+  lineTotalAgorot       Int
+
+  /// What was promised at purchase (spec section 14).
+  fulfillment ItemFulfillment
+  prepDays    Int?
+
+  createdAt DateTime @default(now())
+
+  reviews Review[]
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+/// Append-only status history. An overwritten status column cannot answer
+/// "when did this ship", which order disputes require (ARCHITECTURE 13).
+model OrderStatusEvent {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  fromStatus OrderStatus?
+  toStatus   OrderStatus
+
+  actorUserId String?
+  actor       User?   @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  note        String?
+
+  createdAt DateTime @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+/// Provider-agnostic payment record (ARCHITECTURE 10). No provider is chosen
+/// (TBD.md B1) and no SDK is installed; these columns hold whatever an Israeli
+/// provider returns.
+model Payment {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  provider        String
+  providerRef     String
+  /// Webhook idempotency key. Providers retry; a duplicate delivery must not
+  /// double-pay or double-issue an invoice.
+  providerEventId String? @unique
+
+  amountAgorot Int
+  status       PaymentStatus
+
+  /// NEVER contains card data. The application is redirect/hosted-fields only,
+  /// so raw card numbers never reach this system (spec section 48).
+  rawPayload Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerRef])
+  @@index([orderId])
+}
+
+// ===========================================================================
+// COUPONS
+//
+// MVP RULE: ONE COUPON PER ORDER. No stacking (D2.3). Enforced three ways:
+//   - Cart.couponId is a single nullable FK, not a join table
+//   - Order.couponId is a single nullable FK
+//   - CouponRedemption.orderId is UNIQUE, so a second redemption on the same
+//     order is refused by the database
+// ===========================================================================
+
+model Coupon {
+  id String @id @default(cuid())
+
+  code           String  @unique
+  /// Uppercased, trimmed. Unique and indexed, so case-insensitive lookup uses
+  /// an index rather than a sequential LOWER() scan (F20).
+  codeNormalized String  @unique
+  descriptionHe  String?
+
+  discountType      DiscountType
+  /// Basis points when PERCENTAGE, agorot when FIXED_AMOUNT. Polymorphic by
+  /// necessity; a CHECK in the migration bounds the percentage case to 10000.
+  discountValue     Int
+  /// Caps a percentage discount.
+  maxDiscountAgorot Int?
+  minOrderAgorot    Int?
+
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  usageLimitTotal       Int?
+  /// Best-effort for guests — see D2.4 and the note on CouponRedemption.
+  usageLimitPerCustomer Int?
+
+  /// NO `timesUsed` COUNTER (F10). Usage is derived from CouponRedemption
+  /// rows, which are the authoritative record. Two sources of truth for the
+  /// same fact is how a coupon gets honoured past its limit.
+  appliesTo CouponScope @default(ENTIRE_ORDER)
+
+  isActive   Boolean   @default(true)
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  targets     CouponTarget[]
+  redemptions CouponRedemption[]
+  carts       Cart[]
+  orders      Order[]
+
+  @@index([isActive, startsAt, endsAt])
+  @@index([codeNormalized])
+}
+
+/// F13 — real foreign keys instead of `String[]` arrays.
+///
+/// PostgreSQL arrays cannot carry referential integrity, so archiving a product
+/// left dangling IDs in every coupon that targeted it, and the coupon engine
+/// had to defensively filter unknown IDs forever.
+model CouponTarget {
+  id       String @id @default(cuid())
+  couponId String
+  coupon   Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+
+  targetType CouponTargetType
+
+  productId    String?
+  product      Product?    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  collectionId String?
+  collection   Collection? @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  categoryId   String?
+  category     Category?   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([couponId, targetType, productId, collectionId, categoryId])
+  @@index([couponId])
+}
+
+/// The authoritative record that a coupon was used.
+///
+/// `orderId` is UNIQUE, which is what enforces one coupon per order at the
+/// database level (D2.3).
+///
+/// FK to Coupon is Restrict, NOT Cascade: this row carries `amountAgorot`, the
+/// discount actually granted, which is financial history. Deleting a coupon
+/// must not erase the evidence that it was redeemed.
+model CouponRedemption {
+  id       String @id @default(cuid())
+  couponId String
+  coupon   Coupon @relation(fields: [couponId], references: [id], onDelete: Restrict)
+
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  customerId              String?
+  customer                Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  /// F12 — every guest checkout creates a NEW Customer row, so a per-customer
+  /// limit keyed only on customerId is unenforceable for guests. The
+  /// normalised email is the best available proxy. It is a deterrent, not a
+  /// guarantee — see D2.4. No device fingerprinting.
+  customerEmailNormalized String
+
+  amountAgorot Int
+
+  redeemedAt DateTime @default(now())
+
+  @@index([couponId, customerId])
+  @@index([couponId, customerEmailNormalized])
+}
+
+// ===========================================================================
+// CUSTOM JEWELRY REQUESTS (spec section 19)
+// ===========================================================================
+
+model CustomRequest {
+  id            String @id @default(cuid())
+  /// Public reference, same sequence strategy as orders (D2.2).
+  requestNumber Int    @unique @default(dbgenerated("nextval('custom_request_number_seq')"))
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  /// Captured directly, so an anonymous visitor can submit without an account.
+  fullName String
+  email    String
+  phone    String
+
+  jewelryType  ProductType
+  description  String      @db.Text
+  extraDetails String?     @db.Text
+  budgetAgorot Int?
+
+  status CustomRequestStatus @default(NEW)
+
+  quoteAgorot Int?
+  quoteNotes  String?   @db.Text
+  quotedAt    DateTime?
+
+  internalNotes String? @db.Text
+
+  /// F21 — a real relation, not a dangling string. Answers "did custom
+  /// requests convert into revenue".
+  linkedOrderId String?
+  linkedOrder   Order?  @relation(fields: [linkedOrderId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  images CustomRequestImage[]
+  events CustomRequestEvent[]
+
+  @@index([status, createdAt])
+  @@index([customerId])
+}
+
+/// Customer-supplied reference images. PRIVATE namespace (ARCHITECTURE 8):
+/// these may show personal jewelry or people, and are served to admins only
+/// through signed expiring URLs. Content type and size are enforced
+/// server-side when the upload URL is issued, not merely recorded here.
+model CustomRequestImage {
+  id        String        @id @default(cuid())
+  requestId String
+  request   CustomRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  storageKey  String
+  contentType String
+  sizeBytes   Int
+  position    Int    @default(0)
+
+  uploadedAt DateTime @default(now())
+
+  @@index([requestId, position])
+}
+
+/// F2 — append-only status history. Referenced throughout DATA_MODEL.md but
+/// never defined. Spec section 40 requires admins to track progress, and an
+/// overwritten status column cannot answer "when did we send the quote".
+model CustomRequestEvent {
+  id        String        @id @default(cuid())
+  requestId String
+  request   CustomRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  fromStatus CustomRequestStatus?
+  toStatus   CustomRequestStatus
+
+  actorUserId String?
+  actor       User?   @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  note        String?
+
+  createdAt DateTime @default(now())
+
+  @@index([requestId, createdAt])
+}
+
+// ===========================================================================
+// COMMUNITY
+// ===========================================================================
+
+model Review {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  /// Display copy, frozen: a customer renaming their account must not retitle
+  /// a published review.
+  authorName String
+
+  /// 1-5, bounded by a CHECK in the migration.
+  rating   Int
+  titleHe  String?
+  bodyHe   String? @db.Text
+  /// Storage key for the optional customer photo (spec section 34).
+  imageKey String?
+
+  /// F26 — what justifies isVerifiedPurchase, rather than an unexplained flag.
+  orderItemId        String?
+  orderItem          OrderItem? @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
+  isVerifiedPurchase Boolean    @default(false)
+
+  /// Defaults to PENDING so nothing appears publicly until an admin approves
+  /// it. Defaulting to visible would make moderation cosmetic (spec section 34).
+  status ReviewStatus @default(PENDING)
+
+  moderatedByUserId String?
+  moderatedBy       User?     @relation("ReviewModerator", fields: [moderatedByUserId], references: [id], onDelete: SetNull)
+  moderatedAt       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId, status])
+  @@index([customerId])
+}
+
+/// Account-bound: spec section 26 says favourites persist for logged-in users.
+/// Anonymous visitors get a local-storage draft that merges on login — client
+/// state, not a database entity.
+///
+/// Named lists cost nothing now and avoid a migration if gift or bridal lists
+/// appear later, which is plausible for this business.
+model Wishlist {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  nameHe    String  @default("המועדפים שלי")
+  isDefault Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items WishlistItem[]
+
+  @@index([customerId])
+}
+
+/// F9 — the uniqueness constraint here does NOT work as plain Prisma
+/// `@@unique`. PostgreSQL treats NULLs as distinct in unique indexes, so a
+/// product-level favourite (variantId = NULL) could be inserted unlimited
+/// times. Verified empirically on PostgreSQL 16.
+///
+/// Prisma 7.10 has no `nullsNotDistinct` argument, so the working index is
+/// created as raw SQL in the migration:
+///   CREATE UNIQUE INDEX ... UNIQUE NULLS NOT DISTINCT (wishlistId, productId, variantId)
+/// See D2.7. No `@@unique` is declared here on purpose — declaring one would
+/// create a second, broken index alongside the correct one.
+model WishlistItem {
+  id         String   @id @default(cuid())
+  wishlistId String
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /// Remembers which variant they liked; null means the product generally.
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  addedAt DateTime @default(now())
+
+  @@index([wishlistId, addedAt])
+  @@index([productId])
+}
+
+// ===========================================================================
+// ENUMS
+//
+// Gold karat (14K/18K) and colour (yellow/white/rose) from spec section 12 are
+// deliberately NOT enums. They are rows in ProductOptionValue, so adding 9K or
+// platinum is a data change rather than a migration.
+// ===========================================================================
+
+enum ProductType {
+  RING
+  EARRINGS
+  NECKLACE
+  BRACELET
+  SET
+  OTHER
+}
+
+/// Classifier for UI treatment and filtering. NOT part of any unique key — see
+/// ProductOption (F5).
+enum OptionType {
+  GOLD_KARAT
+  GOLD_COLOR
+  RING_SIZE
+  LENGTH
+  STYLE
+  PENDANT_TYPE
+  OTHER
+}
+
+enum CustomFieldType {
+  TEXT
+  TEXTAREA
+  SELECT
+  LANGUAGE
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum UserRole {
+  CUSTOMER
+  STAFF
+  ADMIN
+}
+
+enum InventoryPolicy {
+  /// Out of stock means unsellable.
+  DENY
+  /// Sellable beyond stock, with a preparation time (spec section 14).
+  MADE_TO_ORDER
+}
+
+enum ReservationStatus {
+  ACTIVE
+  RELEASED
+  CONSUMED
+  EXPIRED
+}
+
+enum InventoryMovementReason {
+  INITIAL_STOCK
+  MANUAL_ADJUSTMENT
+  SALE
+  RESERVATION
+  RELEASE
+  RETURN
+  OTHER
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  PROCESSING
+  READY
+  SHIPPED
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum FulfillmentStatus {
+  UNFULFILLED
+  IN_PRODUCTION
+  READY
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum OrderAddressType {
+  SHIPPING
+  BILLING
+}
+
+enum ItemFulfillment {
+  IN_STOCK
+  MADE_TO_ORDER
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_SHIPPING
+}
+
+enum CouponScope {
+  ENTIRE_ORDER
+  COLLECTION
+  PRODUCT
+  CATEGORY
+}
+
+enum CouponTargetType {
+  PRODUCT
+  COLLECTION
+  CATEGORY
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// Spec section 19 workflow, verbatim, plus CANCELLED.
+/// REJECTED (we declined) and CANCELLED (the customer withdrew) are different
+/// business facts that reporting needs to separate.
+enum CustomRequestStatus {
+  NEW
+  REVIEWING
+  QUOTE_SENT
+  CUSTOMER_APPROVED
+  PRODUCTION
+  COMPLETED
+  REJECTED
+  CANCELLED
 }

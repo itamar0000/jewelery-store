@@ -380,3 +380,328 @@ nothing has a component to put in it yet. No integration ports: they are Phase
 `src/lib/db` and `src/lib/env` are not yet imported by any page. That is
 expected: they are this phase's deliverables, they are covered by tests, and
 Phase 2 is what consumes them.
+
+---
+
+# Phase 2B — decision record
+
+The production data model: Prisma schema, first migration, database
+constraints, inventory reservation, validation schemas and domain tests. Still
+no admin UI, storefront, checkout, payment or authentication screens.
+
+Implements the recommendations in
+[DATA_MODEL_REVIEW.md](DATA_MODEL_REVIEW.md), whose findings are referenced
+below as **F1**–**F26**.
+
+---
+
+## D2.1 — 38 models, and why two exceed the review's list
+
+The review approved 36 models for this phase. Two more were added:
+
+- **`DiamondCertificate`**, split out of `DiamondSpec`. A certificate belongs to
+  a _physical stone_ and is usually unknown when a product is created — a
+  made-to-order piece is certified after production. Separating it means a
+  product-level `DiamondSpec` (shared defaults across six gold variants) carries
+  no certificate, while a variant-level spec can.
+- **`OrderAddress`**, instead of eight shipping columns on `Order`. Keeps the
+  order's money columns legible and makes adding a billing address a row rather
+  than a migration. Only `SHIPPING` is collected today; §23 asks for no billing
+  address.
+
+`ProcessedWebhookEvent` remains deferred to Phase 6b, per the review: no payment
+provider is chosen (TBD.md **B1**), so there is nothing to deduplicate yet.
+
+---
+
+## D2.2 — Public order numbers are sequence-backed
+
+**`Order.orderNumber` is an `Int` with a database default of
+`nextval('order_number_seq')`.** It is entirely separate from `Order.id`, which
+is a cuid and is never exposed.
+
+Why a sequence, specifically:
+
+- **It is concurrency-safe.** `nextval` never returns the same value twice, and
+  it does not read existing rows. `COUNT(*) + 1` and `MAX(...) + 1` both race
+  under concurrent checkout and issue duplicates.
+- **It cannot be forgotten.** As a _column default_ rather than application
+  code, an order created by a script, a test or a future code path still gets a
+  valid number.
+- **It survives rollback correctly.** A sequence does not roll back, so an
+  abandoned transaction leaves a gap rather than a collision. Gaps are
+  acceptable; duplicates are not. Asserted by a test.
+
+Sequences start at **100001** (orders) and **500001** (custom requests), in
+separate number spaces, so the first order does not read as "order 1".
+
+**Display formatting lives in `src/lib/orders/order-number.ts` and nowhere
+else.** Nothing persists a formatted string, so the visual format can change
+without touching stored data.
+
+**Known tradeoff, accepted:** a monotonic sequence leaks order volume to anyone
+who places two orders. TBD.md **B22** wanted a non-sequential-looking reference;
+this phase's brief explicitly accepted a sequence-backed integer instead. If it
+later matters, `ALTER SEQUENCE ... INCREMENT BY n` or a format change addresses
+it without a data migration.
+
+---
+
+## D2.3 — One coupon per order. No stacking.
+
+Decided for MVP, closing the neutral position the review recommended in F11.
+Enforced in **three** places, not one:
+
+1. `Cart.couponId` is a single nullable FK, not a join table.
+2. `Order.couponId` is a single nullable FK.
+3. **`CouponRedemption.orderId` is `UNIQUE`** — the database refuses a second
+   redemption against the same order.
+
+The third is what makes it real: application logic can be bypassed, a unique
+index cannot. A test asserts that a second redemption on one order is rejected.
+
+`Coupon.timesUsed` was **removed** (F10). Usage is derived from
+`CouponRedemption` rows, which are the authoritative record. Two sources of
+truth for the same fact is how a coupon gets honoured past its limit. The
+redemption FK to `Coupon` is `Restrict`, not `Cascade`: the row carries
+`amountAgorot`, the discount actually granted, which is financial history.
+
+`CouponTarget` replaces the `String[]` arrays (F13), so targeting has real
+foreign keys and archiving a product cannot leave dangling ids.
+
+---
+
+## D2.4 — Per-customer coupon limits are best-effort for guests
+
+**Stated plainly because it cannot be fixed, only bounded.**
+
+Every guest checkout creates a _new_ `Customer` row — that is the design that
+makes guest checkout structural (§24), not a bug. So a per-customer limit keyed
+on `customerId` is unenforceable for guests: a shopper can reuse a
+one-per-customer coupon indefinitely by checking out as a guest each time (F12).
+
+**What was done:** `CouponRedemption.customerEmailNormalized` is stored and
+indexed, and the usage check matches on it as well as on `customerId`. A
+returning guest using the same email is caught.
+
+**What was deliberately NOT done:** device fingerprinting, IP tracking, or any
+other invasive identification. It would be a privacy decision nobody has made,
+it is trivially defeated, and §48 and the legal items in TBD.md point the other
+way.
+
+**The honest position:** a per-customer limit is a deterrent against casual
+reuse, not a guarantee. A coupon whose abuse would genuinely hurt should use
+`usageLimitTotal`, which _is_ enforceable, or be issued as single-use codes.
+This should be said out loud to whoever configures a coupon.
+
+---
+
+## D2.5 — Typed-first attributes. No EAV.
+
+Implemented as the review recommended (§8 of DATA_MODEL_REVIEW), and the balance
+turned out even more typed than expected:
+
+| §10 filter                                 | Where it lives                               | Typed?        |
+| ------------------------------------------ | -------------------------------------------- | ------------- |
+| Gold karat, gold colour                    | `ProductOption` / `ProductOptionValue`       | Relational    |
+| Ring size, length                          | `ProductOption` (axis or selection, per B11) | Relational    |
+| Diamond shape, carat, colour, clarity, cut | `DiamondSpec`                                | Typed columns |
+| Price                                      | `Product.min/maxPriceAgorot`                 | Typed         |
+| Availability                               | derived from `Inventory`                     | Computed      |
+| **Style, pendant type**                    | `Product.attributes` (JSONB)                 | JSON          |
+
+So the JSON bag carries **two** facets. Three rules keep it from degrading into
+an unqueryable junk drawer:
+
+1. Allowed keys per category are declared in `Category.filterConfig` and
+   validated server-side. A key not declared for the category is rejected.
+2. Scalars and scalar arrays only — no nesting, because nested JSON is not
+   usefully indexable.
+3. A GIN index with `jsonb_path_ops` covers containment queries
+   (`attributes @> '{"style":"vintage"}'`), which is the only access pattern
+   this column has.
+
+Promoting a JSON key to a typed column later is an additive migration plus a
+backfill — a half-hour job at ~100 products. Retreating from EAV would be a
+rewrite of every query. The cheap-to-reverse direction was chosen.
+
+---
+
+## D2.6 — Constraints live in the database, in raw SQL
+
+**35 CHECK constraints**, plus a `NULLS NOT DISTINCT` index, two sequences and
+three operator-class indexes, are hand-written SQL inside the migration.
+
+Prisma's schema language expresses unique constraints and foreign keys. It
+expresses **neither CHECK constraints nor `NULLS NOT DISTINCT`** — verified
+against Prisma 7.10, where `@@unique([...], nullsNotDistinct: true)` fails with
+`No such argument`.
+
+The principle: **an invariant that must never be violated belongs in the
+database.** Application checks exist to produce good error messages; they are
+not the guarantee, because they are bypassed by every seed script, admin
+fix-up, backfill and concurrent request.
+
+The single most valuable one:
+
+```sql
+ALTER TABLE "Order" ADD CONSTRAINT "Order_total_consistent"
+  CHECK ("totalAgorot" = "subtotalAgorot" - "discountAgorot" + "shippingAgorot");
+```
+
+It is the last line of defence against a pricing bug shipping money out of the
+door, it costs nothing, and it catches mistakes no unit test anticipated. VAT is
+deliberately **not** in that equation: Israeli consumer prices are displayed
+VAT-inclusive (ARCHITECTURE §6.2), so `vatAmountAgorot` is a component _of_ the
+total, recorded for the invoice, not an addition to it.
+
+The canonical line formula is fixed by constraint too, so every writer agrees:
+
+```
+lineTotal = (unitPrice + personalization) * quantity - lineDiscount
+```
+
+`personalizationAgorot` is a **per-unit** surcharge (F15).
+
+**The migration is hand-edited and must not be regenerated.** Re-running
+`prisma migrate dev --create-only` over it would drop every one of these. A
+banner at the top of the file says so.
+
+---
+
+## D2.7 — Wishlist uniqueness needs `NULLS NOT DISTINCT`
+
+PostgreSQL treats NULLs as **distinct** in unique indexes by default, so
+`@@unique([wishlistId, productId, variantId])` with a nullable `variantId` let a
+product-level favourite be inserted an unlimited number of times (F9).
+
+The migration creates the index with `NULLS NOT DISTINCT` (PostgreSQL 15+)
+instead, which matches the intended business semantics: a product may appear on
+a wishlist **once generally, and once per variant**.
+
+**No `@@unique` is declared in `schema.prisma` for this**, deliberately —
+declaring one would create a second, broken index alongside the correct one. The
+model carries a comment saying so, because the absence is otherwise easy to
+mistake for an oversight.
+
+---
+
+## D2.8 — Prisma client is generated with explicit `.ts` import extensions
+
+`generator client` sets `importFileExtension = "ts"`.
+
+Without it the generated client imports its own modules extensionlessly
+(`./enums`), which Node's ESM resolver cannot follow when running a TypeScript
+file directly — `node prisma/seed.ts` fails with `ERR_MODULE_NOT_FOUND`.
+Bundlers resolve either form, so nothing else is affected.
+
+This is what lets the seed run on **Node's native type stripping** with no
+TypeScript runner dependency at all. `tsconfig.json` gains
+`allowImportingTsExtensions: true`, which is safe here because `noEmit` is on
+and Next.js does the compiling.
+
+---
+
+## D2.9 — Inventory: reservations own the counter
+
+The review's F7 finding, implemented.
+
+`Inventory.reserved` is no longer a bare counter. Every reserved unit is owned
+by an **`InventoryReservation`** row with a status
+(`ACTIVE | RELEASED | CONSUMED | EXPIRED`) and an `expiresAt`, so the system can
+say which checkout holds it, release it when it expires, and reconcile after a
+crash. Without that, `reserved` ratchets upward on every abandoned payment and
+stock silently disappears — a test asserts exactly that failure mode is fixed.
+
+**The concurrency strategy is a single conditional UPDATE:**
+
+```sql
+UPDATE "Inventory" SET "reserved" = "reserved" + $qty
+ WHERE "variantId" = $id
+   AND ("policy" = 'MADE_TO_ORDER' OR "onHand" - "reserved" >= $qty)
+```
+
+Under READ COMMITTED, a second transaction that blocks on the row lock
+**re-evaluates its WHERE clause against the committed new row version** once the
+lock is released. It therefore sees the incremented `reserved`, the condition
+fails, and it affects **zero rows** — which is the failure signal. No
+`SELECT ... FOR UPDATE`, no advisory lock, no retry loop.
+
+A read-then-write sequence would be a lost-update race: both buyers read
+`available = 1`, both decide yes, both write. Tests cover two concurrent buyers
+for one unit and twenty concurrent buyers for five units.
+
+`Inventory_deny_cannot_oversell` is the backstop: even bypassing this module
+entirely, the database refuses to record an oversold state. Also asserted by a
+test.
+
+`releaseReservation` and `consumeReservation` are **idempotent** — the status
+transition is a conditional `updateMany` on `status = 'ACTIVE'`, so a duplicate
+call affects zero rows and returns `false` rather than double-crediting stock.
+That matters because payment webhooks are retried.
+
+**`InventoryMovement`** is an append-only ledger recording both `onHandDelta`
+and `reservedDelta` plus the resulting state, so a stock discrepancy is always
+explainable. It is never updated or deleted.
+
+---
+
+## D2.10 — Historical integrity is enforced, not merely intended
+
+Three layers, in order of trust:
+
+1. **Typed snapshot columns on `OrderItem`** — the order page and invoice render
+   from these. Typed so they stay queryable for reporting.
+2. **Self-describing JSON snapshots** — `customization`, `selections`,
+   `diamondSnapshot`, `productSnapshot`, for shapes that are per-product.
+3. **Soft FKs** (`productId`, `variantId`) with `onDelete: Restrict` — reporting
+   joins only, never read for display.
+
+The F14 repair matters most. `OrderItem.customization` is an **array of
+`{ key, labelHe, fieldType, value, valueLabelHe?, position }`**, never a
+`{ key: value }` map, because labels change, fields get deleted, SELECT values
+are codes, and order matters. A value with no label is not a record of what the
+customer chose.
+
+Two tests hold this: one renames, deletes and reorders customization fields and
+asserts the order renders identically; another renames, reprices and archives
+the product and asserts every snapshot column is untouched.
+
+`onDelete: Restrict` on `OrderItem → Product` and `Order → Customer` is the
+database backstop behind the admin UI offering "Archive", never "Delete"
+(principle 12). A test asserts both deletions are refused.
+
+---
+
+## D2.11 — Tests run against a real PostgreSQL
+
+Integration tests use a **separate `jewelry_test` database**, created and
+migrated by a Vitest `globalSetup`.
+
+**`prisma migrate deploy`, not `db push`.** This is the important part: the
+tests exercise the _actual migration_, including all the hand-written raw SQL. A
+schema pushed from `schema.prisma` would silently omit every CHECK constraint
+and the wishlist index, and every constraint test would pass against a database
+production will never resemble.
+
+`fileParallelism: false`, because integration tests truncate shared tables. The
+suite is small; serial execution costs seconds and removes a class of flakiness.
+
+**`npm test` now requires a running database** (`npm run db:up`). Tests fail
+loudly when it is missing rather than silently skipping — a silently skipped
+concurrency test is worse than no test at all. CI runs a PostgreSQL service
+container for the same reason.
+
+---
+
+## D2.12 — What Phase 2B deliberately does not contain
+
+No admin UI, storefront, product page, cart UI, checkout UI, payment provider,
+invoice provider or authentication screens. No `ProcessedWebhookEvent`. No
+automatic collection rules — `Collection.isAutomatic` and `rules` exist and stay
+unused until TBD.md **B15** is decided.
+
+The auth _tables_ exist (`User`, `Account`, `Session`, `VerificationToken`) with
+`passwordHash` documented as Argon2id and never plaintext, but no authentication
+logic and no provider secrets. `Customer.userId` stays nullable, which is what
+makes guest checkout structural rather than a special case.

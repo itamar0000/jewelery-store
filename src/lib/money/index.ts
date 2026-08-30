@@ -16,6 +16,7 @@ export {
   compare,
   equals,
   fromAgorot,
+  fromBasisPoints,
   fromShekels,
   isNegative,
   isZero,

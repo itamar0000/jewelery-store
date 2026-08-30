@@ -218,6 +218,32 @@ export function percent(value: string | number): Percent {
   return Number(basisPoints) as Percent;
 }
 
+/**
+ * Build a `Percent` directly from basis points: `fromBasisPoints(1250)` is
+ * 12.5%.
+ *
+ * This is the constructor to use when the rate already comes from storage.
+ * Database columns hold basis points (`Coupon.discountValue`,
+ * `Order.vatRateBps`), and routing those through `percent(value / 100)` would
+ * put a floating-point division in the middle of a money pipeline built
+ * specifically to avoid one.
+ */
+export function fromBasisPoints(basisPoints: number): Percent {
+  if (!Number.isInteger(basisPoints)) {
+    throw new MoneyError(
+      `Basis points must be a whole number, received ${basisPoints}. ` +
+        'A fractional basis point cannot be represented.',
+    );
+  }
+  if (basisPoints < 0) {
+    throw new MoneyError(`Percentage may not be negative, received ${basisPoints} basis points.`);
+  }
+  if (basisPoints > Number(BASIS_POINTS_PER_100_PERCENT)) {
+    throw new MoneyError(`Percentage may not exceed 100%, received ${basisPoints} basis points.`);
+  }
+  return basisPoints as Percent;
+}
+
 /* ------------------------------------------------------------------ *
  * Conversion out
  * ------------------------------------------------------------------ */

@@ -9,11 +9,28 @@ jobs:
   verify:
     runs-on: ubuntu-latest
 
+    # Integration tests run against a real PostgreSQL. The reservation race,
+    # the CHECK constraints and the NULLS NOT DISTINCT wishlist index live in
+    # the database and cannot be asserted against a mock, so CI provides one.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: jewelry
+          POSTGRES_USER: jewelry
+          POSTGRES_PASSWORD: jewelry_local_dev
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U jewelry -d jewelry"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
     env:
-      # The Prisma schema test resolves the datasource configuration, which
-      # requires the variable to exist. Nothing connects to it - CI runs no
-      # database. Real credentials never appear here.
-      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=public
+      # CI-only credentials for a throwaway container. Not a secret.
+      DATABASE_URL: postgresql://jewelry:jewelry_local_dev@localhost:5433/jewelry?schema=public
+      TEST_DATABASE_URL: postgresql://jewelry:jewelry_local_dev@localhost:5433/jewelry_test?schema=public
 
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +48,9 @@ jobs:
 
       - run: npm run typecheck
 
+      # Vitest's global setup creates the test database and runs
+      # `prisma migrate deploy` against it, so the tests exercise the real
+      # migration rather than a pushed schema.
       - run: npm test
 
       - run: npm run build

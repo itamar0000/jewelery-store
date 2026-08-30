@@ -10,6 +10,12 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+
+    // The Prisma client is generated as TypeScript with explicit `.ts` import
+    // extensions, so that `node prisma/seed.ts` can resolve it without a
+    // separate TypeScript runner (D2.8). Safe here because nothing in this
+    // project emits from tsc - `noEmit` is on and Next.js does the compiling.
+    "allowImportingTsExtensions": true,
     "incremental": true,
     "noEmit": true,
 
