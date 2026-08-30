@@ -705,3 +705,140 @@ The auth _tables_ exist (`User`, `Account`, `Session`, `VerificationToken`) with
 `passwordHash` documented as Argon2id and never plaintext, but no authentication
 logic and no provider secrets. `Customer.userId` stays nullable, which is what
 makes guest checkout structural rather than a special case.
+
+---
+
+# Phase 3A — decision record
+
+Storefront foundation: header, navigation, homepage, category shell, product
+card. Browsing structure exists; nothing can be bought, searched or saved.
+
+---
+
+## D3.1 — Navigation state is a pure reducer, not component state
+
+The header owns four interacting pieces of state: the open mega menu, the mobile
+drawer, the drawer's expanded group, and the search overlay. They constrain each
+other — **at most one overlay surface may be open at a time**, because each one
+claims the viewport and the user's focus.
+
+Expressed as four `useState` calls, that invariant becomes scattered
+`setX(false)` calls that drift apart, and testing it requires a DOM this project
+deliberately does not have (D1.9).
+
+It is therefore a pure reducer in `src/lib/navigation/menu-state.ts`, and the
+invariant is asserted directly — including a property-style test that checks
+**every prefix** of an action sequence, not just the final state.
+
+That test earned its place immediately: it caught `OPEN_MEGA_MENU` closing the
+search overlay but not the mobile drawer. Harmless in practice, since the two
+never share a viewport, but it meant the invariant was being enforced by CSS
+breakpoints rather than by the reducer.
+
+---
+
+## D3.2 — The mega menu trigger is a button, not a link
+
+A control that expands a panel is a button. Announcing it as a link and then not
+navigating misrepresents it to a screen reader.
+
+The category landing page is not lost: **"כל הטבעות" is the first link inside
+every panel**, which is also the more discoverable position. A test asserts that
+every mega menu opens with a link to its own category, because losing it would
+strand the category with no route to it.
+
+---
+
+## D3.3 — The mobile drawer has no entry animation
+
+A slide-in keyframe was implemented, then removed.
+
+The drawer's resting position is correct on its own (`start-0`). A slide makes
+the animation the *only* thing that brings it on screen: it starts translated a
+full width away and depends on the animation clock to return it. Observed
+directly in testing, an animation whose clock does not advance — a throttled or
+background-rendered tab — leaves the drawer parked off-screen while body scroll
+is locked. That presents as a completely broken page.
+
+The specification asks for restraint over motion (§2) and the phase brief asked
+for a simple, reliable drawer, so the trade was easy: no motion, and the failure
+mode disappears.
+
+---
+
+## D3.4 — Low-stock UI is a prop, never a rule
+
+`ProductCard` accepts an optional `stockNotice` string and renders nothing when
+it is absent. There is **no client-side threshold**, no `lowStockThreshold` prop,
+and no `if (quantity < 3)` anywhere in presentation.
+
+Scarcity is a claim about real inventory. Deciding it belongs to
+`src/lib/inventory` against real stock, not to a component that could invent it.
+The development fixtures carry no stock values at all, and a test asserts a card
+with no inventory data says nothing about inventory.
+
+---
+
+## D3.5 — No fabricated reviews, and no fabricated contact details
+
+Most placeholders in this phase stand in for creative that does not exist yet. A
+fake customer review is a different category of thing: it is a false statement
+attributed to a person, it is exactly what the section would display in
+production, and a fabricated testimonial is a consumer-protection problem rather
+than a design shortcut.
+
+`ReviewsSection` therefore renders the layout — three cards at the right
+proportions, star row and attribution line positioned — with an explicit empty
+state. The same reasoning applies to the footer contact channels, which show
+"יעודכן" with no `href` rather than an invented phone number or a dead `tel:`
+link.
+
+---
+
+## D3.6 — Desktop navigation fits 1024 by shrinking, not by collapsing
+
+At 1024px the eight primary items, wordmark and four utility controls overflowed
+by 111px. The easy fix — moving the hamburger breakpoint up to `xl` — was
+rejected: §6 states twice that desktop must not use a hamburger, and 1024 is a
+genuine laptop width.
+
+Instead the nav tightens (`px-2`, no inter-item gap, wider gutter deferred to
+`xl`) and the primary label shortened to "מדריכים"; the page itself keeps the
+full "מדריכים ושאלות נפוצות" title. Measured at 375, 768, 1024, 1280 and 1440:
+**zero horizontal overflow at every one**.
+
+---
+
+## D3.7 — Placeholders are registered and greppable
+
+Every temporary surface marks itself with `data-placeholder` and is listed in
+`src/lib/placeholders.ts` with the phase that replaces it. The full set is
+findable from source *and* from a running page
+(`document.querySelectorAll('[data-placeholder]')`).
+
+The risk being managed is a placeholder quietly surviving into production
+because nobody remembered it was one. When that file is empty, the shell is
+fully wired.
+
+---
+
+## D3.8 — Fixtures are read by routes, never imported by components
+
+`src/lib/fixtures` is development data with its own README stating the rules. No
+component imports it; routes read it and pass it down. Phase 3B replaces one
+import per route with a query, and no component changes.
+
+---
+
+## D3.9 — What Phase 3A deliberately does not contain
+
+No working search, cart, wishlist, account, authentication, checkout or
+filtering. No pagination and no SEO copy on category pages — both are meaningless
+against a fixed fixture array, and a paginator over eight hard-coded products
+would be a fake control. No product gallery or variant selection (Phase 4). No
+custom-request form: it would collect a name, phone and reference photo and
+discard them, which is worse than no form.
+
+No brand decisions. The wordmark is plain type, the palette and font remain the
+provisional ones from Phase 1, and all photography is a tonal placeholder
+surface. Nothing here should be read as a settled identity.
