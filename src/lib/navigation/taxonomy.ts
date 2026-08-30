@@ -75,7 +75,6 @@ function discoveryColumn(categorySlug: string): NavColumn {
         label: 'רבי מכר',
         href: `/${categorySlug}?collection=best-sellers`,
       },
-      { id: `${categorySlug}-gifts`, label: 'מתנות', href: `/${categorySlug}?collection=gifts` },
     ],
   };
 }
@@ -83,10 +82,23 @@ function discoveryColumn(categorySlug: string): NavColumn {
 /**
  * Primary navigation.
  *
- * Section 6: Rings, Earrings, Necklaces, Bracelets, Sets, Gifts, Custom
- * Jewelry, Guides / FAQ. The five product categories carry mega menus; the
- * remaining three are direct links, because section 6 warns against
- * overloading the navigation.
+ * Section 6 lists Rings, Earrings, Necklaces, Bracelets, Sets, Gifts, Custom
+ * Jewelry and Guides / FAQ. Three deliberate departures, all owner decisions
+ * recorded here so they are not mistaken for drift from the specification:
+ *
+ *   - GIFTS IS REMOVED for now. It is a merchandising surface with no products
+ *     behind it yet, and an empty category is worse than an absent one. The
+ *     `?collection=gifts` discovery links went with it. Restoring it is one
+ *     entry here plus the discovery link.
+ *   - GUIDES BECAME "שאלות ותשובות" at /faq. The section 33 educational topics
+ *     are still unwritten; a question-and-answer page is the honest shape for
+ *     what the store can actually answer today.
+ *   - CONTACT IS ADDED as a primary item. Section 51 puts contact in the
+ *     footer only, but a jewellery store that takes custom orders is asked
+ *     questions before it is asked for a checkout.
+ *
+ * The five product categories carry mega menus; the rest are direct links,
+ * because section 6 warns against overloading the navigation.
  */
 export const PRIMARY_NAV: readonly NavItem[] = [
   {
@@ -201,9 +213,9 @@ export const PRIMARY_NAV: readonly NavItem[] = [
       discoveryColumn('sets'),
     ],
   },
-  { id: 'gifts', label: 'מתנות', href: '/gifts' },
   { id: 'custom', label: 'עיצוב אישי', href: '/custom' },
-  { id: 'guides', label: 'מדריכים', href: '/guides' },
+  { id: 'faq', label: 'שאלות ותשובות', href: '/faq' },
+  { id: 'contact', label: 'צור קשר', href: '/contact' },
 ];
 
 /**
@@ -229,7 +241,6 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
       { id: 'f-necklaces', label: 'שרשראות', href: '/necklaces' },
       { id: 'f-bracelets', label: 'צמידים', href: '/bracelets' },
       { id: 'f-sets', label: 'סטים', href: '/sets' },
-      { id: 'f-gifts', label: 'מתנות', href: '/gifts' },
     ],
   },
   {
@@ -240,7 +251,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
       { id: 'f-shipping', label: 'משלוחים', href: '/shipping' },
       { id: 'f-returns', label: 'החזרות', href: '/returns' },
       { id: 'f-warranty', label: 'אחריות', href: '/warranty' },
-      { id: 'f-faq', label: 'שאלות נפוצות', href: '/guides' },
+      { id: 'f-faq', label: 'שאלות ותשובות', href: '/faq' },
     ],
   },
   {
@@ -248,7 +259,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
     title: 'אודות',
     links: [
       { id: 'f-about', label: 'עלינו', href: '/about' },
-      { id: 'f-guides', label: 'מדריכים', href: '/guides' },
+      { id: 'f-contact', label: 'צור קשר', href: '/contact' },
     ],
   },
   {

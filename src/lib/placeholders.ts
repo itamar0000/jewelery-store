@@ -62,8 +62,13 @@ export const PLACEHOLDERS: readonly PlaceholderEntry[] = [
   },
   {
     id: 'filters',
-    what: 'Filter and sort controls render their full visual architecture but do not filter or sort.',
+    what: 'Filter and sort controls render their full visual architecture but do not filter or sort. Opened from the toolbar; closed by default.',
     replacedBy: 'Phase 3B - URL-driven filter state against real queries.',
+  },
+  {
+    id: 'contact',
+    what: 'Contact page lists channels with no values and no form. Nothing is collected and nothing is sent.',
+    replacedBy: 'Business details (TBD section 52) plus an enquiry inbox.',
   },
   {
     id: 'catalog-data',

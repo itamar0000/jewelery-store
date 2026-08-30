@@ -1,4 +1,4 @@
-import { Breadcrumbs } from '@/components/category/Breadcrumbs';
+import { PageHero } from '@/components/storefront/PageHero';
 import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
 import { PLACEHOLDER_ATTR } from '@/lib/placeholders';
@@ -25,20 +25,24 @@ export function PlaceholderPage({
   phase: string;
 }) {
   return (
-    <Container className="py-10" {...PLACEHOLDER_ATTR}>
-      <Breadcrumbs trail={[{ label: 'דף הבית', href: '/' }, { label: title }]} />
+    <>
+      <PageHero
+        title={title}
+        trail={[{ label: 'דף הבית', href: '/' }, { label: title }]}
+        imageLabel={title}
+      />
 
-      <div className="border-border mx-auto mt-16 max-w-(--container-prose) rounded-sm border border-dashed p-8 text-center">
-        <h1 className="text-2xl tracking-tight">{title}</h1>
+      <Container className="py-12 md:py-16" {...PLACEHOLDER_ATTR}>
+        <div className="border-border mx-auto max-w-(--container-prose) rounded-sm border border-dashed p-8 text-center">
+          <p className="text-muted-foreground text-sm text-pretty">{explanation}</p>
 
-        <p className="text-muted-foreground mt-4 text-sm text-pretty">{explanation}</p>
+          <p className="text-muted-foreground/70 text-2xs mt-6">{phase}</p>
 
-        <p className="text-muted-foreground/70 text-2xs mt-6">{phase}</p>
-
-        <Button href="/" variant="secondary" className="mt-8">
-          חזרה לדף הבית
-        </Button>
-      </div>
-    </Container>
+          <Button href="/" variant="secondary" className="mt-8">
+            חזרה לדף הבית
+          </Button>
+        </div>
+      </Container>
+    </>
   );
 }

@@ -754,7 +754,7 @@ strand the category with no route to it.
 A slide-in keyframe was implemented, then removed.
 
 The drawer's resting position is correct on its own (`start-0`). A slide makes
-the animation the *only* thing that brings it on screen: it starts translated a
+the animation the _only_ thing that brings it on screen: it starts translated a
 full width away and depends on the animation clock to return it. Observed
 directly in testing, an animation whose clock does not advance — a throttled or
 background-rendered tab — leaves the drawer parked off-screen while body scroll
@@ -813,7 +813,7 @@ full "מדריכים ושאלות נפוצות" title. Measured at 375, 768, 102
 
 Every temporary surface marks itself with `data-placeholder` and is listed in
 `src/lib/placeholders.ts` with the phase that replaces it. The full set is
-findable from source *and* from a running page
+findable from source _and_ from a running page
 (`document.querySelectorAll('[data-placeholder]')`).
 
 The risk being managed is a placeholder quietly surviving into production
@@ -842,3 +842,113 @@ discard them, which is worse than no form.
 No brand decisions. The wordmark is plain type, the palette and font remain the
 provisional ones from Phase 1, and all photography is a tonal placeholder
 surface. Nothing here should be read as a settled identity.
+
+---
+
+# Phase 3A — amendments after design review
+
+Six owner requests, three of which reverse decisions taken earlier in the same
+phase. The originals are left in place above rather than edited, so the
+reasoning that turned out to be wrong stays visible.
+
+---
+
+## D3.10 — The mega menu trigger navigates (reverses D3.2)
+
+D3.2 made the trigger a `<button>`: a control that expands a panel is a button,
+and "כל הטבעות" inside the panel carried the route to the category.
+
+Correct in the abstract, wrong in use. Clicking a category name is the most
+obvious thing a visitor does, and swallowing that click to toggle a panel is a
+dead end — worst of all with a mouse, where hover has _already_ opened the
+panel, so the click appears to do nothing at all.
+
+The trigger is now an `<a>` to the category. The panel opens on hover **and on
+focus**, so keyboard users still reach it by tabbing; `aria-expanded` stays on
+the link, which ARIA 1.2 supports on `role=link`; Escape still closes and
+restores focus.
+
+The mobile drawer got the same treatment, as a **link plus a separate chevron
+button**. On a touchscreen there is no hover, so one control cannot both
+navigate and expand — splitting them is the only way both stay reachable. Each
+carries its own accessible name.
+
+---
+
+## D3.11 — Filters are opt-in, not a permanent sidebar
+
+The pinned filter sidebar was the conventional catalog layout and the wrong
+call: it spent a quarter of the page on controls most visitors never touch, and
+squeezed the product grid — the actual content — into what was left.
+
+Filters now open from a toolbar toggle, closed by default, in two
+presentations from one state: **desktop opens a panel downward** in the page
+flow above the grid, laid out in columns, so nothing overlaps the products;
+**mobile opens a side drawer**, because a top panel on a phone would push the
+products off-screen entirely. The grid runs full width — measured 1056px at
+1280, against roughly 790px before.
+
+---
+
+## D3.12 — Headings are centred where the section is full-width, not everywhere
+
+The reviewer found headings pinned to the inline-start edge uncomfortable. That
+is a real effect and worse in RTL: a short Hebrew title jammed against the heavy
+right margin, with the paired "see all" link stranded at the far left of the
+same row, forces the eye across the full page width to read one heading.
+
+Centred: page heroes (title, introduction and breadcrumbs), full-width homepage
+section headings, subcategory chips from `md` up. The "see all" link moved
+below the heading rather than opposite it.
+
+Left start-aligned, deliberately:
+
+- **breadcrumb trails** — a centred trail is genuinely hard to read;
+- **two-column editorial bands** — centring short text inside a narrow column
+  looks accidental, and the alternating image sides already give the rhythm;
+- **the product page title** — it heads a column of controls that are
+  themselves start-aligned;
+- **footer columns and the FAQ list** — long-form reading and link lists both
+  want a consistent start edge.
+
+Verified by measurement: the five full-width section headings sit at centre
+offset 0; the three editorial headings at ±280px, alternating.
+
+---
+
+## D3.13 — Every inner page opens with a hero band
+
+`PageHero` puts breadcrumbs, title and introduction centred over an image band
+on category, FAQ, contact, custom and the placeholder routes. It reuses the same
+tonal `PlaceholderImage`; the photography is still TBD and this is a frame
+waiting for it.
+
+`PlaceholderImage` gained `hideLabel`, because its centred caption chip landed
+directly behind the centred hero title and the overlap read as a rendering
+fault.
+
+---
+
+## D3.14 — Gifts removed, Guides became FAQ, Contact promoted
+
+Three departures from the section 6 navigation list, all owner decisions:
+
+- **Gifts removed for now.** It is a merchandising surface with no products
+  behind it; an empty category is worse than an absent one. The
+  `?collection=gifts` discovery links went with it. A test asserts no `gifts`
+  href survives anywhere in the taxonomy.
+- **Guides became "שאלות ותשובות" at `/faq`.** The section 33 educational
+  articles are still unwritten, and shipping invented jewellery advice has a
+  real cost — wrong ring-sizing guidance misleads a buyer. Questions with a
+  checkable factual answer are answered; questions whose answer is an unset
+  business policy (shipping cost, return window, warranty length — TBD L2, L3,
+  L4, B4, B5) are listed and explicitly marked pending rather than invented.
+- **Contact promoted to primary navigation.** Section 51 puts contact in the
+  footer only, but a store taking custom orders is asked questions before it is
+  asked for a checkout.
+
+The contact page carries **no invented details and no form**. Channels render
+"יעודכן" with no `href`, from the same constant the footer reads. A contact form
+would collect a name, phone and message and discard them — there is no inbox
+behind it — and a form that silently drops enquiries is worse than no form,
+because the customer believes they have been in touch.

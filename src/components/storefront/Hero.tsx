@@ -53,7 +53,7 @@ export function Hero({
 }) {
   const content = (
     <div className={cn('relative isolate overflow-hidden', layout === 'contained' && 'rounded-lg')}>
-      <PlaceholderImage ratio="hero" label={imageLabel ?? 'תמונת נושא'} />
+      <PlaceholderImage ratio="hero" label={imageLabel ?? 'תמונת נושא'} hideLabel />
 
       {/*
        * Scrim, strongest behind the text.

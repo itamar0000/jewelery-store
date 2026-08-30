@@ -34,11 +34,18 @@ export type PlaceholderRatio = keyof typeof RATIOS;
 export function PlaceholderImage({
   ratio = 'square',
   label,
+  hideLabel = false,
   className,
 }: {
   ratio?: PlaceholderRatio;
   /** What the final asset should show. Shown only at larger sizes. */
   label?: string;
+  /**
+   * Suppresses the caption chip. Used where the placeholder sits BEHIND text -
+   * a page hero - because the centred chip and the centred title land on top of
+   * each other and the overlap reads as a rendering bug.
+   */
+  hideLabel?: boolean;
   className?: string;
 }) {
   return (
@@ -52,9 +59,11 @@ export function PlaceholderImage({
         className,
       )}
     >
-      <span className="border-border-strong/60 text-muted-foreground/70 text-2xs tracking-snug hidden rounded-full border px-3 py-1 sm:inline-block">
-        {label ?? 'תמונה'}
-      </span>
+      {!hideLabel && (
+        <span className="border-border-strong/60 text-muted-foreground/70 text-2xs tracking-snug hidden rounded-full border px-3 py-1 sm:inline-block">
+          {label ?? 'תמונה'}
+        </span>
+      )}
     </div>
   );
 }

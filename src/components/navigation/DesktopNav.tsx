@@ -24,19 +24,29 @@ import { MegaMenu } from './MegaMenu';
  *
  *   - POINTER: `mouseenter` on an item opens it, `mouseleave` on the whole nav
  *     closes it. No click needed, no delay to fight.
- *   - KEYBOARD: the trigger is a real <button> with `aria-expanded` and
- *     `aria-controls`. Enter/Space toggles; Escape closes and returns focus to
- *     the trigger, which is where a keyboard user expects to land.
+ *   - KEYBOARD: focusing the trigger opens its panel; Escape closes it and
+ *     returns focus to the trigger, which is where a keyboard user expects to
+ *     land. Enter follows the link to the category.
  *   - FOCUS: tabbing into a panel keeps it open; `blur` that lands outside the
  *     nav closes it. This is what makes Tab-through work at all.
  *
- * WHY THE TRIGGER IS A BUTTON AND NOT A LINK. A control that expands a panel is
- * a button; announcing it as a link and then not navigating is a lie to a
- * screen reader. The category page is not lost - "כל הטבעות" is the first link
- * inside every panel, which is also the more discoverable position.
+ * THE TRIGGER IS A LINK, AND CLICKING IT NAVIGATES.
  *
- * Items without columns (Gifts, Custom, Guides) render as plain links, because
- * they genuinely navigate.
+ * The first pass made it a <button>, reasoning that a control which expands a
+ * panel is a button, and left "כל הטבעות" inside the panel as the only route
+ * to the category. That was wrong in practice: clicking a category name is the
+ * most obvious thing a visitor does, and swallowing that click to toggle a
+ * panel is a dead end - worst of all after hover has already opened the panel,
+ * where the click then appears to do nothing at all.
+ *
+ * So the item is an <a> to the category, and the panel opens on hover AND on
+ * focus. Keyboard users tab to the link, which opens the panel, then tab onward
+ * into it; Enter navigates. The link carries `aria-expanded`, which ARIA 1.2
+ * supports on role=link, so the state is still announced, and Escape closes and
+ * returns focus to the link.
+ *
+ * Items without columns (Custom, FAQ, Contact) render as plain links with no
+ * panel and no `aria-expanded`.
  */
 export function DesktopNav({
   state,
@@ -45,7 +55,7 @@ export function DesktopNav({
   state: MenuState;
   dispatch: Dispatch<MenuAction>;
 }) {
-  const triggerRefs = useRef(new Map<string, HTMLButtonElement | null>());
+  const triggerRefs = useRef(new Map<string, HTMLAnchorElement | null>());
 
   function closeAndRestoreFocus(id: string) {
     dispatch({ type: 'CLOSE_MEGA_MENU' });
@@ -90,19 +100,15 @@ export function DesktopNav({
               key={item.id}
               onMouseEnter={() => dispatch({ type: 'OPEN_MEGA_MENU', id: item.id })}
             >
-              <button
-                type="button"
+              <Link
+                href={item.href}
                 id={triggerId}
                 ref={(node) => {
                   triggerRefs.current.set(item.id, node);
                 }}
                 aria-expanded={isOpen}
                 aria-controls={panelId}
-                onClick={() =>
-                  dispatch(
-                    isOpen ? { type: 'CLOSE_MEGA_MENU' } : { type: 'OPEN_MEGA_MENU', id: item.id },
-                  )
-                }
+                onFocus={() => dispatch({ type: 'OPEN_MEGA_MENU', id: item.id })}
                 onKeyDown={(event) => {
                   if (event.key === 'Escape' && isOpen) {
                     event.preventDefault();
@@ -121,7 +127,7 @@ export function DesktopNav({
                     isOpen && '-rotate-90',
                   )}
                 />
-              </button>
+              </Link>
 
               {isOpen && (
                 <div

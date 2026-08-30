@@ -2,7 +2,7 @@ import { CategoryDiscovery } from '@/components/storefront/CategoryDiscovery';
 import { CollectionsSection } from '@/components/storefront/CollectionsSection';
 import { EditorialPanel } from '@/components/storefront/EditorialPanel';
 import { FeaturedProducts } from '@/components/storefront/FeaturedProducts';
-import { GuidesSection } from '@/components/storefront/GuidesSection';
+import { FaqSection } from '@/components/storefront/FaqSection';
 import { Hero } from '@/components/storefront/Hero';
 import { ReviewsSection } from '@/components/storefront/ReviewsSection';
 import { FIXTURE_PRODUCTS } from '@/lib/fixtures/catalog';
@@ -57,7 +57,7 @@ export default function HomePage() {
           'תעודה לכל אבן מעל משקל מסוים',
           'מחיר נמוך יותר עבור אותו גודל ואיכות',
         ]}
-        action={{ label: 'למדריך המלא', href: '/guides' }}
+        action={{ label: 'לשאלות ותשובות', href: '/faq' }}
         imageSide="start"
         tone="muted"
         imageLabel="תהליך היצירה"
@@ -88,7 +88,7 @@ export default function HomePage() {
 
       <ReviewsSection />
 
-      <GuidesSection />
+      <FaqSection />
     </>
   );
 }

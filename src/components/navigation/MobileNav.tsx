@@ -126,23 +126,47 @@ export function MobileNav({
 
               return (
                 <li key={item.id}>
-                  <button
-                    type="button"
-                    aria-expanded={expanded}
-                    aria-controls={panelId}
-                    onClick={() => dispatch({ type: 'TOGGLE_MOBILE_GROUP', id: item.id })}
-                    className="hover:bg-muted flex w-full items-center justify-between px-4 py-3.5 text-start text-sm"
-                  >
-                    {item.label}
-                    {/* Directional: points toward the reading direction when
-                        collapsed, so it must mirror in RTL. */}
-                    <ChevronIcon
-                      className={cn(
-                        'text-muted-foreground icon-directional size-4 transition-transform duration-200',
-                        expanded && 'rotate-90',
-                      )}
-                    />
-                  </button>
+                  {/*
+                   * TWO CONTROLS, ONE ROW. The label is a link straight to the
+                   * category, matching the desktop behaviour - tapping "טבעות"
+                   * goes to all rings. The chevron is a separate button that
+                   * expands the subcategories.
+                   *
+                   * Splitting them is what makes both reachable on a
+                   * touchscreen, where there is no hover to open the list and a
+                   * single control cannot both navigate and expand. Each has
+                   * its own accessible name, so they are distinguishable in a
+                   * screen reader's control list.
+                   */}
+                  <div className="hover:bg-muted flex items-stretch">
+                    <Link
+                      href={item.href}
+                      onClick={() => dispatch({ type: 'CLOSE_MOBILE_MENU' })}
+                      className="flex-1 px-4 py-3.5 text-sm"
+                    >
+                      {item.label}
+                    </Link>
+
+                    <button
+                      type="button"
+                      aria-expanded={expanded}
+                      aria-controls={panelId}
+                      onClick={() => dispatch({ type: 'TOGGLE_MOBILE_GROUP', id: item.id })}
+                      className="flex w-14 items-center justify-center"
+                    >
+                      {/* Directional: points toward the reading direction when
+                          collapsed, so it must mirror in RTL. */}
+                      <ChevronIcon
+                        className={cn(
+                          'text-muted-foreground icon-directional size-4 transition-transform duration-200',
+                          expanded && 'rotate-90',
+                        )}
+                      />
+                      <span className="sr-only">
+                        {expanded ? `סגירת ${item.label}` : `פתיחת תת-הקטגוריות של ${item.label}`}
+                      </span>
+                    </button>
+                  </div>
 
                   {expanded && (
                     <ul id={panelId} className="bg-muted/60 pb-2">

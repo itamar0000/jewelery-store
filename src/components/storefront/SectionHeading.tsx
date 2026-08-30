@@ -7,10 +7,17 @@ import { ChevronIcon } from '@/components/ui/icons';
  *
  * Exists so section rhythm is defined once: the same type scale, the same space
  * beneath, the same optional "see all" affordance. Sections that each style
- * their own heading drift within a release, and the drift is exactly what makes
- * a storefront look unconsidered.
+ * their own heading drift within a release, and the drift is what makes a
+ * storefront look unconsidered.
  *
- * Renders `<h2>`, which is correct beneath the single `<h1>` a page carries.
+ * CENTRED, and the "see all" link sits BELOW rather than opposite. The first
+ * pass put the title at the inline-start edge with the link pushed to the far
+ * end of the same row. In RTL that reads badly: the title is jammed against the
+ * heavy right margin while the link floats alone at the left, and the eye has
+ * to cross the full page width to connect two parts of one heading. Stacking
+ * them centred keeps the pair together and gives the section a real top edge.
+ *
+ * Renders `<h2>`, correct beneath the single `<h1>` a page carries.
  */
 export function SectionHeading({
   id,
@@ -26,18 +33,21 @@ export function SectionHeading({
   linkLabel?: string;
 }) {
   return (
-    <div className="mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-      <div className="max-w-(--container-prose)">
-        <h2 id={id} className="text-2xl tracking-tight">
-          {title}
-        </h2>
-        {description && <p className="text-muted-foreground mt-2 text-sm">{description}</p>}
-      </div>
+    <div className="mb-10 text-center">
+      <h2 id={id} className="text-2xl tracking-tight text-balance">
+        {title}
+      </h2>
+
+      {description && (
+        <p className="text-muted-foreground mx-auto mt-3 max-w-(--container-prose) text-sm text-pretty">
+          {description}
+        </p>
+      )}
 
       {href && (
         <Link
           href={href}
-          className="hover:text-accent group inline-flex items-center gap-1 text-sm transition-colors"
+          className="hover:text-accent mt-5 inline-flex items-center gap-1 text-sm transition-colors"
         >
           {linkLabel}
           {/* Directional: it points along the reading direction. */}

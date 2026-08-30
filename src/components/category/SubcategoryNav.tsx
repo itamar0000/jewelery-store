@@ -27,8 +27,11 @@ export function SubcategoryNav({
   if (links.length === 0) return null;
 
   return (
+    // Centred from `md`, matching the centred page hero above it. On narrow
+    // screens it stays a start-aligned horizontal scroller, because centring a
+    // row that overflows hides its first item off the edge.
     <nav aria-label="תת-קטגוריות" className="-mx-6 overflow-x-auto px-6 md:mx-0 md:px-0">
-      <ul className="flex w-max gap-2 md:w-auto md:flex-wrap">
+      <ul className="flex w-max gap-2 md:w-auto md:flex-wrap md:justify-center">
         {links.map((link) => {
           const active = link.id === activeId;
 

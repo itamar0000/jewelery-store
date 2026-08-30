@@ -15,17 +15,26 @@ function allLinks(item: NavItem) {
 }
 
 describe('PRIMARY_NAV', () => {
-  it('carries the eight primary entries from specification section 6', () => {
+  it('carries the primary entries, with the owner departures from section 6', () => {
+    // Gifts removed (no products behind it yet); Guides became FAQ; Contact
+    // promoted out of the footer. See the taxonomy header comment.
     expect(PRIMARY_NAV.map((item) => item.id)).toEqual([
       'rings',
       'earrings',
       'necklaces',
       'bracelets',
       'sets',
-      'gifts',
       'custom',
-      'guides',
+      'faq',
+      'contact',
     ]);
+  });
+
+  it('has no Gifts entry and no gifts discovery links', () => {
+    expect(PRIMARY_NAV.some((item) => item.id === 'gifts')).toBe(false);
+
+    const hrefs = PRIMARY_NAV.flatMap(allLinks).map((link) => link.href);
+    expect(hrefs.some((href) => href.includes('gifts'))).toBe(false);
   });
 
   it('gives the five product categories a mega menu, and the other three none', () => {
@@ -45,8 +54,9 @@ describe('PRIMARY_NAV', () => {
   });
 
   it('starts every mega menu with an "all" link into the category itself', () => {
-    // The trigger is a button rather than a link, so this is the only route to
-    // the category landing page. Losing it strands the category.
+    // The trigger now navigates too, so this is no longer the ONLY route to the
+    // category - but it is the one inside the panel, and dropping it would
+    // leave the panel with no way back to the full category listing.
     for (const item of PRIMARY_NAV.filter((candidate) => candidate.columns)) {
       expect(item.columns?.[0]?.links[0]?.href).toBe(item.href);
     }
@@ -72,6 +82,11 @@ describe('FOOTER_COLUMNS', () => {
       'about',
       'legal',
     ]);
+  });
+
+  it('does not link to the removed Gifts category', () => {
+    const hrefs = FOOTER_COLUMNS.flatMap((column) => column.links).map((link) => link.href);
+    expect(hrefs).not.toContain('/gifts');
   });
 
   it('uses unique link ids', () => {
