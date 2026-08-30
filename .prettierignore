@@ -1,0 +1,15 @@
+.next/
+node_modules/
+out/
+coverage/
+package-lock.json
+next-env.d.ts
+
+# Specification documents are the source of truth and are authored by hand.
+# Prettier must not reflow them — a reformat would produce a large, meaningless
+# diff against the document of record.
+/ARCHITECTURE.md
+/DATA_MODEL.md
+/IMPLEMENTATION_PLAN.md
+/MASTER_SPECIFICATION.md
+/TBD.md

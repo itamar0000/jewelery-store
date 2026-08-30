@@ -1,0 +1,24 @@
+@import 'tailwindcss';
+
+/*
+ * Tailwind v4 is configured in CSS, not in a JS config file.
+ *
+ * The brand palette, typography and spacing scale are Phase 1 work and depend
+ * on brand decisions that are still TBD (MASTER_SPECIFICATION §2, TBD.md).
+ * Only the minimum needed for a legible Hebrew RTL document is set here, so
+ * that no placeholder value is mistaken for a brand decision later.
+ */
+@theme {
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', 'Noto Sans Hebrew', 'Arial Hebrew', Arial, sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-sans);
+  }
+}
