@@ -9,6 +9,12 @@ jobs:
   verify:
     runs-on: ubuntu-latest
 
+    env:
+      # The Prisma schema test resolves the datasource configuration, which
+      # requires the variable to exist. Nothing connects to it - CI runs no
+      # database. Real credentials never appear here.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=public
+
     steps:
       - uses: actions/checkout@v4
 
@@ -17,6 +23,8 @@ jobs:
           node-version: 22
           cache: npm
 
+      # `postinstall` runs `prisma generate`, so the client exists before the
+      # type check.
       - run: npm ci
 
       - run: npm run lint

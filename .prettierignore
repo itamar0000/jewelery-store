@@ -13,3 +13,5 @@ next-env.d.ts
 /IMPLEMENTATION_PLAN.md
 /MASTER_SPECIFICATION.md
 /TBD.md
+
+/src/generated/

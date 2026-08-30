@@ -1,0 +1,43 @@
+# Local development database only.
+#
+# These credentials are development-only and are deliberately committed so that
+# `npm run db:up` works with no setup. They must never be reused anywhere else.
+# Production Postgres is a managed host with its own credentials, supplied
+# through the environment (TBD.md I3).
+
+# The Compose project name is set explicitly. Compose normally derives it from
+# the directory name, which here is Hebrew ("אתר חנות תכשיטים") and normalises
+# to an empty string, making every Compose command fail with
+# "project name must not be empty". See docs/DECISIONS.md D1.8.
+name: jewelry-store
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: jewelry-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: jewelry
+      POSTGRES_USER: jewelry
+      POSTGRES_PASSWORD: jewelry_local_dev
+      # Deterministic collation, so index and ORDER BY behaviour does not
+      # depend on the host locale.
+      POSTGRES_INITDB_ARGS: '--encoding=UTF8 --locale=C'
+    ports:
+      # Host port 5433, not 5432, on purpose. A machine that already runs a
+      # PostgreSQL - a system install, or another project's container - holds
+      # 5432, and Compose then fails with "port is already allocated". Using a
+      # dedicated port means this project starts regardless of what else is
+      # running. The container still listens on 5432 internally.
+      - '5433:5432'
+    volumes:
+      - jewelry-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U jewelry -d jewelry']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+volumes:
+  jewelry-postgres-data:

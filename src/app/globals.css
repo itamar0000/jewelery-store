@@ -1,24 +1,85 @@
 @import 'tailwindcss';
+@import '../styles/tokens.css';
 
 /*
- * Tailwind v4 is configured in CSS, not in a JS config file.
+ * Global base styles.
  *
- * The brand palette, typography and spacing scale are Phase 1 work and depend
- * on brand decisions that are still TBD (MASTER_SPECIFICATION §2, TBD.md).
- * Only the minimum needed for a legible Hebrew RTL document is set here, so
- * that no placeholder value is mistaken for a brand decision later.
+ * Everything here is document-level. Component styling belongs in components;
+ * this file establishes only what the whole page depends on.
+ *
+ * All design values come from src/styles/tokens.css. No literal colour, radius
+ * or shadow appears below.
  */
-@theme {
-  --font-sans:
-    system-ui, -apple-system, 'Segoe UI', 'Noto Sans Hebrew', 'Arial Hebrew', Arial, sans-serif;
-}
 
 @layer base {
   html {
+    /* Direction and language are attributes on <html>, set once in
+     * src/app/layout.tsx. They are deliberately not set here: an attribute is
+     * semantic and reaches the accessibility tree and the bidi algorithm; a
+     * CSS `direction` declaration does neither reliably. */
     -webkit-text-size-adjust: 100%;
+
+    /* Hebrew is read comfortably at a slightly looser measure than Latin. */
+    text-size-adjust: 100%;
   }
 
   body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
     font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /*
+   * Focus is visible, always. Section 47 requires keyboard operability, and a
+   * removed focus ring is the single most common way that is lost. Styled to
+   * fit the palette rather than suppressed.
+   */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  /*
+   * Section 2 asks for restraint over motion. Honour the OS-level request to
+   * reduce it before any animation exists, so no later component has to
+   * remember to.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  /*
+   * Mirrors an icon with the writing direction.
+   *
+   * Section 49 requires correct icon positioning, and ARCHITECTURE section 3.2
+   * draws the distinction that matters: DIRECTIONAL icons (chevrons, back
+   * arrows, carousel controls, progress arrows) must flip in RTL, while
+   * NON-directional icons (cart, heart, search, user) must not - a mirrored
+   * magnifying glass is simply a wrong icon.
+   *
+   * Mirroring is therefore opt-in per icon. There is deliberately no blanket
+   * `[dir='rtl'] svg { transform: scaleX(-1) }` rule, which is the usual way
+   * this goes wrong.
+   */
+  .icon-directional {
+    transform: scaleX(-1);
+  }
+
+  /* Cancels the flip inside an explicitly LTR subtree, so a directional icon
+   * embedded in LTR content (a code sample, an English spec table) still
+   * points the right way. */
+  [dir='ltr'] .icon-directional {
+    transform: none;
   }
 }

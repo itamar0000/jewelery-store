@@ -113,3 +113,270 @@ auth, no ports/adapters. Each is scheduled in
 Empty "future" directories were **not** created. Git cannot track them and they
 would be dead structure; the intended layout is documented in ARCHITECTURE §3.4
 and created when it is filled.
+
+---
+
+# Phase 1 — decision record
+
+Foundations every later phase builds on: design tokens, RTL, fonts, money,
+environment validation, local PostgreSQL and the Prisma boundary. Still no
+storefront, admin, catalog, cart, checkout or authentication.
+
+---
+
+## D1.1 — Design tokens are two-layered, and every colour is provisional
+
+`src/styles/tokens.css` holds two layers:
+
+- **Reference tokens** (`--ref-*`) — raw values, named by what they _are_
+  (`--ref-cream`). No component may reference them.
+- **Semantic tokens** (`--color-background`, `--radius-md`, …) — named by what
+  they are _for_. The only layer components touch.
+
+Semantic colours are declared in Tailwind v4's `@theme inline`, so each token
+also generates its utilities (`--color-accent` → `bg-accent`, `text-accent`,
+`border-accent`). `inline` is required because the values are `var()`
+references; plain `@theme` would freeze a copy instead of resolving through.
+
+**The palette is not a brand decision.** Brand name, logo, palette and
+typography are all TBD (§2, §57). The values encode only the documented
+_direction_ — white, warm cream, pearl, black type, modern luxury boutique. The
+accent is a deliberately muted brass rather than gold, because §2 warns against
+black-and-gold "luxury" styling.
+
+Contrast was measured rather than assumed: every foreground token clears 4.5:1
+on white, pearl and cream (ratios are tabulated in the file). They must be
+re-measured when the real palette lands. The compliance _target_ remains a
+legal determination and is still TBD.
+
+**No literal colour, radius or shadow may appear in a component.** That is the
+whole point — rebranding is then a single-file edit.
+
+---
+
+## D1.2 — Typography: Heebo as an explicit placeholder
+
+`src/lib/fonts.ts` is the single place the brand font is configured. It loads
+**Heebo** via `next/font/google` — a placeholder, not a choice. It was picked
+because it carries both Hebrew and Latin glyph sets, which §49's mixed copy
+(`VS1`, `14K`, `Rose Gold` inside Hebrew sentences) requires.
+
+The binding is indirect on purpose: `next/font` exposes a CSS variable
+(`--font-hebrew-sans`), the token layer's `--font-sans` consumes it, and
+Tailwind's `font-sans` resolves to that. **No component names a font.**
+Swapping to a licensed brand face means editing that one file
+(`next/font/local` instead of `next/font/google`) and nothing else.
+
+`--font-display` is aliased to `--font-sans` rather than pointing at a second
+family, because choosing a display face would be inventing a brand decision.
+
+---
+
+## D1.3 — RTL is enforced by tooling, not by discipline
+
+Three mechanisms, in order of how much they can be relied on:
+
+1. **Document root.** `<html lang="he" dir="rtl">` is set once in
+   `src/app/layout.tsx` from `src/lib/config/site.ts`. `dir` is set as an
+   _attribute_, never as a CSS `direction` declaration — the attribute reaches
+   the accessibility tree and the Unicode bidi algorithm; the declaration does
+   not reliably do either.
+
+2. **An ESLint rule** (`eslint.config.mjs`) that rejects physical direction
+   utilities in `className` — `ml-*`, `mr-*`, `pl-*`, `pr-*`, `left-*`,
+   `right-*`, `text-left`, `text-right`, `border-l`, `border-r` — including
+   variant-prefixed (`md:ml-4`), negative (`-ml-4`), important (`!mr-2`) and
+   template-literal forms. Verified against 17 deliberate violations, and
+   against look-alikes (`border-red-500`, `place-items-center`, `rounded-lg`)
+   that correctly do not fire.
+
+   Two accepted gaps, both deliberate rather than solved with a bespoke plugin:
+   class names assembled inside a helper call (`cn('ml-4')`) are invisible to
+   it, and `src/app/(admin)` is exempt because §49 governs the _customer_
+   experience.
+
+3. **`<Bidi>`** (`src/lib/rtl/bidi.tsx`) for embedded LTR runs. It applies
+   `unicode-bidi: isolate` as well as `dir="ltr"` — the attribute alone does
+   not stop trailing punctuation drifting to the wrong end of the line.
+
+**Icon mirroring is opt-in.** `globals.css` provides an `.icon-directional`
+utility. There is deliberately no blanket `[dir='rtl'] svg { transform:
+scaleX(-1) }`: chevrons and back arrows must mirror, but a mirrored magnifying
+glass or cart is simply a wrong icon (ARCHITECTURE §3.2).
+
+---
+
+## D1.4 — Money: branded integers, `bigint` arithmetic
+
+`src/lib/money/` implements D0.1. Two properties it is built to guarantee:
+
+1. **No floating-point arithmetic.** Every step that could lose precision —
+   percentage discounts, decimal parsing, decimal rendering — runs through
+   `bigint`. `number` only ever holds an already-exact integer count of agorot.
+   Even formatting avoids it: `Intl.NumberFormat` is handed the exact decimal
+   _string_, not a number.
+
+2. **Accidental money arithmetic does not compile.** `Money` is a branded
+   number, so `a + b` yields a plain `number` that no function here accepts.
+   Raw numbers cannot become `Money` without passing through a validating
+   constructor.
+
+Specific choices worth recording:
+
+- **Rounding is half _up_** (ties toward +∞), per ARCHITECTURE §6.1 — not half
+  away from zero. The two differ only on negative ties: −2.5 agorot becomes −2.
+- **Discounts apply to the line total, not per unit**, also per §6.1. The tests
+  include a case where the two genuinely diverge (33% of ₪0.05 × 3 → 5 agorot
+  by line, 6 by unit).
+- **`multiply` accepts whole quantities only.** A fractional multiplier needs a
+  rounding rule the caller has not stated; `percentageOf` is the explicit route.
+- **Invalid input throws; it is never rounded away.** `fromShekels(0.1 + 0.2)`
+  is rejected because `0.30000000000000004` is not a representable price.
+  Silently rounding is how precision loss survives to production.
+- **`Percent` is basis points**, so 12.5% is exact, and it is bounded to 0–100%.
+- **A sanity bound** of ±10,000,000,000 agorot (₪100,000,000) turns overflow
+  and typos into loud errors. It is not a business rule about prices.
+- **`formatPrice` is for humans, `toShekelString` is for machines** (form
+  values, schema.org, provider payloads). The formatted output keeps its
+  Unicode directional marks — stripping them puts the ₪ on the wrong side of a
+  price inside Hebrew copy.
+
+Agorot display defaults to `auto` (two decimals only when the amount has
+agorot). That is a presentation convention the specification does not fix, not
+a business rule, and it lives in one file.
+
+---
+
+## D1.5 — Environment validation is fail-fast, but not at build time
+
+`src/lib/env/` is split so validation is testable without the test run itself
+needing a valid environment:
+
+- `schema.ts` — pure zod schema and `parseEnv`, no side effects.
+- `index.ts` — `export const env = parseEnv(process.env)`, evaluated at import,
+  so the first import fails loudly rather than the first query.
+
+Deliberately **not** imported from `next.config.ts`. Doing so would make every
+`next build` require a database URL, and a CI build has no database. Validation
+belongs where the value is used.
+
+`DATABASE_URL` is required with **no default** — a fallback would silently
+point a misconfigured deployment at the wrong database. `NEXT_PUBLIC_SITE_URL`
+is defaulted, because the local origin is not a secret and is identical for
+everyone.
+
+**Error messages name variables but never their values.** `DATABASE_URL`
+contains a password and this text reaches logs and crash reports (§48). A test
+asserts this.
+
+Only variables the code actually reads are in the schema. Payment, invoicing,
+email and storage keys are absent: no provider is chosen (TBD.md B1, B2, I1,
+I2), and declaring them would make the schema reject environments that are
+valid today.
+
+> **Note on the path.** The Phase 1 brief named `src/lib/env.ts`; it is
+> realised as `src/lib/env/` per that same brief's folder-structure section.
+> `@/lib/env` imports identically either way.
+
+---
+
+## D1.6 — zod is the single validation approach
+
+One library for environment, forms, server actions and API boundaries, so a
+schema written for a form is the same object the server validates with, and
+client/server rules cannot drift (ARCHITECTURE §4).
+
+**No `src/lib/validation/` directory was created.** Nothing needs shared
+schemas yet; product, checkout, custom-request and admin validation all arrive
+with the features that use them. Creating the directory now would mean
+committing placeholder files, which the brief forbids. The _decision_ — zod,
+used consistently, validated server-side on every mutation — is the Phase 1
+deliverable, and `src/lib/env/schema.ts` is its first instance.
+
+---
+
+## D1.7 — Prisma 7 pinned, and it changes the setup materially
+
+**The `latest` dist-tag for `prisma` is a release candidate** (8.0.0-rc.12)
+while `@prisma/client@latest` is 7.10.0 stable. Installing both unpinned
+produces a mismatched CLI/client pair running an RC. Both are pinned to
+**7.10.0**.
+
+Prisma 7 departs from what ARCHITECTURE §5 assumed:
+
+| ARCHITECTURE §5 assumed                             | Prisma 7 actually requires                                                                                        |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `url = env("DATABASE_URL")` in the datasource block | `url` is rejected there; CLI connection config moves to `prisma.config.ts`                                        |
+| Client connects via an embedded query engine        | Client connects through a **driver adapter** (`@prisma/adapter-pg`, which bundles `pg`)                           |
+| `.env` auto-loaded by the CLI                       | No auto-load; `prisma.config.ts` calls Node's built-in `process.loadEnvFile`, so no `dotenv` dependency is needed |
+| Client generated into `node_modules`                | Generated into `src/generated/prisma`, which is git-ignored and excluded from lint and Prettier                   |
+
+`directUrl` is **not** configured yet. It matters only for pooled production
+connections, which belong with the managed-host decision (TBD.md I3, Phase 9).
+
+`postinstall` runs `prisma generate`, because the generated client must exist
+before `tsc` runs — in CI as well as locally.
+
+---
+
+## D1.8 — Docker Compose needs an explicit project name
+
+Compose derives its project name from the directory name. This directory is
+`אתר חנות תכשיטים`, which normalises to an empty string, and **every Compose
+command fails** with `project name must not be empty`.
+
+`docker-compose.yml` therefore sets `name: jewelry-store` explicitly. This is a
+second consequence of the Hebrew path, after the OneDrive question in D0.3.
+Node, npm, Next.js, Prisma and Vitest all handle the path correctly; Compose
+was the only tool that did not.
+
+Postgres 16 is initialised with `--locale=C` so index ordering and `ORDER BY`
+do not depend on the host locale. Credentials are development-only and are
+committed deliberately, so `npm run db:up` needs no setup.
+
+**The host port is 5433, not 5432.** The first `db:up` on this machine failed
+with `Bind for 0.0.0.0:5432 failed: port is already allocated` — another
+project's Postgres container held it. A machine with a system PostgreSQL
+install hits the same thing. A dedicated host port means this project starts
+regardless of what else is running; the container still listens on 5432
+internally, and `DATABASE_URL` in `.env.example` matches.
+
+---
+
+## D1.9 — Testing: no DOM, on purpose
+
+`environment: 'node'`. The highest-value tests here are money, pricing,
+inventory and validation (ARCHITECTURE §15), none of which need a browser. The
+one component contract worth asserting — `<Bidi>` — is checked through
+`react-dom/server`, which also needs no DOM. jsdom is therefore not a
+dependency, and every run avoids paying for it.
+
+Vitest needs `esbuild.jsx: 'automatic'` because tsconfig sets `jsx: "preserve"`
+for Next.js, and Vitest has no downstream transform to hand preserved JSX to.
+
+The Prisma schema test shells out to `prisma validate` rather than
+re-implementing its rules. It catches what a type check cannot: a schema that
+parses but is semantically broken.
+
+---
+
+## D1.10 — `lib` raised to ES2023, for exact currency formatting
+
+`tsconfig.json` sets `lib` to ES2023 so `Intl.NumberFormat#format` accepts a
+decimal _string_ (Intl V3). Without it the only typed input is `number`, which
+would reintroduce floating point at the last step of a pipeline built
+specifically to avoid it. `target` stays ES2022; Next.js transpiles by
+browserslist regardless.
+
+---
+
+## D1.11 — What Phase 1 deliberately does not contain
+
+No business models, no migration, no seed script, no storefront, admin,
+catalog, cart, checkout, auth or payment code. No `components/` directory —
+nothing has a component to put in it yet. No integration ports: they are Phase
+2 and later, and a port with no provider gets no implementation (Rule 5).
+
+`src/lib/db` and `src/lib/env` are not yet imported by any page. That is
+expected: they are this phase's deliverables, they are covered by tests, and
+Phase 2 is what consumes them.

@@ -1,0 +1,18 @@
+// Prisma schema — Phase 1 foundation.
+//
+// Datasource and generator only. No business models exist yet: the entity
+// design in DATA_MODEL.md is implemented in Phase 2, together with the first
+// migration. Do not add models here without that phase.
+//
+// The connection URL is NOT declared here. Prisma 7 moved CLI connection
+// configuration to `prisma.config.ts`, and the application connects through a
+// driver adapter in `src/lib/db`. See docs/DECISIONS.md D1.7.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
