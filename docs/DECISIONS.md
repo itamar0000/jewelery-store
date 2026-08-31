@@ -952,3 +952,129 @@ The contact page carries **no invented details and no form**. Channels render
 would collect a name, phone and message and discard them — there is no inbox
 behind it — and a form that silently drops enquiries is worse than no form,
 because the customer believes they have been in touch.
+
+---
+
+# Phase 3B-1 — decision record
+
+Catalog integration. The storefront now reads PostgreSQL; the development
+fixtures are deleted.
+
+---
+
+## D3B.1 — `src/lib/catalog` is the only place Prisma is touched
+
+Routes call query functions and receive VIEW MODELS (`src/lib/catalog/types.ts`);
+no component imports `@/lib/db`. Three properties fall out of that boundary:
+
+- money is `Money` (integer agorot) rather than a raw number a component might
+  format by hand;
+- availability is the resolved object from `@/lib/inventory`, never a display
+  string — the schema is explicit that availability is derived, never stored;
+- a schema change is absorbed by the mappers instead of rippling into JSX.
+
+Visibility is enforced in ONE place: an `activeProduct` predicate spread into
+every product query. Repeating `isActive / publishedAt / archivedAt` per call
+site is how one eventually gets forgotten and a draft reaches a customer. Tests
+assert drafts, inactive and archived products are invisible on every path.
+
+---
+
+## D3B.2 — Category slugs are real, so the seed's demo markers move to products
+
+Every other seeded row carries a `demo-` marker. Categories cannot: a category
+slug IS its route, so the row must be `rings` or `/rings` 404s. "טבעות" is also
+not fabricated business data — it is the taxonomy from specification section 5.
+
+The fabrication lives in the products, and that is where the markers stay:
+`DEMO-` SKUs, `demo-` slugs, and a Hebrew demo notice opening every short
+description.
+
+Subcategory slugs are globally qualified — `diamond-rings`, not `diamond` —
+because `Category.slug` is unique table-wide and "diamond" would otherwise
+collide across rings, earrings, necklaces and bracelets. The navigation hrefs
+were updated to match.
+
+---
+
+## D3B.3 — `loading.tsx` was removed: it produced soft 404s
+
+The first implementation added a `loading.tsx` to each catalog route. That was
+wrong, and the failure is invisible in the browser.
+
+A `loading.tsx` wraps the WHOLE segment in Suspense, so Next begins streaming —
+and commits HTTP **200** — before the route body runs. A later `notFound()` then
+renders the not-found UI *under that 200*: a soft 404. A crawler indexes
+`/product/anything` as a real page.
+
+Measured against a production build:
+
+| URL | with `loading.tsx` | without |
+| --- | --- | --- |
+| `/product/nope` | 200 | **404** |
+| `/rings/does-not-exist` | 200 | **404** |
+| `/collections/nope` | 200 | **404** |
+
+The fix keeps both properties: the route awaits the category or product FIRST,
+so a missing one 404s before anything is sent, and only the product results
+stream, behind an explicit `<Suspense>` inside the page
+(`CategoryResults`). The skeleton survives; the soft 404 does not.
+
+---
+
+## D3B.4 — Catalog routes are dynamic, including the homepage
+
+The homepage initially built as `○ (Static)`: Next prerendered it and baked the
+best-seller list into HTML at build time. The owner edits the catalog through
+the admin, so that snapshot would go stale immediately and stay stale until the
+next deploy.
+
+All catalog routes are now server-rendered per request. A real cache policy —
+incremental revalidation with a chosen window — is a deliberate decision for
+3B-2, not something to inherit from what Next happened to be able to analyse
+statically.
+
+---
+
+## D3B.5 — Images are real rows without bytes
+
+`ProductImage.storageKey` is a key, not a URL, because the storage provider is
+undecided (TBD.md I1). `resolveImageUrl` therefore returns `null` for every key
+today and the gallery falls back to the tonal placeholder.
+
+What is genuinely real is everything else: the rows, their alt text, their
+ordering, and their variant association. So the gallery really does query
+images, really does prefer a variant's images over the product's, and really
+does re-resolve on a variant change. Changing gold colour visibly changes the
+caption — which demonstrates the wiring honestly, without inventing photography.
+When a provider lands, one function starts returning URLs and nothing else
+changes.
+
+---
+
+## D3B.6 — Low-stock messaging is now real, and D3.4 still holds
+
+Phase 3A made `stockNotice` a prop with no default and no client-side rule,
+noting that only a caller holding real inventory could supply one. That caller
+now exists: `toProductCard` emits a notice only when `resolveAvailability`
+reports genuine low stock, which itself requires a configured threshold.
+
+The component still invents nothing. A product with no threshold says nothing
+about stock, and a missing inventory row fails CLOSED — treated as zero on hand
+rather than available, because showing an unstocked item as purchasable is the
+expensive direction to be wrong in. Both are asserted by test.
+
+---
+
+## D3B.7 — Axis options change the variant; selections do not
+
+`ProductOption.isVariantAxis` splits the product page in two. Gold colour and
+karat are AXES: the selected combination identifies one variant, matched on SET
+equality of option value ids — a subset match would return the wrong SKU, and
+therefore the wrong price and the wrong stock. Ring size and length are
+SELECTIONS recorded for the eventual order line; they deliberately do not change
+the variant, because a made-to-order piece is not stocked per size (TBD.md B11).
+
+Prices, stock and images are all computed on the server and passed down. The
+client component receives a resolved object and queries nothing, which is what
+makes "do not trust client-provided prices" structural rather than observed.

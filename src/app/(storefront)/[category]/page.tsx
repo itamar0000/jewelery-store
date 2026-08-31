@@ -1,63 +1,73 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import { Suspense } from 'react';
+
 import { CategoryPageShell } from '@/components/category/CategoryPageShell';
-import { FIXTURE_CATEGORIES, FIXTURE_PRODUCTS } from '@/lib/fixtures/catalog';
-import { PRIMARY_NAV } from '@/lib/navigation/taxonomy';
+import { CategoryResults, CategoryResultsSkeleton } from '@/components/category/CategoryResults';
+import { getCategoryBySlug } from '@/lib/catalog/queries';
 
 /**
- * Category page.
+ * Category page, backed by the database.
  *
- * DEMONSTRATION ROUTE. It serves the five product categories from fixtures so
- * the layout can be reviewed at real proportions; an unrecognised slug is a
- * genuine 404 rather than an empty page, because a category that does not exist
- * should not return 200 to a crawler.
+ * The fixture import is gone: title, description, subcategories, product count
+ * and products all come from PostgreSQL. `CategoryPageShell` is unchanged and
+ * remains the presentation layer - it still only receives props.
  *
- * Subcategory chips are read from the navigation taxonomy, so the category page
- * and the mega menu cannot disagree about what lives under a category. Only the
- * first column is used - the second is the discovery column (New / Best
- * Sellers), which is merchandising rather than subcategory navigation
- * (section 8).
+ * A CATEGORY WITH NO PRODUCTS IS NOT AN ERROR. It renders its heading,
+ * subcategories and an empty state, because a genuinely empty category is a
+ * normal thing for a shop to have. Only an UNKNOWN slug is a 404.
  *
- * Fixtures are read here, in the route, and passed down. See
- * src/lib/fixtures/README.md.
+ * The existence check happens BEFORE anything streams, so a missing category
+ * still produces a real 404 rather than a soft one. The products then stream in
+ * behind a Suspense boundary - see CategoryResults for why that is not a
+ * `loading.tsx`.
  */
-export function generateStaticParams() {
-  return Object.keys(FIXTURE_CATEGORIES).map((category) => ({ category }));
-}
-
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ category: string }>;
 }): Promise<Metadata> {
   const { category } = await params;
-  const fixture = FIXTURE_CATEGORIES[category];
+  const found = await getCategoryBySlug(category);
 
-  if (!fixture) return {};
+  if (!found) return {};
 
-  return { title: fixture.title, description: fixture.description };
+  return {
+    title: found.seoTitle ?? found.nameHe,
+    description: found.seoDescription ?? found.descriptionHe ?? undefined,
+  };
 }
 
 export default async function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
-  const { category } = await params;
-  const fixture = FIXTURE_CATEGORIES[category];
+  const { category: slug } = await params;
+  const category = await getCategoryBySlug(slug);
 
-  if (!fixture) notFound();
+  if (!category) notFound();
 
-  const navItem = PRIMARY_NAV.find((item) => item.id === category);
-  const subcategories = navItem?.columns?.[0]?.links ?? [];
+  // A subcategory reached at its root path would duplicate the nested route and
+  // split the canonical URL, which is the SEO hazard the schema's single
+  // primary category exists to avoid.
+  if (category.ancestors.length > 0) notFound();
 
   return (
     <CategoryPageShell
-      categorySlug={fixture.slug}
-      title={fixture.title}
-      description={fixture.description}
-      products={FIXTURE_PRODUCTS}
-      productCount={fixture.productCount}
-      trail={[{ label: 'דף הבית', href: '/' }, { label: fixture.title }]}
-      subcategories={subcategories}
-      activeSubcategoryId={`${category}-all`}
-    />
+      title={category.nameHe}
+      description={category.descriptionHe ?? undefined}
+      trail={[{ label: 'דף הבית', href: '/' }, { label: category.nameHe }]}
+      subcategories={[
+        { id: `${category.slug}-all`, label: `כל ה${category.nameHe}`, href: category.href },
+        ...category.children.map((child) => ({
+          id: child.id,
+          label: child.nameHe,
+          href: child.href,
+        })),
+      ]}
+      activeSubcategoryId={`${category.slug}-all`}
+    >
+      <Suspense fallback={<CategoryResultsSkeleton />}>
+        <CategoryResults categoryId={category.id} categorySlug={category.slug} />
+      </Suspense>
+    </CategoryPageShell>
   );
 }

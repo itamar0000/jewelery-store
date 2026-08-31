@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 import { Container } from '@/components/ui/Container';
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage';
+import type { CollectionSummary } from '@/lib/catalog/types';
 
 import { SectionHeading } from './SectionHeading';
 
@@ -9,35 +10,25 @@ import { SectionHeading } from './SectionHeading';
  * Featured collections.
  *
  * MASTER_SPECIFICATION section 28: collections exist INDEPENDENTLY of the
- * product categories - New Arrivals, Best Sellers, Bridal, Everyday,
- * Personalized, Diamond, seasonal. This section surfaces a few of them.
+ * product categories. They now come from the database - names, descriptions and
+ * links are real rows, not the hard-coded list this component used to carry.
  *
- * The three shown here are the durable ones from that list. Seasonal
- * collections are deliberately absent: they are a merchandising decision that
- * nobody has made, and inventing "Summer Collection" would be fabricating a
- * campaign.
+ * Collections are PASSED IN by the route. This component does not query,
+ * which keeps it renderable from anywhere and keeps the data boundary in
+ * `src/lib/catalog`.
  *
- * Collections currently link into category routes with a `collection` query
- * parameter, matching the taxonomy. Real collection routes arrive with the
- * catalog work.
+ * Renders nothing when there are no collections, rather than an empty band
+ * under a heading.
  */
-const COLLECTIONS: readonly { id: string; label: string; href: string; note: string }[] = [
-  { id: 'new', label: 'חדש באתר', href: '/rings?collection=new', note: 'הדגמים האחרונים שנוספו' },
-  {
-    id: 'bridal',
-    label: 'אוסף הכלה',
-    href: '/sets/bridal',
-    note: 'טבעות אירוסין, נישואין וסטים תואמים',
-  },
-  {
-    id: 'personalized',
-    label: 'עיצוב אישי',
-    href: '/custom',
-    note: 'חריטה, שמות ותכשיטים בהזמנה',
-  },
-];
+export function CollectionsSection({
+  collections,
+  limit = 3,
+}: {
+  collections: readonly CollectionSummary[];
+  limit?: number;
+}) {
+  if (collections.length === 0) return null;
 
-export function CollectionsSection() {
   return (
     <Container as="section" aria-labelledby="collections-heading" className="py-16 md:py-20">
       <SectionHeading
@@ -47,7 +38,7 @@ export function CollectionsSection() {
       />
 
       <ul className="grid gap-4 md:grid-cols-3">
-        {COLLECTIONS.map((collection) => (
+        {collections.slice(0, limit).map((collection) => (
           <li key={collection.id}>
             <Link
               href={collection.href}
@@ -55,14 +46,16 @@ export function CollectionsSection() {
             >
               <PlaceholderImage
                 ratio="landscape"
-                label={collection.label}
+                label={collection.nameHe}
                 className="transition-transform duration-500 group-hover:scale-[1.03]"
               />
               <div className="p-5">
                 <h3 className="group-hover:text-accent text-sm font-medium transition-colors">
-                  {collection.label}
+                  {collection.nameHe}
                 </h3>
-                <p className="text-muted-foreground mt-1 text-xs">{collection.note}</p>
+                {collection.descriptionHe && (
+                  <p className="text-muted-foreground mt-1 text-xs">{collection.descriptionHe}</p>
+                )}
               </div>
             </Link>
           </li>

@@ -22,13 +22,25 @@ export function ProductGrid({
   products,
   compact = false,
   className,
+  emptyTitle = 'אין כרגע מוצרים בקטגוריה הזו.',
+  emptyBody = 'הקטלוג מתעדכן. אפשר לעבור לקטגוריה אחרת דרך התפריט.',
 }: {
   products: readonly ProductCardData[];
   compact?: boolean;
   className?: string;
+  /** Overridden where "category" is the wrong word - a collection, a search. */
+  emptyTitle?: string;
+  emptyBody?: string;
 }) {
+  // A genuinely empty category is a normal state for a shop, not an error, so
+  // this explains and offers a way onward rather than leaving a blank column.
   if (products.length === 0) {
-    return <p className="text-muted-foreground py-16 text-center text-sm">לא נמצאו מוצרים.</p>;
+    return (
+      <div className="border-border rounded-sm border border-dashed py-16 text-center">
+        <p className="text-sm">{emptyTitle}</p>
+        <p className="text-muted-foreground mt-2 text-sm">{emptyBody}</p>
+      </div>
+    );
   }
 
   return (

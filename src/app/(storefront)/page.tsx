@@ -5,7 +5,7 @@ import { FeaturedProducts } from '@/components/storefront/FeaturedProducts';
 import { FaqSection } from '@/components/storefront/FaqSection';
 import { Hero } from '@/components/storefront/Hero';
 import { ReviewsSection } from '@/components/storefront/ReviewsSection';
-import { FIXTURE_PRODUCTS } from '@/lib/fixtures/catalog';
+import { getCollection, getCollections, getProductsByCollection } from '@/lib/catalog/queries';
 
 /**
  * The homepage.
@@ -22,11 +22,37 @@ import { FIXTURE_PRODUCTS } from '@/lib/fixtures/catalog';
  * it, so that nothing reads as a settled brand decision. Replacing it is a
  * change to this file only; the components take their content as props.
  *
- * DATA IS FIXTURES (placeholder registry `catalog-data`). The fixtures are read
- * HERE, in the route, and passed down - components never import them. Phase 3B
- * swaps this one import for a query.
+ * DATA COMES FROM THE DATABASE. Best sellers are the products in the
+ * `best-sellers` collection, in the curator's order; the collections band lists
+ * the real active collections. Both are read HERE, in the route, and passed
+ * down - no component queries anything.
+ *
+ * The best-sellers band is omitted entirely when the collection is empty or
+ * missing, rather than rendering an empty shelf under a heading.
  */
-export default function HomePage() {
+/**
+ * Rendered per request, not prerendered.
+ *
+ * Without this Next prerenders the homepage at BUILD time, baking the
+ * best-seller list and the collection names into static HTML. The owner edits
+ * the catalog through the admin, so a build-time snapshot would go stale the
+ * moment they did, and stay stale until the next deploy. The category,
+ * subcategory, collection and product routes are dynamic for the same reason.
+ *
+ * A cache policy - incremental revalidation with a sensible window - is a
+ * deliberate decision that belongs with the rest of the caching work, not an
+ * accident of what Next could statically analyse.
+ */
+export const dynamic = 'force-dynamic';
+
+export default async function HomePage() {
+  const [bestSellers, collections] = await Promise.all([
+    getCollection('best-sellers').then((collection) =>
+      collection ? getProductsByCollection(collection.id, { limit: 4 }) : [],
+    ),
+    getCollections(),
+  ]);
+
   return (
     <>
       <Hero
@@ -43,8 +69,8 @@ export default function HomePage() {
         id="best-sellers-heading"
         title="רבי מכר"
         description="הדגמים המבוקשים ביותר בקטלוג."
-        href="/rings?collection=best-sellers"
-        products={FIXTURE_PRODUCTS}
+        href="/collections/best-sellers"
+        products={bestSellers}
       />
 
       <EditorialPanel
@@ -63,7 +89,7 @@ export default function HomePage() {
         imageLabel="תהליך היצירה"
       />
 
-      <CollectionsSection />
+      <CollectionsSection collections={collections} />
 
       <EditorialPanel
         id="custom-heading"
@@ -80,7 +106,7 @@ export default function HomePage() {
         eyebrow="כלה"
         title="אירוסין ונישואין"
         body="טבעות אירוסין, טבעות נישואין וסטים תואמים. כל דגם ניתן להתאמה לפי משקל קראט, גוון זהב ומידה."
-        action={{ label: 'לאוסף הכלה', href: '/sets/bridal' }}
+        action={{ label: 'לאוסף הכלה', href: '/collections/bridal' }}
         imageSide="start"
         tone="muted"
         imageLabel="אוסף כלה"

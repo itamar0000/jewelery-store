@@ -71,13 +71,13 @@ export const PLACEHOLDERS: readonly PlaceholderEntry[] = [
     replacedBy: 'Business details (TBD section 52) plus an enquiry inbox.',
   },
   {
-    id: 'catalog-data',
-    what: 'Homepage and category pages read src/lib/fixtures, not the database.',
-    replacedBy: 'Phase 3B - catalog queries.',
+    id: 'variant-form',
+    what: 'Product page renders real variants, prices and stock, but the personalization fields are display-only and Add to cart is disabled.',
+    replacedBy: 'Phase 4 - product experience; Phase 5 - cart.',
   },
   {
     id: 'imagery',
-    what: 'All photography is a tonal PlaceholderImage surface. No product, hero or collection imagery exists.',
-    replacedBy: 'Brand creative - TBD (MASTER_SPECIFICATION section 2 and 57).',
+    what: 'ProductImage rows are real - real alt text, real ordering, real variant association - but no storage provider is configured, so resolveImageUrl returns null and every image renders as a tonal placeholder.',
+    replacedBy: 'A storage provider (TBD.md I1) plus brand photography (section 2 and 57).',
   },
 ];
