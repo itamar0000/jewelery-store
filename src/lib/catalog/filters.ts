@@ -100,10 +100,17 @@ export const ATTRIBUTE_KEY = {
   pendant_type: 'pendantType',
 } as const;
 
-export const SORT_KEYS = ['recommended', 'newest', 'price-asc', 'price-desc'] as const;
+/**
+ * `relevance` exists only for search: ordering by "how well does this match"
+ * is meaningless without a query. The search page defaults to it and offers it;
+ * category pages neither offer nor accept it (it normalizes away to the default
+ * there), so a category URL cannot ask for an order it has no basis for.
+ */
+export const SORT_KEYS = ['relevance', 'recommended', 'newest', 'price-asc', 'price-desc'] as const;
 export type SortKey = (typeof SORT_KEYS)[number];
 
 export const SORT_LABELS: Record<SortKey, string> = {
+  relevance: 'הכי רלוונטי',
   recommended: 'מומלץ',
   newest: 'הכי חדש',
   'price-asc': 'מחיר: מהנמוך לגבוה',
@@ -159,10 +166,23 @@ const pageSizeSchema = z.coerce
   )
   .catch(DEFAULT_PAGE_SIZE);
 
-const sortSchema = z.enum(SORT_KEYS).catch(DEFAULT_SORT);
+/**
+ * Sort validation. The fallback is supplied per call rather than baked in,
+ * because the correct default differs between /search and a category page.
+ */
+const sortSchema = z.enum(SORT_KEYS);
 
 /** Shape-checked query, before facet values are known. */
 export interface RawCatalogQuery {
+  /**
+   * The search term. Empty string on a category page.
+   *
+   * Deliberately part of the SAME parsed object as the filters rather than a
+   * parallel parser: search results carry filters, sort and pagination, so one
+   * query type keeps `/search?q=טבעת&goldColor=white&sort=price-asc&page=2`
+   * working with the machinery that already exists.
+   */
+  readonly q: string;
   readonly values: Readonly<Record<FacetCode, readonly string[]>>;
   readonly minPrice: number | null;
   readonly maxPrice: number | null;
@@ -192,6 +212,11 @@ export function parseCatalogSearchParams(params: SearchParams): RawCatalogQuery 
     FACET_CODES.map((code) => [code, code === 'price' ? [] : tokens(params[FACET_PARAM[code]])]),
   ) as Record<FacetCode, string[]>;
 
+  // Bounded and trimmed. A query is a user-supplied string that reaches a
+  // database function, so its length is capped here rather than trusted.
+  const rawQ = Array.isArray(params.q) ? (params.q[0] ?? '') : (params.q ?? '');
+  const q = rawQ.trim().slice(0, 120);
+
   const min = priceSchema.parse(params.minPrice ?? null);
   const max = priceSchema.parse(params.maxPrice ?? null);
 
@@ -199,10 +224,14 @@ export function parseCatalogSearchParams(params: SearchParams): RawCatalogQuery 
   const [minPrice, maxPrice] = min !== null && max !== null && min > max ? [max, min] : [min, max];
 
   return {
+    q,
     values: rawValues,
     minPrice,
     maxPrice,
-    sort: sortSchema.parse(params.sort),
+    // The default depends on the page: a search defaults to relevance, a
+    // category listing to the merchandising order. Without this the search
+    // page silently sorted by "recommended" and buried the best match.
+    sort: sortSchema.catch(defaultSortFor(q)).parse(params.sort),
     page: pageSchema.parse(params.page ?? 1),
     pageSize: pageSizeSchema.parse(params.pageSize ?? DEFAULT_PAGE_SIZE),
   };
@@ -261,8 +290,13 @@ export function normalizeCatalogQuery(
 
   const pricingAvailable = byCode.has('price');
 
+  // Relevance without a query has nothing to rank by, so it degrades to the
+  // catalog default rather than producing an arbitrary order.
+  const sort = raw.sort === 'relevance' && raw.q.length === 0 ? DEFAULT_SORT : raw.sort;
+
   return {
     ...raw,
+    sort,
     values,
     minPrice: pricingAvailable ? raw.minPrice : null,
     maxPrice: pricingAvailable ? raw.maxPrice : null,
@@ -319,9 +353,17 @@ export function buildCatalogHref(
   facets: readonly Facet[] = [],
 ): string {
   if (overrides.clearAll) {
-    return overrides.sort && overrides.sort !== DEFAULT_SORT
-      ? `${basePath}?sort=${overrides.sort}`
-      : basePath;
+    // The search term is NOT a filter and survives "clear filters": clearing
+    // the facets on a search page must not also throw away what was searched
+    // for, which would drop the visitor back onto an empty search page.
+    const kept = new URLSearchParams();
+    if (query.q.length > 0) kept.set('q', query.q);
+    if (overrides.sort && overrides.sort !== defaultSortFor(query.q)) {
+      kept.set('sort', overrides.sort);
+    }
+
+    const search = kept.toString();
+    return search.length > 0 ? `${basePath}?${search}` : basePath;
   }
 
   const tokenFor = (code: FacetCode, value: string): string =>
@@ -329,6 +371,9 @@ export function buildCatalogHref(
       ?.token ?? value.toLowerCase();
 
   const params = new URLSearchParams();
+
+  // `q` leads, so a shared search URL reads as a search.
+  if (query.q.length > 0) params.set('q', query.q);
 
   for (const code of FACET_CODES) {
     if (code === 'price') continue;
@@ -351,7 +396,7 @@ export function buildCatalogHref(
   if (maxPrice !== null) params.set('maxPrice', String(maxPrice));
 
   const sort = overrides.sort ?? query.sort;
-  if (sort !== DEFAULT_SORT) params.set('sort', sort);
+  if (sort !== defaultSortFor(query.q)) params.set('sort', sort);
 
   // Page survives ONLY when explicitly overridden; every other change resets it.
   const page = overrides.page ?? 1;
@@ -419,6 +464,17 @@ export function facetCodesFromConfig(filterConfig: unknown): readonly FacetCode[
   // An unconfigured category still gets the shared facets rather than none, so
   // a newly created category is usable before anyone fills in its config.
   return configured.length > 0 ? configured : ['price', 'gold_karat', 'gold_color'];
+}
+
+/**
+ * The default sort for a page.
+ *
+ * Search defaults to relevance, a catalog listing to the merchandising order.
+ * Keeping this in one function is what lets `buildCatalogHref` omit the default
+ * from the URL on both kinds of page, so each state still has exactly one URL.
+ */
+export function defaultSortFor(q: string): SortKey {
+  return q.length > 0 ? 'relevance' : DEFAULT_SORT;
 }
 
 /**

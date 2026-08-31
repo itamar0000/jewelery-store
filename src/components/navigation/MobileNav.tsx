@@ -197,7 +197,6 @@ export function MobileNav({
             type="button"
             onClick={() => dispatch({ type: 'OPEN_SEARCH' })}
             className="hover:bg-muted text-2xs flex flex-col items-center gap-1 py-4"
-            {...PLACEHOLDER_ATTR}
           >
             <SearchIcon className="size-5" />
             חיפוש

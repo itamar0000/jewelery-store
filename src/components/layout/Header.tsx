@@ -119,7 +119,6 @@ export function Header() {
             type="button"
             onClick={() => dispatch({ type: 'OPEN_SEARCH' })}
             className="hover:bg-muted inline-flex size-10 items-center justify-center rounded-sm"
-            {...PLACEHOLDER_ATTR}
           >
             <SearchIcon className="size-5" />
             <span className="sr-only">חיפוש</span>

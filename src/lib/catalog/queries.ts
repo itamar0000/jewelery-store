@@ -428,6 +428,31 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
 }
 
 /**
+ * Product cards for a list of ids, in the order given.
+ *
+ * `findMany` returns rows in the database's order, not the caller's, so the
+ * requested order is reapplied here - which is what preserves search relevance
+ * ranking through the fetch.
+ */
+export async function getProductsByIds(
+  ids: readonly string[],
+): Promise<readonly ProductCardData[]> {
+  if (ids.length === 0) return [];
+
+  const rows = await prisma.product.findMany({
+    where: { id: { in: [...ids] }, ...activeProduct },
+    select: productCardSelect,
+  });
+
+  const byId = new Map(rows.map((row) => [row.id, row]));
+
+  return ids
+    .map((id) => byId.get(id))
+    .filter((row): row is NonNullable<typeof row> => row !== undefined)
+    .map(toProductCard);
+}
+
+/**
  * Variants for a product.
  *
  * Exposed separately because the brief asks for it; the product page itself

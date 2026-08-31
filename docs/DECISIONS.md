@@ -1257,3 +1257,180 @@ The hard-coded per-category facet table from Phase 3A is gone. Which facets a
 category offers now comes from `Category.filterConfig` (data — a row edit, not a
 deployment), and which VALUES appear comes from the catalog itself, so a colour
 nobody stocks is never offered as a filter that returns nothing.
+
+---
+
+# Phase 3C — decision record
+
+Production search: pg_trgm behind the `SearchProvider` port, integrated into the
+existing catalog listing rather than beside it.
+
+---
+
+## D3C.1 — The provider returns IDS, not products
+
+This is the decision that stops search becoming a second catalog.
+
+`SearchProvider.searchProductIds` returns ranked ids. Those flow into the
+EXISTING `getCatalogPage`, which already applies filters, sorting, pagination
+and the product-card shape. Search contributes relevance and nothing else, so
+`/search?q=טבעת&goldColor=white&sort=price-asc&page=2` works with the machinery
+Phase 3B-2 already built and tested — no parallel filtering with subtly
+different semantics.
+
+A future provider — vector, hosted — implements the same port and inherits all
+of it.
+
+---
+
+## D3C.2 — Trigrams, because PostgreSQL has no Hebrew configuration
+
+ARCHITECTURE section 9 states it: no Hebrew stemmer, no stop words, so
+`to_tsvector('hebrew', …)` does not exist. Trigram similarity needs none of
+that and handles partial words — "טבע" matching "טבעת" — which is exactly what
+someone typing into an overlay produces.
+
+Matching is **AND across typed terms, OR within a synonym group**. "טבעת זהב
+לבן" requires all three concepts; a product matching only "זהב" is not a
+result. Anything looser turns a three-word query into a catalog dump.
+
+Raw SQL is used only here, because `similarity` and `word_similarity` have no
+Prisma expression and relevance ordering must happen in the database. Every
+value is a bound parameter via `Prisma.sql`; LIKE wildcards in user input are
+escaped, so a query of `%` matches nothing rather than everything. Asserted by
+test.
+
+---
+
+## D3C.3 — Ranking: per-term scoring, not just whole-query
+
+The first implementation scored only the whole query — exact name, name
+contains, whole-phrase similarity. It collapsed on real queries:
+
+- `טבעת זהב לבן` scored **0 for every product**, because no name contains that
+  phrase, so ordering fell through to the id tiebreak and was arbitrary.
+- `טבעת אירוסין` put a bridal SET first, purely because its description
+  contained the phrase, ahead of every actual engagement ring.
+
+Each typed term now scores on its own, weighted by where it hits — the product
+NAME counts three times what the document does, because a word in the name is
+what the product *is*. Category relevance uses **trigram similarity, not
+equality**, so "טבעת אירוסין" credits the category "טבעות אירוסין" despite the
+plural; equality was the specific cause of the buried-engagement-rings bug.
+Synonym hits score well below typed terms.
+
+Weights are deliberately far apart rather than tuned: an exact name match must
+outrank a description mention whatever the trigram numbers happen to be. Tuning
+against a demo catalog would be fitting noise. Every mode ends with `id`, so the
+order is total and pagination cannot repeat or drop a product.
+
+---
+
+## D3C.4 — Conservative normalization, curated synonyms
+
+Normalization does four safe things: collapses whitespace, strips punctuation
+shoppers type but products never contain, removes niqqud, and normalizes
+geresh/gershayim to ASCII quotes. It does **not** stem, strip prefixes, or
+transliterate — over-normalizing Hebrew damages real searches, and stripping the
+definite article ה would turn "הלו" into "לו".
+
+The synonym set is flat, small and readable, with rules stated in the file: only
+terms a customer plausibly types, and never mapping two different products
+together. Multi-word phrases resolve before single words, so "זהב לבן" is white
+gold rather than the intersection of "gold" and "white". Expansion is capped —
+every extra term makes the result set broader and the ranking mushier.
+
+---
+
+## D3C.5 — Search document: what is in it, and how it stays fresh
+
+In: name, short description, trimmed long description, categories and their
+parents, collections, gold option labels, diamond shape, lab-grown marker,
+attribute values. Out: SKUs, prices, stock, ids, certificate numbers.
+
+The exclusions are not tidiness. Trigram similarity is **inversely proportional
+to document length**, so a longer document scores *worse* — stuffing prices and
+SKUs in would dilute every score and make the products harder to find. That is
+also why the description is capped.
+
+Freshness, without a queue or a trigger:
+
+1. **Write path.** `buildSearchDocument` runs wherever a product is written.
+2. **`npm run search:reindex`** rebuilds everything, covering what the write
+   path cannot see: renaming a CATEGORY or COLLECTION changes the document of
+   every product inside it.
+
+One implementation, three callers (seed, CLI, provider) — an earlier draft had
+the seed build documents inline and the provider build them again, which is how
+a seeded catalog ends up indexed differently from a real one. The cost is stated
+plainly: between a category rename and the next reindex, search matches the old
+name. Bounded, one-command staleness, and asserted by test.
+
+---
+
+## D3C.6 — No new index; the existing trigram index is already correct
+
+The GIN trigram index on `Product.searchDocument` was created in the initial
+migration, alongside the `pg_trgm` extension. `EXPLAIN (ANALYZE, BUFFERS)` at 51
+products:
+
+```
+Limit → Sort (quicksort, 25kB) → Seq Scan on "Product"
+  Rows Removed by Filter: 51
+Execution Time: 0.328 ms   Buffers: shared hit=15
+```
+
+The planner chooses a **sequential scan**, and that is correct: the whole table
+is nine pages, so a GIN lookup would cost more than reading it. The index is
+present and will be chosen as the catalog grows. Adding anything further now
+would be optimising against a catalog that does not exist.
+
+---
+
+## D3C.7 — Two bugs the tests caught, both silent
+
+**`categoryIds: []` matched nothing.** `/search` scopes to the whole catalog by
+passing an empty category list, but `buildCatalogWhere` emitted
+`primaryCategoryId IN ()` — a condition matching zero rows. Every search would
+have returned no results while looking perfectly healthy. An empty list now
+means "no category restriction", in both the filter predicate and the facet
+scope.
+
+**Search did not default to relevance.** `parseCatalogSearchParams` fell back to
+`recommended` regardless of `q`, so `/search?q=צמיד טניס` sorted by
+merchandising order and buried the exact match. The default now depends on the
+query: relevance for search, merchandising order for a category listing —
+resolved in one function so `buildCatalogHref` still omits the default from the
+URL on both kinds of page.
+
+---
+
+## D3C.8 — Overlay is a shortcut, not a results page
+
+At most five products and three categories, then a hand-off to `/search`. A
+suggestion list that fills the viewport is a worse results page rendered in a
+modal, competing with the page it exists to lead to.
+
+Keyboard support follows the combobox pattern: the input keeps focus and owns
+`aria-expanded` and `aria-activedescendant`; Down/Up traverse a flat list of
+everything selectable, because that is what the eye sees; Enter follows the
+highlight or submits the raw query; Escape closes. Requests are debounced and
+each in-flight one is aborted on the next keystroke, so a slow response cannot
+overwrite a newer one.
+
+Prices are formatted **on the server**, through the money module — the overlay
+never receives an agorot integer to format itself.
+
+---
+
+## D3C.9 — `/search` is noindex, and nothing is fabricated
+
+A search results page is not content, and letting crawlers enumerate `?q=` fills
+an index with junk URLs. `robots: { index: false, follow: true }`, canonical
+`/search`.
+
+The zero-result state says plainly that nothing matched and offers three real
+routes onward: clear the search, try a suggested term, or browse a real
+category — categories read from the database, so a suggestion never points
+somewhere that does not exist. **No "similar" products are substituted.**
+Showing items the shopper did not ask for is how a search stops being trusted.

@@ -51,12 +51,18 @@ export async function getCategoryFacets(
   filterConfig: unknown,
 ): Promise<readonly Facet[]> {
   const codes = facetCodesFromConfig(filterConfig);
+  // Same rule as buildCatalogWhere: an empty list scopes to the whole catalog,
+  // which is what makes /search offer facets drawn from every product.
   const scope: Prisma.ProductWhereInput = {
     ...activeProduct,
-    OR: [
-      { primaryCategoryId: { in: [...categoryIds] } },
-      { categories: { some: { categoryId: { in: [...categoryIds] } } } },
-    ],
+    ...(categoryIds.length > 0
+      ? {
+          OR: [
+            { primaryCategoryId: { in: [...categoryIds] } },
+            { categories: { some: { categoryId: { in: [...categoryIds] } } } },
+          ],
+        }
+      : {}),
   };
 
   const facets: Facet[] = [];
@@ -326,10 +332,18 @@ export function buildCatalogWhere(
 
   return {
     ...activeProduct,
-    OR: [
-      { primaryCategoryId: { in: [...categoryIds] } },
-      { categories: { some: { categoryId: { in: [...categoryIds] } } } },
-    ],
+    // An EMPTY category list means "no category restriction", which is how
+    // /search scopes to the whole catalog. Emitting the predicate anyway would
+    // produce `IN ()` - a condition that matches nothing - and silently turn
+    // every search into zero results.
+    ...(categoryIds.length > 0
+      ? {
+          OR: [
+            { primaryCategoryId: { in: [...categoryIds] } },
+            { categories: { some: { categoryId: { in: [...categoryIds] } } } },
+          ],
+        }
+      : {}),
     ...(and.length > 0 ? { AND: and } : {}),
   };
 }
@@ -368,6 +382,13 @@ export function buildCatalogOrderBy(sort: SortKey): Prisma.ProductOrderByWithRel
         { publishedAt: { sort: 'desc', nulls: 'last' } },
         { id: 'asc' },
       ];
+    case 'relevance':
+      // Relevance is not expressible as a Prisma ordering - it comes from the
+      // search provider's score. `getCatalogPage` handles it by ordering the
+      // ranked id list instead; this branch is the fallback for the impossible
+      // case of relevance without a search, which normalization already
+      // prevents.
+      return [{ publishedAt: { sort: 'desc', nulls: 'last' } }, { id: 'asc' }];
   }
 }
 
@@ -401,7 +422,21 @@ export interface CatalogPage {
 export async function getCatalogPage(
   categoryIds: readonly string[],
   query: CatalogQuery,
+  /**
+   * Search results, most relevant first.
+   *
+   * When present, the catalog is restricted to these products AND - if the
+   * sort is relevance - served in this order. This is the seam that makes
+   * search reuse the catalog instead of duplicating it: the filter predicate,
+   * the card shape and the paging arithmetic are all the ones the category
+   * pages already use.
+   */
+  rankedIds?: readonly string[],
 ): Promise<CatalogPage> {
+  if (rankedIds !== undefined) {
+    return getRankedPage(categoryIds, query, rankedIds);
+  }
+
   const where = buildCatalogWhere(categoryIds, query);
 
   const total = await prisma.product.count({ where });
@@ -423,4 +458,79 @@ export async function getCatalogPage(
     totalPages,
     pageSize: query.pageSize,
   };
+}
+
+/**
+ * A page of search results.
+ *
+ * FILTERING STILL HAPPENS IN POSTGRESQL. The only work done in JavaScript is
+ * intersecting two id lists to preserve relevance order, which no `ORDER BY`
+ * Prisma can express would do - and ids are the cheapest thing to move.
+ *
+ * Three steps:
+ *   1. ask the database which of the ranked ids survive the active filters
+ *      (one query, ids only);
+ *   2. keep them in rank order and slice the page;
+ *   3. fetch that page's cards.
+ *
+ * For a non-relevance sort the ordering is handed back to PostgreSQL, because
+ * "cheapest first" is a property of the products, not of the query.
+ */
+async function getRankedPage(
+  categoryIds: readonly string[],
+  query: CatalogQuery,
+  rankedIds: readonly string[],
+): Promise<CatalogPage> {
+  if (rankedIds.length === 0) {
+    return { products: [], total: 0, page: 1, totalPages: 1, pageSize: query.pageSize };
+  }
+
+  const where: Prisma.ProductWhereInput = {
+    ...buildCatalogWhere(categoryIds, query),
+    id: { in: [...rankedIds] },
+  };
+
+  if (query.sort !== 'relevance') {
+    const total = await prisma.product.count({ where });
+    const totalPages = Math.max(1, Math.ceil(total / query.pageSize));
+    const page = Math.min(Math.max(1, query.page), totalPages);
+
+    const rows = await prisma.product.findMany({
+      where,
+      orderBy: buildCatalogOrderBy(query.sort),
+      skip: (page - 1) * query.pageSize,
+      take: query.pageSize,
+      select: productCardSelect,
+    });
+
+    return { products: rows.map(toProductCard), total, page, totalPages, pageSize: query.pageSize };
+  }
+
+  const surviving = await prisma.product.findMany({ where, select: { id: true } });
+  const survivingIds = new Set(surviving.map((row) => row.id));
+
+  const ordered = rankedIds.filter((id) => survivingIds.has(id));
+  const total = ordered.length;
+  const totalPages = Math.max(1, Math.ceil(total / query.pageSize));
+  const page = Math.min(Math.max(1, query.page), totalPages);
+
+  const pageIds = ordered.slice((page - 1) * query.pageSize, page * query.pageSize);
+  if (pageIds.length === 0) {
+    return { products: [], total, page, totalPages, pageSize: query.pageSize };
+  }
+
+  const rows = await prisma.product.findMany({
+    where: { id: { in: pageIds } },
+    select: productCardSelect,
+  });
+
+  // `findMany` returns rows in the database's order, not the id list's, so the
+  // rank order is reapplied here.
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  const products = pageIds
+    .map((id) => byId.get(id))
+    .filter((row): row is NonNullable<typeof row> => row !== undefined)
+    .map(toProductCard);
+
+  return { products, total, page, totalPages, pageSize: query.pageSize };
 }

@@ -1,6 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 
 import { computeOptionSignature } from '../src/lib/catalog/option-signature.ts';
+import { reindexSearchDocuments } from '../src/lib/search/reindex.ts';
 import { PrismaClient } from '../src/generated/prisma/client.ts';
 
 /**
@@ -571,9 +572,22 @@ async function main(): Promise<void> {
     },
   ];
 
+  const extraCategories: Record<string, { id: string }> = {};
   for (const subcategory of emptySubcategories) {
-    await createCategory(subcategory);
+    extraCategories[subcategory.slug] = await createCategory(subcategory);
   }
+
+  const coloredDiamondRings = extraCategories['colored-diamond-rings']!;
+  const diamondEarrings = extraCategories['diamond-earrings']!;
+  const dropEarrings = extraCategories['drop-earrings']!;
+  const goldNecklaces = extraCategories['gold-necklaces']!;
+  const pendantNecklaces = extraCategories['pendant-necklaces']!;
+  const photoNecklaces = extraCategories['photo-necklaces']!;
+  const diamondBracelets = extraCategories['diamond-bracelets']!;
+  const goldBracelets = extraCategories['gold-bracelets']!;
+  const linkBracelets = extraCategories['link-bracelets']!;
+  const ringEarringSets = extraCategories['ring-earring-sets']!;
+  const necklaceEarringSets = extraCategories['necklace-earring-sets']!;
 
   // -------------------------------------------------------------- collections
   //
@@ -640,7 +654,6 @@ async function main(): Promise<void> {
       publishedAt: new Date(),
       seoTitle: 'טבעת סוליטר יהלום מעבדה',
       seoDescription: 'טבעת אירוסין סוליטר עם יהלום מעבדה, בזהב 14K או 18K.',
-      searchDocument: 'טבעת אורורה סוליטר אירוסין זהב יהלום מעבדה קלאסי',
       categories: { create: [{ categoryId: rings.id }, { categoryId: diamondRings.id }] },
       collections: {
         create: [
@@ -749,7 +762,6 @@ async function main(): Promise<void> {
       attributes: { style: 'classic' },
       isActive: true,
       publishedAt: new Date(),
-      searchDocument: 'טבעת נישואין קלאסית זהב חלקה',
       categories: { create: [{ categoryId: rings.id }, { categoryId: goldRings.id }] },
       collections: { create: [{ collectionId: bridal.id, position: 2 }] },
     },
@@ -807,7 +819,6 @@ async function main(): Promise<void> {
       attributes: { style: 'modern' },
       isActive: true,
       publishedAt: new Date(),
-      searchDocument: 'טבעת איטרניטי יהלומים זהב לבן מודרני',
       categories: { create: [{ categoryId: rings.id }] },
       collections: { create: [{ collectionId: bestSellers.id, position: 2 }] },
     },
@@ -880,7 +891,6 @@ async function main(): Promise<void> {
       attributes: { style: 'classic' },
       isActive: true,
       publishedAt: new Date(),
-      searchDocument: 'עגילי יהלום צמודים זהב מעבדה',
       categories: { create: [{ categoryId: earrings.id }] },
       collections: { create: [{ collectionId: bestSellers.id, position: 3 }] },
       diamondSpec: {
@@ -951,7 +961,6 @@ async function main(): Promise<void> {
       attributes: { style: 'everyday' },
       isActive: true,
       publishedAt: new Date(),
-      searchDocument: 'עגילי חישוק זהב קלאסי',
       categories: { create: [{ categoryId: earrings.id }] },
       collections: { create: [{ collectionId: newArrivals.id, position: 2 }] },
     },
@@ -996,7 +1005,6 @@ async function main(): Promise<void> {
       attributes: { style: 'personalized', pendantType: 'name' },
       isActive: true,
       publishedAt: new Date(),
-      searchDocument: 'שרשרת שם בהתאמה אישית זהב חריטה',
       categories: { create: [{ categoryId: necklaces.id }] },
       collections: {
         create: [
@@ -1091,7 +1099,6 @@ async function main(): Promise<void> {
       attributes: { style: 'delicate', pendantType: 'solitaire' },
       isActive: true,
       publishedAt: new Date(),
-      searchDocument: 'שרשרת תליון יהלום עדין זהב',
       categories: { create: [{ categoryId: necklaces.id }] },
       diamondSpec: {
         create: {
@@ -1158,7 +1165,6 @@ async function main(): Promise<void> {
       isActive: true,
       publishedAt: new Date(),
       seoTitle: 'צמיד טניס יהלומי מעבדה',
-      searchDocument: 'צמיד טניס יהלומים זהב מעבדה',
       categories: { create: [{ categoryId: bracelets.id }] },
       collections: {
         create: [
@@ -1252,7 +1258,6 @@ async function main(): Promise<void> {
       attributes: { style: 'everyday' },
       isActive: true,
       publishedAt: new Date(),
-      searchDocument: 'צמיד נובה זהב עדין יומיומי',
       categories: { create: [{ categoryId: bracelets.id }] },
     },
   });
@@ -1295,7 +1300,6 @@ async function main(): Promise<void> {
       attributes: { style: 'classic' },
       isActive: true,
       publishedAt: new Date(),
-      searchDocument: 'סט כלה טבעת עגילים יהלומים זהב',
       categories: { create: [{ categoryId: sets.id }] },
       collections: { create: [{ collectionId: bridal.id, position: 3 }] },
       diamondSpec: {
@@ -1332,6 +1336,805 @@ async function main(): Promise<void> {
   }
   await refreshPriceRange(bridalSet.id);
 
+  // ==========================================================================
+  // GENERATED CATALOG DEPTH
+  //
+  // The ten products above are hand-written and exercise the schema's edges:
+  // certificates, variant-level diamond overrides, personalization, DENY
+  // sell-out. These fifty are BREADTH, and they exist for one reason - search
+  // relevance cannot be judged against ten products. With ten, every query
+  // either matches almost everything or nothing, and ranking is unobservable.
+  //
+  // Still explicitly demo data: `demo-` slugs, `DEMO-` SKUs, and the notice on
+  // every short description. No customers, no orders, no reviews.
+  // ==========================================================================
+  interface GeneratedSpec {
+    readonly slug: string;
+    readonly nameHe: string;
+    readonly categoryId: string;
+    readonly extraCategoryId?: string;
+    readonly productType: 'RING' | 'EARRINGS' | 'NECKLACE' | 'BRACELET' | 'SET';
+    readonly priceAgorot: number;
+    readonly colors: readonly GoldColorKey[];
+    readonly karats?: readonly ('14K' | '18K')[];
+    readonly style: string;
+    readonly shape?: string;
+    readonly caratWeight?: string;
+    readonly onHand: number;
+    readonly policy: 'DENY' | 'MADE_TO_ORDER';
+    readonly collectionIds?: readonly string[];
+    readonly sizeOption?: 'ring_size' | 'length';
+    readonly descriptionHe: string;
+  }
+
+  const generated: readonly GeneratedSpec[] = [
+    // --- rings -------------------------------------------------------------
+    {
+      slug: 'demo-halo-ring',
+      nameHe: 'טבעת הילה יהלומים',
+      categoryId: engagementRings.id,
+      extraCategoryId: rings.id,
+      productType: 'RING',
+      priceAgorot: 552_000,
+      colors: ['WHITE', 'YELLOW'],
+      karats: ['14K', '18K'],
+      style: 'classic',
+      shape: 'Round',
+      caratWeight: '0.70',
+      onHand: 2,
+      policy: 'MADE_TO_ORDER',
+      collectionIds: [bridal.id],
+      sizeOption: 'ring_size',
+      descriptionHe: 'טבעת אירוסין עם הילת יהלומים סביב האבן המרכזית.',
+    },
+    {
+      slug: 'demo-pear-solitaire',
+      nameHe: 'טבעת סוליטר טיפה',
+      categoryId: engagementRings.id,
+      extraCategoryId: rings.id,
+      productType: 'RING',
+      priceAgorot: 618_000,
+      colors: ['ROSE', 'WHITE'],
+      karats: ['18K'],
+      style: 'modern',
+      shape: 'Pear',
+      caratWeight: '0.90',
+      onHand: 0,
+      policy: 'MADE_TO_ORDER',
+      collectionIds: [bridal.id],
+      sizeOption: 'ring_size',
+      descriptionHe: 'טבעת אירוסין עם יהלום בליטוש טיפה.',
+    },
+    {
+      slug: 'demo-emerald-cut-ring',
+      nameHe: 'טבעת יהלום אמרלד',
+      categoryId: diamondRings.id,
+      extraCategoryId: rings.id,
+      productType: 'RING',
+      priceAgorot: 735_000,
+      colors: ['WHITE'],
+      karats: ['18K'],
+      style: 'modern',
+      shape: 'Emerald',
+      caratWeight: '1.20',
+      onHand: 1,
+      policy: 'MADE_TO_ORDER',
+      sizeOption: 'ring_size',
+      descriptionHe: 'טבעת עם יהלום בליטוש אמרלד מלבני.',
+    },
+    {
+      slug: 'demo-princess-ring',
+      nameHe: 'טבעת יהלום פרינסס',
+      categoryId: diamondRings.id,
+      extraCategoryId: rings.id,
+      productType: 'RING',
+      priceAgorot: 588_000,
+      colors: ['WHITE', 'YELLOW'],
+      karats: ['14K'],
+      style: 'classic',
+      shape: 'Princess',
+      caratWeight: '0.80',
+      onHand: 3,
+      policy: 'MADE_TO_ORDER',
+      sizeOption: 'ring_size',
+      descriptionHe: 'טבעת עם יהלום בליטוש פרינסס מרובע.',
+    },
+    {
+      slug: 'demo-three-stone-ring',
+      nameHe: 'טבעת שלוש אבנים',
+      categoryId: engagementRings.id,
+      extraCategoryId: rings.id,
+      productType: 'RING',
+      priceAgorot: 694_000,
+      colors: ['YELLOW', 'WHITE', 'ROSE'],
+      karats: ['14K', '18K'],
+      style: 'classic',
+      shape: 'Oval',
+      caratWeight: '1.10',
+      onHand: 0,
+      policy: 'MADE_TO_ORDER',
+      collectionIds: [bridal.id],
+      sizeOption: 'ring_size',
+      descriptionHe: 'טבעת אירוסין עם שלוש אבנים בשורה.',
+    },
+    {
+      slug: 'demo-signet-ring',
+      nameHe: 'טבעת חותם זהב',
+      categoryId: goldRings.id,
+      extraCategoryId: rings.id,
+      productType: 'RING',
+      priceAgorot: 248_000,
+      colors: ['YELLOW'],
+      karats: ['14K'],
+      style: 'everyday',
+      onHand: 6,
+      policy: 'DENY',
+      sizeOption: 'ring_size',
+      descriptionHe: 'טבעת חותם קלאסית בזהב מלא, ניתנת לחריטה.',
+    },
+    {
+      slug: 'demo-stacking-ring',
+      nameHe: 'טבעת דקה לשכבות',
+      categoryId: goldRings.id,
+      extraCategoryId: rings.id,
+      productType: 'RING',
+      priceAgorot: 89_000,
+      colors: ['YELLOW', 'WHITE', 'ROSE'],
+      karats: ['14K'],
+      style: 'delicate',
+      onHand: 12,
+      policy: 'DENY',
+      sizeOption: 'ring_size',
+      descriptionHe: 'טבעת דקה לשילוב בשכבות עם טבעות נוספות.',
+    },
+    {
+      slug: 'demo-twist-ring',
+      nameHe: 'טבעת מפותלת',
+      categoryId: goldRings.id,
+      extraCategoryId: rings.id,
+      productType: 'RING',
+      priceAgorot: 167_000,
+      colors: ['ROSE', 'YELLOW'],
+      karats: ['14K'],
+      style: 'modern',
+      onHand: 4,
+      policy: 'DENY',
+      sizeOption: 'ring_size',
+      descriptionHe: 'טבעת בעיצוב מפותל, לשימוש יומיומי.',
+    },
+    {
+      slug: 'demo-pave-band',
+      nameHe: 'טבעת פאווה יהלומים',
+      categoryId: diamondRings.id,
+      extraCategoryId: rings.id,
+      productType: 'RING',
+      priceAgorot: 412_000,
+      colors: ['WHITE'],
+      karats: ['14K', '18K'],
+      style: 'classic',
+      shape: 'Round',
+      caratWeight: '0.45',
+      onHand: 2,
+      policy: 'MADE_TO_ORDER',
+      sizeOption: 'ring_size',
+      descriptionHe: 'טבעת משובצת יהלומים קטנים לאורך חצי ההיקף.',
+    },
+    {
+      slug: 'demo-wide-band-ring',
+      nameHe: 'טבעת רחבה זהב',
+      categoryId: goldRings.id,
+      extraCategoryId: rings.id,
+      productType: 'RING',
+      priceAgorot: 296_000,
+      colors: ['YELLOW', 'WHITE'],
+      karats: ['18K'],
+      style: 'modern',
+      onHand: 3,
+      policy: 'DENY',
+      sizeOption: 'ring_size',
+      descriptionHe: 'טבעת רחבה בגימור מט.',
+    },
+    {
+      slug: 'demo-colored-diamond-ring',
+      nameHe: 'טבעת יהלום צבעוני',
+      categoryId: coloredDiamondRings.id,
+      extraCategoryId: rings.id,
+      productType: 'RING',
+      priceAgorot: 892_000,
+      colors: ['ROSE', 'YELLOW'],
+      karats: ['18K'],
+      style: 'modern',
+      shape: 'Oval',
+      caratWeight: '1.00',
+      onHand: 0,
+      policy: 'MADE_TO_ORDER',
+      sizeOption: 'ring_size',
+      descriptionHe: 'טבעת עם יהלום מעבדה בגוון צבעוני.',
+    },
+    {
+      slug: 'demo-milgrain-band',
+      nameHe: 'טבעת נישואין מעוטרת',
+      categoryId: weddingRings.id,
+      extraCategoryId: rings.id,
+      productType: 'RING',
+      priceAgorot: 213_000,
+      colors: ['YELLOW', 'ROSE'],
+      karats: ['14K'],
+      style: 'classic',
+      onHand: 5,
+      policy: 'DENY',
+      collectionIds: [bridal.id],
+      sizeOption: 'ring_size',
+      descriptionHe: 'טבעת נישואין עם עיטור עדין בשוליים.',
+    },
+    {
+      slug: 'demo-comfort-band',
+      nameHe: 'טבעת נישואין רחבה',
+      categoryId: weddingRings.id,
+      extraCategoryId: rings.id,
+      productType: 'RING',
+      priceAgorot: 264_000,
+      colors: ['WHITE', 'YELLOW'],
+      karats: ['18K'],
+      style: 'everyday',
+      onHand: 7,
+      policy: 'DENY',
+      collectionIds: [bridal.id],
+      sizeOption: 'ring_size',
+      descriptionHe: 'טבעת נישואין רחבה בגימור נוח לענידה יומיומית.',
+    },
+
+    // --- earrings ----------------------------------------------------------
+    {
+      slug: 'demo-drop-earrings',
+      nameHe: 'עגילים תלויים יהלום',
+      categoryId: dropEarrings.id,
+      extraCategoryId: earrings.id,
+      productType: 'EARRINGS',
+      priceAgorot: 384_000,
+      colors: ['WHITE', 'YELLOW'],
+      karats: ['14K', '18K'],
+      style: 'modern',
+      shape: 'Oval',
+      caratWeight: '0.60',
+      onHand: 2,
+      policy: 'MADE_TO_ORDER',
+      descriptionHe: 'עגילים תלויים עם יהלום מעבדה.',
+    },
+    {
+      slug: 'demo-huggie-earrings',
+      nameHe: 'עגילי האגי זהב',
+      categoryId: hoopEarrings.id,
+      extraCategoryId: earrings.id,
+      productType: 'EARRINGS',
+      priceAgorot: 94_000,
+      colors: ['YELLOW', 'ROSE'],
+      karats: ['14K'],
+      style: 'delicate',
+      onHand: 9,
+      policy: 'DENY',
+      descriptionHe: 'חישוקים קטנים וצמודים לאוזן.',
+    },
+    {
+      slug: 'demo-large-hoops',
+      nameHe: 'עגילי חישוק גדולים',
+      categoryId: hoopEarrings.id,
+      extraCategoryId: earrings.id,
+      productType: 'EARRINGS',
+      priceAgorot: 178_000,
+      colors: ['YELLOW'],
+      karats: ['14K'],
+      style: 'modern',
+      onHand: 4,
+      policy: 'DENY',
+      descriptionHe: 'חישוקי זהב בקוטר גדול, חלולים וקלים.',
+    },
+    {
+      slug: 'demo-diamond-hoops',
+      nameHe: 'עגילי חישוק יהלומים',
+      categoryId: diamondEarrings.id,
+      extraCategoryId: earrings.id,
+      productType: 'EARRINGS',
+      priceAgorot: 456_000,
+      colors: ['WHITE'],
+      karats: ['18K'],
+      style: 'classic',
+      shape: 'Round',
+      caratWeight: '0.75',
+      onHand: 1,
+      policy: 'MADE_TO_ORDER',
+      descriptionHe: 'חישוקים משובצים יהלומי מעבדה.',
+    },
+    {
+      slug: 'demo-pearl-studs',
+      nameHe: 'עגילי פנינה צמודים',
+      categoryId: studEarrings.id,
+      extraCategoryId: earrings.id,
+      productType: 'EARRINGS',
+      priceAgorot: 76_000,
+      colors: ['YELLOW', 'WHITE'],
+      karats: ['14K'],
+      style: 'classic',
+      onHand: 8,
+      policy: 'DENY',
+      descriptionHe: 'עגילים צמודים עם פנינה.',
+    },
+    {
+      slug: 'demo-climber-earrings',
+      nameHe: 'עגילי מטפס',
+      categoryId: dropEarrings.id,
+      extraCategoryId: earrings.id,
+      productType: 'EARRINGS',
+      priceAgorot: 142_000,
+      colors: ['ROSE', 'YELLOW'],
+      karats: ['14K'],
+      style: 'modern',
+      onHand: 5,
+      policy: 'DENY',
+      descriptionHe: 'עגילים בעיצוב מטפס לאורך תנוך האוזן.',
+    },
+    {
+      slug: 'demo-princess-studs',
+      nameHe: 'עגילי יהלום פרינסס',
+      categoryId: diamondEarrings.id,
+      extraCategoryId: earrings.id,
+      productType: 'EARRINGS',
+      priceAgorot: 298_000,
+      colors: ['WHITE', 'YELLOW'],
+      karats: ['14K', '18K'],
+      style: 'classic',
+      shape: 'Princess',
+      caratWeight: '0.50',
+      onHand: 3,
+      policy: 'MADE_TO_ORDER',
+      descriptionHe: 'עגילים צמודים עם יהלום בליטוש פרינסס.',
+    },
+    {
+      slug: 'demo-threader-earrings',
+      nameHe: 'עגילי שרשור',
+      categoryId: dropEarrings.id,
+      extraCategoryId: earrings.id,
+      productType: 'EARRINGS',
+      priceAgorot: 108_000,
+      colors: ['YELLOW', 'WHITE', 'ROSE'],
+      karats: ['14K'],
+      style: 'delicate',
+      onHand: 6,
+      policy: 'DENY',
+      descriptionHe: 'עגילים דקים בסגנון שרשור.',
+    },
+
+    // --- necklaces ---------------------------------------------------------
+    {
+      slug: 'demo-tennis-necklace',
+      nameHe: 'שרשרת טניס יהלומים',
+      categoryId: diamondNecklaces.id,
+      extraCategoryId: necklaces.id,
+      productType: 'NECKLACE',
+      priceAgorot: 1_240_000,
+      colors: ['WHITE', 'YELLOW'],
+      karats: ['14K', '18K'],
+      style: 'classic',
+      shape: 'Round',
+      caratWeight: '2.50',
+      onHand: 0,
+      policy: 'MADE_TO_ORDER',
+      sizeOption: 'length',
+      descriptionHe: 'שרשרת טניס משובצת יהלומי מעבדה לכל האורך.',
+    },
+    {
+      slug: 'demo-bar-necklace',
+      nameHe: 'שרשרת בר זהב',
+      categoryId: goldNecklaces.id,
+      extraCategoryId: necklaces.id,
+      productType: 'NECKLACE',
+      priceAgorot: 118_000,
+      colors: ['YELLOW', 'ROSE'],
+      karats: ['14K'],
+      style: 'delicate',
+      onHand: 7,
+      policy: 'DENY',
+      sizeOption: 'length',
+      descriptionHe: 'שרשרת עם תליון בר אופקי, ניתן לחריטה.',
+    },
+    {
+      slug: 'demo-heart-pendant',
+      nameHe: 'שרשרת תליון לב',
+      categoryId: pendantNecklaces.id,
+      extraCategoryId: necklaces.id,
+      productType: 'NECKLACE',
+      priceAgorot: 134_000,
+      colors: ['ROSE', 'YELLOW'],
+      karats: ['14K'],
+      style: 'delicate',
+      onHand: 5,
+      policy: 'DENY',
+      sizeOption: 'length',
+      descriptionHe: 'שרשרת עם תליון לב עדין.',
+    },
+    {
+      slug: 'demo-initial-necklace',
+      nameHe: 'שרשרת אות ראשונה',
+      categoryId: nameNecklaces.id,
+      extraCategoryId: necklaces.id,
+      productType: 'NECKLACE',
+      priceAgorot: 104_000,
+      colors: ['YELLOW', 'WHITE', 'ROSE'],
+      karats: ['14K'],
+      style: 'personalized',
+      onHand: 0,
+      policy: 'MADE_TO_ORDER',
+      collectionIds: [personalized.id],
+      sizeOption: 'length',
+      descriptionHe: 'שרשרת עם אות ראשונה בחריטה, מיוצרת בהזמנה.',
+    },
+    {
+      slug: 'demo-layered-necklace',
+      nameHe: 'שרשרת שכבות',
+      categoryId: goldNecklaces.id,
+      extraCategoryId: necklaces.id,
+      productType: 'NECKLACE',
+      priceAgorot: 156_000,
+      colors: ['YELLOW'],
+      karats: ['14K'],
+      style: 'modern',
+      onHand: 4,
+      policy: 'DENY',
+      sizeOption: 'length',
+      descriptionHe: 'שרשרת דו-שכבתית באורכים משולבים.',
+    },
+    {
+      slug: 'demo-solitaire-pendant',
+      nameHe: 'תליון סוליטר יהלום',
+      categoryId: diamondNecklaces.id,
+      extraCategoryId: necklaces.id,
+      productType: 'NECKLACE',
+      priceAgorot: 268_000,
+      colors: ['WHITE', 'YELLOW'],
+      karats: ['14K', '18K'],
+      style: 'classic',
+      shape: 'Round',
+      caratWeight: '0.40',
+      onHand: 3,
+      policy: 'MADE_TO_ORDER',
+      sizeOption: 'length',
+      descriptionHe: 'תליון עם יהלום מעבדה יחיד.',
+    },
+    {
+      slug: 'demo-cross-pendant',
+      nameHe: 'תליון צלב זהב',
+      categoryId: pendantNecklaces.id,
+      extraCategoryId: necklaces.id,
+      productType: 'NECKLACE',
+      priceAgorot: 128_000,
+      colors: ['YELLOW', 'WHITE'],
+      karats: ['14K'],
+      style: 'classic',
+      onHand: 6,
+      policy: 'DENY',
+      sizeOption: 'length',
+      descriptionHe: 'תליון צלב בזהב מלא.',
+    },
+    {
+      slug: 'demo-chain-necklace',
+      nameHe: 'שרשרת חוליות זהב',
+      categoryId: goldNecklaces.id,
+      extraCategoryId: necklaces.id,
+      productType: 'NECKLACE',
+      priceAgorot: 342_000,
+      colors: ['YELLOW'],
+      karats: ['14K', '18K'],
+      style: 'modern',
+      onHand: 2,
+      policy: 'DENY',
+      sizeOption: 'length',
+      descriptionHe: 'שרשרת חוליות רחבה בזהב.',
+    },
+    {
+      slug: 'demo-photo-pendant',
+      nameHe: 'תליון תמונה',
+      categoryId: photoNecklaces.id,
+      extraCategoryId: necklaces.id,
+      productType: 'NECKLACE',
+      priceAgorot: 189_000,
+      colors: ['YELLOW', 'ROSE'],
+      karats: ['14K'],
+      style: 'personalized',
+      onHand: 0,
+      policy: 'MADE_TO_ORDER',
+      collectionIds: [personalized.id],
+      sizeOption: 'length',
+      descriptionHe: 'תליון עם הטבעת תמונה, מיוצר בהזמנה אישית.',
+    },
+
+    // --- bracelets ---------------------------------------------------------
+    {
+      slug: 'demo-bangle-bracelet',
+      nameHe: 'צמיד באנגל זהב',
+      categoryId: goldBracelets.id,
+      extraCategoryId: bracelets.id,
+      productType: 'BRACELET',
+      priceAgorot: 386_000,
+      colors: ['YELLOW', 'ROSE'],
+      karats: ['14K'],
+      style: 'classic',
+      onHand: 3,
+      policy: 'DENY',
+      descriptionHe: 'צמיד נוקשה בעיצוב חלק.',
+    },
+    {
+      slug: 'demo-chain-bracelet',
+      nameHe: 'צמיד חוליות',
+      categoryId: linkBracelets.id,
+      extraCategoryId: bracelets.id,
+      productType: 'BRACELET',
+      priceAgorot: 242_000,
+      colors: ['YELLOW', 'WHITE'],
+      karats: ['14K'],
+      style: 'modern',
+      onHand: 5,
+      policy: 'DENY',
+      sizeOption: 'length',
+      descriptionHe: 'צמיד חוליות קלאסי בזהב.',
+    },
+    {
+      slug: 'demo-diamond-bangle',
+      nameHe: 'צמיד יהלומים נוקשה',
+      categoryId: diamondBracelets.id,
+      extraCategoryId: bracelets.id,
+      productType: 'BRACELET',
+      priceAgorot: 668_000,
+      colors: ['WHITE'],
+      karats: ['18K'],
+      style: 'classic',
+      shape: 'Round',
+      caratWeight: '1.40',
+      onHand: 0,
+      policy: 'MADE_TO_ORDER',
+      descriptionHe: 'צמיד נוקשה משובץ יהלומי מעבדה.',
+    },
+    {
+      slug: 'demo-charm-bracelet',
+      nameHe: 'צמיד תליונים',
+      categoryId: linkBracelets.id,
+      extraCategoryId: bracelets.id,
+      productType: 'BRACELET',
+      priceAgorot: 198_000,
+      colors: ['YELLOW', 'ROSE'],
+      karats: ['14K'],
+      style: 'everyday',
+      onHand: 4,
+      policy: 'DENY',
+      sizeOption: 'length',
+      descriptionHe: 'צמיד שאליו ניתן להוסיף תליונים.',
+    },
+    {
+      slug: 'demo-name-bracelet',
+      nameHe: 'צמיד שם בחריטה',
+      categoryId: delicateBracelets.id,
+      extraCategoryId: bracelets.id,
+      productType: 'BRACELET',
+      priceAgorot: 112_000,
+      colors: ['YELLOW', 'WHITE', 'ROSE'],
+      karats: ['14K'],
+      style: 'personalized',
+      onHand: 0,
+      policy: 'MADE_TO_ORDER',
+      collectionIds: [personalized.id],
+      sizeOption: 'length',
+      descriptionHe: 'צמיד עדין עם שם בחריטה, מיוצר בהזמנה.',
+    },
+    {
+      slug: 'demo-rope-bracelet',
+      nameHe: 'צמיד חבל זהב',
+      categoryId: goldBracelets.id,
+      extraCategoryId: bracelets.id,
+      productType: 'BRACELET',
+      priceAgorot: 174_000,
+      colors: ['YELLOW'],
+      karats: ['14K'],
+      style: 'everyday',
+      onHand: 8,
+      policy: 'DENY',
+      sizeOption: 'length',
+      descriptionHe: 'צמיד בשזירת חבל.',
+    },
+    {
+      slug: 'demo-slim-tennis',
+      nameHe: 'צמיד טניס דק',
+      categoryId: tennisBracelets.id,
+      extraCategoryId: bracelets.id,
+      productType: 'BRACELET',
+      priceAgorot: 498_000,
+      colors: ['WHITE', 'YELLOW'],
+      karats: ['14K'],
+      style: 'delicate',
+      shape: 'Round',
+      caratWeight: '1.80',
+      onHand: 1,
+      policy: 'MADE_TO_ORDER',
+      sizeOption: 'length',
+      descriptionHe: 'צמיד טניס בגרסה דקה ועדינה.',
+    },
+
+    // --- sets --------------------------------------------------------------
+    {
+      slug: 'demo-necklace-earring-set',
+      nameHe: 'סט שרשרת ועגילים',
+      categoryId: necklaceEarringSets.id,
+      extraCategoryId: sets.id,
+      productType: 'SET',
+      priceAgorot: 462_000,
+      colors: ['YELLOW', 'WHITE'],
+      karats: ['14K'],
+      style: 'classic',
+      shape: 'Round',
+      caratWeight: '0.60',
+      onHand: 2,
+      policy: 'MADE_TO_ORDER',
+      descriptionHe: 'סט תואם של שרשרת ועגילים באותו גוון.',
+    },
+    {
+      slug: 'demo-ring-earring-set',
+      nameHe: 'סט טבעת ועגילים',
+      categoryId: ringEarringSets.id,
+      extraCategoryId: sets.id,
+      productType: 'SET',
+      priceAgorot: 528_000,
+      colors: ['ROSE', 'YELLOW'],
+      karats: ['14K', '18K'],
+      style: 'modern',
+      shape: 'Oval',
+      caratWeight: '0.80',
+      onHand: 0,
+      policy: 'MADE_TO_ORDER',
+      sizeOption: 'ring_size',
+      descriptionHe: 'סט תואם של טבעת ועגילים.',
+    },
+    {
+      slug: 'demo-gift-set-delicate',
+      nameHe: 'סט מתנה עדין',
+      categoryId: giftSets.id,
+      extraCategoryId: sets.id,
+      productType: 'SET',
+      priceAgorot: 226_000,
+      colors: ['YELLOW', 'ROSE'],
+      karats: ['14K'],
+      style: 'delicate',
+      onHand: 6,
+      policy: 'DENY',
+      descriptionHe: 'סט מתנה ארוז הכולל שרשרת וצמיד עדינים.',
+    },
+    {
+      slug: 'demo-bridal-trio',
+      nameHe: 'סט כלה שלושה חלקים',
+      categoryId: bridalSets.id,
+      extraCategoryId: sets.id,
+      productType: 'SET',
+      priceAgorot: 1_480_000,
+      colors: ['WHITE'],
+      karats: ['18K'],
+      style: 'classic',
+      shape: 'Round',
+      caratWeight: '1.60',
+      onHand: 0,
+      policy: 'MADE_TO_ORDER',
+      collectionIds: [bridal.id],
+      sizeOption: 'ring_size',
+      descriptionHe: 'סט כלה הכולל טבעת אירוסין, טבעת נישואין ועגילים.',
+    },
+  ];
+
+  for (const [index, spec] of generated.entries()) {
+    const product = await prisma.product.create({
+      data: {
+        slug: spec.slug,
+        nameHe: spec.nameHe,
+        shortDescriptionHe: `${DEMO_NOTICE} ${spec.descriptionHe}`,
+        descriptionHe: `${DEMO_NOTICE}\n\n${spec.descriptionHe}`,
+        primaryCategoryId: spec.categoryId,
+        productType: spec.productType,
+        basePriceAgorot: spec.priceAgorot,
+        hasDiamonds: spec.shape !== undefined,
+        defaultPrepDays: spec.policy === 'MADE_TO_ORDER' ? 14 : null,
+        lowStockThreshold: spec.policy === 'DENY' ? 2 : null,
+        attributes: { style: spec.style },
+        isActive: true,
+        // Spread over time so "newest" has a strict, meaningful order.
+        publishedAt: new Date(2026, 3, 1 + index),
+        categories: spec.extraCategoryId
+          ? { create: [{ categoryId: spec.extraCategoryId }] }
+          : undefined,
+        collections: spec.collectionIds
+          ? {
+              create: spec.collectionIds.map((collectionId, position) => ({
+                collectionId,
+                position: 50 + position,
+              })),
+            }
+          : undefined,
+        ...(spec.shape
+          ? {
+              diamondSpec: {
+                create: {
+                  isLabGrown: true,
+                  shape: spec.shape,
+                  totalCaratWeight: spec.caratWeight ?? '0.50',
+                  color: 'G',
+                  clarity: 'VS1',
+                  cut: 'Excellent',
+                  notesHe: DEMO_NOTICE,
+                },
+              },
+            }
+          : {}),
+      },
+    });
+
+    await createProductImages(product.id, [
+      { storageKey: `demo/${spec.slug}/main.jpg`, altHe: spec.nameHe },
+    ]);
+
+    const colorOption = await createColorOption(product.id, spec.colors, 1);
+    const karatOption = spec.karats ? await createKaratOption(product.id, spec.karats, 2) : null;
+
+    if (spec.sizeOption === 'ring_size') {
+      await createSelectionOption(product.id, {
+        code: 'ring_size',
+        type: 'RING_SIZE',
+        nameHe: 'מידה',
+        position: 3,
+        values: [50, 52, 54, 56].map((size) => ({ value: String(size), labelHe: String(size) })),
+      });
+    } else if (spec.sizeOption === 'length') {
+      await createSelectionOption(product.id, {
+        code: 'length',
+        type: 'LENGTH',
+        nameHe: 'אורך',
+        position: 3,
+        values: [
+          { value: '40CM', labelHe: '40 ס״מ' },
+          { value: '45CM', labelHe: '45 ס״מ' },
+        ],
+      });
+    }
+
+    let position = 0;
+    const karatValues = karatOption ? karatOption.values : [null];
+
+    for (const karat of karatValues) {
+      for (const color of colorOption.values) {
+        position += 1;
+        const is18k = karat?.value === '18K';
+        const valueIds = [color.id, ...(karat ? [karat.id] : [])];
+
+        await createVariant({
+          productId: product.id,
+          sku: `DEMO-${spec.slug.replace('demo-', '').toUpperCase()}-${color.value}${karat ? `-${karat.value}` : ''}`,
+          priceAgorot: is18k ? Math.round(spec.priceAgorot * 1.18) : spec.priceAgorot,
+          optionValueIds: valueIds,
+          onHand: position === 1 ? spec.onHand : Math.max(0, spec.onHand - 1),
+          policy: spec.policy,
+          lowStockThreshold: spec.policy === 'DENY' ? 2 : null,
+          prepDays: spec.policy === 'MADE_TO_ORDER' ? (is18k ? 21 : 14) : null,
+          position,
+        });
+      }
+    }
+
+    await refreshPriceRange(product.id);
+  }
+
+  // --------------------------------------------------------- search documents
+  //
+  // Built by the SAME function the application and `npm run search:reindex`
+  // use, so a seeded catalog is indexed exactly like a real one. The previous
+  // seed hand-wrote these strings, which is how a document drifts from the
+  // product it describes.
+  const indexed = await reindexSearchDocuments(prisma);
+  console.log(`Indexed ${indexed} search documents.
+`);
+
   // ------------------------------------------------------------------ coupon
   // One demo coupon so the discount path is exercisable. Not a real promotion.
   await prisma.coupon.create({
@@ -1360,6 +2163,7 @@ async function main(): Promise<void> {
     certificates: await prisma.diamondCertificate.count(),
     customizationFields: await prisma.customizationField.count(),
     coupons: await prisma.coupon.count(),
+    searchDocuments: await prisma.product.count({ where: { searchDocument: { not: null } } }),
   };
 
   console.log('Seeded (all demo data):');

@@ -41,11 +41,6 @@ export interface PlaceholderEntry {
 
 export const PLACEHOLDERS: readonly PlaceholderEntry[] = [
   {
-    id: 'search',
-    what: 'Search overlay renders popular-search chips and a non-submitting field. No query runs.',
-    replacedBy: 'Phase 3B - SearchProvider port and Postgres trigram search.',
-  },
-  {
     id: 'wishlist',
     what: 'Wishlist buttons are inert toggles with no persistence. Header count is omitted, not zeroed.',
     replacedBy: 'Phase 6 - accounts and saved items.',

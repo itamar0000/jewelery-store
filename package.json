@@ -24,6 +24,7 @@
     "db:format": "prisma format",
     "db:validate": "prisma validate",
     "db:seed": "node prisma/seed.ts",
+    "search:reindex": "node scripts/reindex-search.ts",
     "db:reset": "prisma migrate reset --force --skip-generate",
     "postinstall": "prisma generate",
     "verify": "npm run lint && npm run typecheck && npm run test && npm run build"

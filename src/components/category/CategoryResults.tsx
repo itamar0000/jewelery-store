@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { ProductGridSkeleton, Skeleton } from '@/components/ui/Skeleton';
@@ -40,6 +41,8 @@ export async function CategoryResults({
   filterConfig,
   basePath,
   rawQuery,
+  rankedIds,
+  emptyState,
 }: {
   /** The category and its descendants. */
   categoryIds: readonly string[];
@@ -48,10 +51,22 @@ export async function CategoryResults({
   /** Path without query string, used to build every filter link. */
   basePath: string;
   rawQuery: RawCatalogQuery;
+  /**
+   * Search results in relevance order. Present only on /search - the same
+   * component then serves both surfaces, which is what keeps search from
+   * growing a parallel listing implementation.
+   */
+  rankedIds?: readonly string[];
+  /** Replaces the empty state entirely, for search's "no results" copy. */
+  emptyState?: ReactNode;
 }) {
   const facets = await getCategoryFacets(categoryIds, filterConfig);
   const query = normalizeCatalogQuery(rawQuery, facets);
-  const { products, total, page, totalPages, pageSize } = await getCatalogPage(categoryIds, query);
+  const { products, total, page, totalPages, pageSize } = await getCatalogPage(
+    categoryIds,
+    query,
+    rankedIds,
+  );
 
   const filtered = hasActiveFilters(query);
 
@@ -62,28 +77,32 @@ export async function CategoryResults({
       <ActiveFilters facets={facets} query={query} basePath={basePath} />
 
       <div className="mt-8">
-        <ProductGrid
-          products={products}
-          emptyTitle={filtered ? 'אין מוצרים שתואמים לסינון.' : 'אין כרגע מוצרים בקטגוריה הזו.'}
-          emptyBody={
-            filtered
-              ? 'אפשר להסיר חלק מהמסננים ולנסות שוב.'
-              : 'הקטלוג מתעדכן. אפשר לעבור לקטגוריה אחרת דרך התפריט.'
-          }
-          emptyAction={
-            filtered ? (
-              // The one-click escape from a zero-result filter. Without it the
-              // only way back is editing the address bar.
-              <Link
-                href={buildCatalogHref(basePath, query, { clearAll: true, sort: query.sort })}
-                scroll={false}
-                className="border-border-strong hover:bg-muted mt-6 inline-flex h-11 items-center rounded-sm border px-5 text-sm transition-colors"
-              >
-                נקה סינון
-              </Link>
-            ) : undefined
-          }
-        />
+        {products.length === 0 && emptyState !== undefined ? (
+          emptyState
+        ) : (
+          <ProductGrid
+            products={products}
+            emptyTitle={filtered ? 'אין מוצרים שתואמים לסינון.' : 'אין כרגע מוצרים בקטגוריה הזו.'}
+            emptyBody={
+              filtered
+                ? 'אפשר להסיר חלק מהמסננים ולנסות שוב.'
+                : 'הקטלוג מתעדכן. אפשר לעבור לקטגוריה אחרת דרך התפריט.'
+            }
+            emptyAction={
+              filtered ? (
+                // The one-click escape from a zero-result filter. Without it the
+                // only way back is editing the address bar.
+                <Link
+                  href={buildCatalogHref(basePath, query, { clearAll: true, sort: query.sort })}
+                  scroll={false}
+                  className="border-border-strong hover:bg-muted mt-6 inline-flex h-11 items-center rounded-sm border px-5 text-sm transition-colors"
+                >
+                  נקה סינון
+                </Link>
+              ) : undefined
+            }
+          />
+        )}
       </div>
 
       <Pagination query={query} basePath={basePath} page={page} totalPages={totalPages} />
