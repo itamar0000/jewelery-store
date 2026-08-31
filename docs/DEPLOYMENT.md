@@ -46,9 +46,32 @@ In **Project → Settings → Environment Variables**, add these for
 | `DATABASE_URL`         | the pooled Neon string from step 1  |
 | `NEXT_PUBLIC_SITE_URL` | `https://<your-project>.vercel.app` |
 
-`DATABASE_URL` **must be set before the first deploy.** The build imports route
-modules, which validate the environment, so a build without it fails at
-"Collecting page data" rather than at runtime.
+Both **must be set before the first deploy**, for different reasons:
+
+- `DATABASE_URL` — the build imports route modules, which validate the
+  environment, so a build without it fails at "Collecting page data" rather
+  than at runtime.
+- `NEXT_PUBLIC_SITE_URL` — `NEXT_PUBLIC_*` variables are **inlined at build
+  time**, not read at runtime. Setting or changing it later has no effect until
+  you **redeploy**.
+
+### What `NEXT_PUBLIC_SITE_URL` should be
+
+The **stable production origin**, with no trailing slash:
+
+```
+https://<your-project>.vercel.app
+```
+
+Not the per-deployment URL. Vercel gives every build its own address like
+`https://jewelery-store1-5o5red9xt-ihpt.vercel.app`; that changes on every
+deploy, and baking it in would make each build claim a different canonical
+origin. Use the stable project alias, and switch it to the real domain when
+there is one.
+
+It feeds `metadataBase`, which is what makes canonical tags absolute. With it
+wrong, every preview deployment self-canonicalises and can be indexed as a
+duplicate of production.
 
 Then deploy.
 

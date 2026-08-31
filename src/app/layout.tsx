@@ -1,11 +1,26 @@
 import type { Metadata, Viewport } from 'next';
 
 import { SITE_DIR, SITE_LANG, SITE_LOCALE } from '@/lib/config/site';
+import { env } from '@/lib/env';
 import { hebrewSans } from '@/lib/fonts';
 
 import './globals.css';
 
 export const metadata: Metadata = {
+  /**
+   * The origin every relative URL in metadata resolves against.
+   *
+   * WITHOUT THIS, canonical tags are emitted RELATIVE - `<link rel="canonical"
+   * href="/rings">` - which defeats the point of having them. A canonical
+   * exists to say "this content lives at ONE address"; a relative one resolves
+   * against whatever host served the page, so every preview deployment
+   * self-canonicalises and can be indexed as a duplicate of production.
+   *
+   * Sourced from NEXT_PUBLIC_SITE_URL, which is why that variable must be the
+   * STABLE production origin rather than a per-deployment URL.
+   */
+  metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
+
   // Brand name, description and canonical domain are TBD
   // (MASTER_SPECIFICATION section 2 and 57, TBD.md). Placeholders are marked
   // as such rather than invented, so nothing here reads as a settled brand
