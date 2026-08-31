@@ -1,44 +1,56 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useId } from 'react';
 
-import { PLACEHOLDER_ATTR } from '@/lib/placeholders';
-
-import { SORT_OPTIONS } from './filter-config';
+import {
+  SORT_KEYS,
+  SORT_LABELS,
+  buildCatalogHref,
+  type CatalogQuery,
+  type SortKey,
+} from '@/lib/catalog/filters';
 
 /**
  * Sort control.
  *
- * PLACEHOLDER (registry id `filters`). Changing the value sorts nothing; the
- * order comes from the fixture array. Phase 3B moves this into the URL
- * alongside the filters.
+ * URL-DRIVEN, like the filters: changing the selection navigates to the URL
+ * that represents the new order, and the ordering itself happens in PostgreSQL
+ * (`buildCatalogOrderBy`). Nothing is sorted in JavaScript, and no sort state
+ * is held in a component - the `value` is read from the parsed query, so back
+ * and forward move the select as well as the results.
  *
- * A NATIVE <select>, deliberately. A custom listbox would need roving focus,
- * type-ahead, and its own screen-reader story, and would still be worse on a
- * phone than the platform picker. Section 50 asks for touch-friendly controls -
- * the native control already is one.
+ * Changing the sort resets to page 1, which `buildCatalogHref` does by default.
+ * Staying on page 4 while the order changes shows an arbitrary slice of a
+ * differently-ordered list.
  *
- * The label is visually hidden but present: the control sits next to a product
- * count where a visible "Sort by" label would add clutter, but an unlabelled
- * select announces only its current value.
+ * A NATIVE <select>. A custom listbox would need roving focus, type-ahead and
+ * its own screen-reader story, and would still be worse on a phone than the
+ * platform picker.
  */
-export function SortControl() {
+export function SortControl({ query, basePath }: { query: CatalogQuery; basePath: string }) {
+  const router = useRouter();
   const id = useId();
 
   return (
-    <div className="flex items-center gap-2" {...PLACEHOLDER_ATTR}>
+    <div className="flex items-center gap-2">
       <label htmlFor={id} className="sr-only">
         מיון מוצרים
       </label>
 
       <select
         id={id}
-        defaultValue="relevance"
+        value={query.sort}
+        onChange={(event) =>
+          router.push(buildCatalogHref(basePath, query, { sort: event.target.value as SortKey }), {
+            scroll: false,
+          })
+        }
         className="border-border-strong focus:border-accent h-11 rounded-sm border bg-transparent px-3 text-sm outline-none"
       >
-        {SORT_OPTIONS.map((option) => (
-          <option key={option.id} value={option.id}>
-            {option.label}
+        {SORT_KEYS.map((key) => (
+          <option key={key} value={key}>
+            {SORT_LABELS[key]}
           </option>
         ))}
       </select>

@@ -1004,16 +1004,16 @@ wrong, and the failure is invisible in the browser.
 
 A `loading.tsx` wraps the WHOLE segment in Suspense, so Next begins streaming —
 and commits HTTP **200** — before the route body runs. A later `notFound()` then
-renders the not-found UI *under that 200*: a soft 404. A crawler indexes
+renders the not-found UI _under that 200_: a soft 404. A crawler indexes
 `/product/anything` as a real page.
 
 Measured against a production build:
 
-| URL | with `loading.tsx` | without |
-| --- | --- | --- |
-| `/product/nope` | 200 | **404** |
-| `/rings/does-not-exist` | 200 | **404** |
-| `/collections/nope` | 200 | **404** |
+| URL                     | with `loading.tsx` | without |
+| ----------------------- | ------------------ | ------- |
+| `/product/nope`         | 200                | **404** |
+| `/rings/does-not-exist` | 200                | **404** |
+| `/collections/nope`     | 200                | **404** |
 
 The fix keeps both properties: the route awaits the category or product FIRST,
 so a missing one 404s before anything is sent, and only the product results
@@ -1078,3 +1078,182 @@ the variant, because a made-to-order piece is not stocked per size (TBD.md B11).
 Prices, stock and images are all computed on the server and passed down. The
 client component receives a resolved object and queries nothing, which is what
 makes "do not trust client-provided prices" structural rather than observed.
+
+---
+
+# Phase 3B-2 — decision record
+
+Catalog discovery: URL-driven filters, database sorting, pagination.
+
+---
+
+## D3B2.1 — The URL is the only filter state
+
+There is no `useState` holding a selection, no effect syncing state into the
+address bar, and no "apply" button. Every filter value renders as a `<Link>` to
+the URL that toggling it produces.
+
+That is what makes reload, back, forward and a pasted link behave identically —
+by construction rather than by careful synchronisation, which is the usual way
+this breaks. The only local state in the filter UI is whether the panel is open,
+which is presentation.
+
+Parameter contract, documented in `src/lib/catalog/filters.ts`:
+
+| Parameter              | Values                                                 |
+| ---------------------- | ------------------------------------------------------ |
+| `minPrice`, `maxPrice` | whole **shekels**, not agorot — a URL a human can read |
+| `karat`                | `14k`, `18k`                                           |
+| `goldColor`            | `yellow`, `white`, `rose`                              |
+| `ringSize`             | `48`, `50`, `52`, …                                    |
+| `length`               | `40cm`, `45cm`, …                                      |
+| `shape`                | `round`, `oval`, …                                     |
+| `carat`                | `0-0.5`, `0.5-1`, `1-2`, `2-plus`                      |
+| `style`, `pendantType` | `classic`, `modern`, `name`, …                         |
+| `sort`                 | recommended, newest, price-asc, price-desc             |
+| `page`, `pageSize`     | integer; 12, 24 or 48                                  |
+
+Multi-value facets are comma-separated (`?goldColor=white,rose`); repeated keys
+are also accepted because that is what a checkbox form submits, and both
+normalize to one canonical URL. Defaults are never emitted — no `?page=1`, no
+`?sort=recommended` — so one state has exactly one URL.
+
+---
+
+## D3B2.2 — Validation is two-stage, and the second stage is the real one
+
+1. `parseCatalogSearchParams` shape-checks with zod. Every field catches to a
+   default: a malformed `?page=abc` is a shared link or a crawler, not an
+   exception, so it normalizes to page 1 rather than throwing a 500.
+2. `normalizeCatalogQuery` intersects every token with the **real facet values
+   read from the database**, and drops what does not match.
+
+Stage 2 is what makes "invalid parameters are safely ignored" structural: no
+caller-supplied string reaches Prisma unless it already exists in the catalog.
+It is also what makes category-awareness structural — a necklace category has no
+`ring_size` facet, so `?ringSize=52` is dropped before it can filter anything,
+and no component contains a category conditional.
+
+A reversed price range is swapped rather than returning nothing, and a token
+list is capped at 24 so a hand-edited URL cannot become an unbounded IN clause.
+
+---
+
+## D3B2.3 — Two filter predicates that are easy to get wrong
+
+**Axis filters must match the SAME variant.** "18K" and "white gold" as two
+separate `variants: { some: ... }` clauses means _has an 18K variant AND has a
+white variant_ — which matches a ring offering 18K-yellow and 14K-white and no
+18K-white at all. They are combined inside one `some`, so a single purchasable
+variant satisfies every axis. Asserted by test: white + 14K returns 0 in a
+fixture where white is always 18K.
+
+**Price is an overlap, not a containment.** A product whose variants run
+4,890–5,890 must appear in a 5,000–6,000 search, so the test is range
+intersection against the denormalized `minPriceAgorot` / `maxPriceAgorot`
+columns the schema maintains for exactly this.
+
+Non-axis options (ring size, chain length) are matched at PRODUCT level, because
+they are selections recorded on the order line rather than stocked SKUs — there
+is no variant carrying them.
+
+---
+
+## D3B2.4 — Sorting happens in PostgreSQL, and every mode has a unique tiebreak
+
+All four modes end with `id: 'asc'`. Without a unique tiebreak two products with
+the same price have no defined relative order, and PostgreSQL may return one of
+them for both OFFSET 0 and OFFSET 12 — showing a product twice on one page and
+never on the other. The tiebreak is what makes "no duplicates, no missing
+products" true rather than usually true.
+
+Price sorts on `minPriceAgorot` in **both** directions, because that is the
+figure the card displays; sorting descending on `maxPriceAgorot` would order by
+a number the customer never sees.
+
+**"Recommended" is a placeholder rule and the business definition is TBD.**
+Today: products the owner has curated into collections first (ordered by how
+many collections they appear in), then newest, then id. That uses only real
+merchandising data the owner already maintains, it is deterministic, and it is
+genuinely different from "newest" rather than a second name for it. When a real
+rule exists — margin, stock cover, conversion — `buildCatalogOrderBy` is the
+single place it lands.
+
+---
+
+## D3B2.5 — Offset pagination, and the page is clamped rather than rejected
+
+Offset, deliberately. At the ~100-product scale in the specification the
+deep-offset cost that motivates cursor pagination does not exist, while offset
+gives what this catalog actually needs: jumpable page numbers, a total count and
+a shareable `?page=3`.
+
+`?page=99` on a two-page result serves page 2. An empty page is a dead end that
+looks broken, and clamping keeps a stale bookmark useful. Any filter or sort
+change resets to page 1 — keeping the page strands the visitor on an empty
+page 4 of a 2-page result.
+
+---
+
+## D3B2.6 — No indexes added, on the evidence
+
+`EXPLAIN (ANALYZE, BUFFERS)` on the heaviest path — category rollup, price
+range, price sort, limit:
+
+```
+Limit ... actual time=0.768..0.772 rows=3
+  Sort  Sort Method: quicksort  Memory: 25kB
+    Index Scan using "Product_archivedAt_idx"
+      SubPlan: Bitmap Index Scan on "ProductCategory_categoryId_idx"
+Execution Time: 0.932 ms   Buffers: shared hit=16
+```
+
+The category join already uses `ProductCategory_categoryId_idx`, and the price
+sort is an in-memory quicksort over three rows. An index on `minPriceAgorot`
+would not be chosen by the planner at this size and would be a guess about a
+catalog that does not exist yet. **Adding none** is the honest reading of "add
+only indexes justified by the actual access patterns"; re-run this EXPLAIN when
+the catalog reaches a few thousand products.
+
+---
+
+## D3B2.7 — Caching: still none, deliberately
+
+Catalog routes remain server-rendered per request.
+
+The owner edits prices, stock, products and collections through the admin. Any
+revalidation window is a window in which a customer can be shown a price that is
+no longer offered or an item that is no longer in stock — and inventory is the
+one field where being stale is actively harmful, because it is what a customer
+relies on before adding to a cart.
+
+At ~100 products the queries run in about a millisecond, so caching would trade
+a real correctness risk for a saving that is not currently measurable. The
+sequence when it is needed: cache the CATALOG shell (names, prices, images) with
+a short window and keep availability uncached, rather than caching the page
+whole. Documented here so the next phase starts from a decision rather than from
+the default.
+
+---
+
+## D3B2.8 — Canonical URLs
+
+- **Filters are refinements, not pages.** `?goldColor=white` canonicalises to
+  the bare category. With nine facets the alternative is thousands of indexable
+  URLs that are all subsets of one page.
+- **Pagination is not a refinement.** Page 3 holds different products, so it is
+  self-canonical and keeps `?page=3`. Collapsing pages onto page 1 would tell a
+  crawler that products only reachable on page 3 do not exist.
+- **Sort is a refinement of ordering**, same products in a different order, so
+  it is dropped from the canonical.
+
+Nothing further: no per-combination titles, no synthetic descriptions.
+
+---
+
+## D3B2.9 — filter-config.ts deleted
+
+The hard-coded per-category facet table from Phase 3A is gone. Which facets a
+category offers now comes from `Category.filterConfig` (data — a row edit, not a
+deployment), and which VALUES appear comes from the catalog itself, so a colour
+nobody stocks is never offered as a filter that returns nothing.

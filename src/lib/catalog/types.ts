@@ -36,6 +36,12 @@ export interface CategoryDetail extends CategorySummary {
   readonly descriptionHe: string | null;
   readonly seoTitle: string | null;
   readonly seoDescription: string | null;
+  /**
+   * Raw `Category.filterConfig`. Read by `getCategoryFacets`, which decides
+   * which facets this category offers. Kept opaque here so the type does not
+   * have to track the JSON shape.
+   */
+  readonly filterConfig: unknown;
   /** Immediate subcategories, active only, in `position` order. */
   readonly children: readonly CategorySummary[];
   /** Ancestors from the root down to (but excluding) this category. */

@@ -1,49 +1,55 @@
 'use client';
 
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useId, useState } from 'react';
 
 import { cn } from '@/components/ui/cn';
 import { CloseIcon, FilterIcon, MinusIcon, PlusIcon } from '@/components/ui/icons';
-import { PLACEHOLDER_ATTR } from '@/lib/placeholders';
+import {
+  activeFilterCount,
+  buildCatalogHref,
+  type CatalogQuery,
+  type Facet,
+} from '@/lib/catalog/filters';
 
 import { SortControl } from './SortControl';
-import type { FilterDefinition } from './filter-config';
 
 /**
- * The category toolbar: filter toggle, product count, sort - plus the filter
- * surface itself.
+ * The category toolbar and the filter surface.
  *
- * FILTERS ARE OPT-IN, NOT PERMANENT FURNITURE. The first pass pinned a filter
- * sidebar to the inline-start edge at every desktop width. That is the
- * conventional catalog layout, and it was wrong here for two reasons: it spends
- * a quarter of the page on controls most visitors never touch, and it squeezes
- * the product grid - the actual content - into what is left. Closed by default,
- * the grid gets the full width.
+ * THE URL IS THE STATE. Every value is a `<Link>` to the URL that results from
+ * toggling it, computed by `buildCatalogHref`. There is no `useState` holding a
+ * selection, no effect syncing state to the address bar, and no "apply"
+ * button - so reload, back, forward and a pasted link all behave identically by
+ * construction rather than by careful synchronisation.
  *
- * TWO PRESENTATIONS, ONE STATE:
- *   - DESKTOP opens a panel DOWNWARD, in the page flow above the grid, with the
- *     groups laid out in columns. Nothing overlaps the products, and the grid
- *     simply moves down.
- *   - MOBILE opens a side drawer, because a top panel on a phone would push the
- *     products entirely off-screen.
+ * Values render as LINKS rather than checkboxes because navigating is what
+ * actually happens. The checkbox square is decorative; the accessible name
+ * carries the state and the action ("זהב לבן, הסרת הסינון"), which is
+ * unambiguous in a screen reader and survives without JavaScript.
  *
- * Both are rendered and toggled with CSS, so the correct one is present without
- * a media-query hook and without a layout flash on first paint. Only one is
- * ever displayed, so only one is in the tab order.
- *
- * PLACEHOLDER (registry id `filters`). The controls respond, but nothing is
- * filtered or sorted: no URL is written and no query runs. Phase 3B moves
- * filter and sort state into the URL.
+ * FILTERS ARE OPT-IN, NOT PERMANENT FURNITURE - unchanged from 3A. Closed by
+ * default, opening downward on desktop and as a side drawer on mobile, so the
+ * product grid keeps the full page width. The only local state in this file is
+ * whether that panel is open, which is presentation and belongs nowhere near
+ * the URL.
  */
 export function FilterBar({
-  filters,
+  facets,
+  query,
+  basePath,
   productCount,
 }: {
-  filters: readonly FilterDefinition[];
+  facets: readonly Facet[];
+  query: CatalogQuery;
+  /** Category path without query string, e.g. `/rings`. */
+  basePath: string;
   productCount: number;
 }) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
+  const activeCount = activeFilterCount(query);
 
   return (
     <>
@@ -56,36 +62,34 @@ export function FilterBar({
             onClick={() => setOpen((value) => !value)}
             className={cn(
               'inline-flex h-11 items-center gap-2 rounded-sm border px-4 text-sm transition-colors',
-              open
+              open || activeCount > 0
                 ? 'border-foreground bg-foreground text-background'
                 : 'border-border-strong hover:bg-muted',
             )}
-            {...PLACEHOLDER_ATTR}
           >
             <FilterIcon className="size-4" />
             סינון
+            {activeCount > 0 && <span aria-hidden="true">({activeCount})</span>}
+            {activeCount > 0 && <span className="sr-only">{activeCount} מסננים פעילים</span>}
           </button>
 
-          {/* Live, because once filtering is real this number changes without a
-              page load and a screen-reader user needs to hear it. */}
+          {/*
+           * Live, because the count changes on every filter navigation and a
+           * screen-reader user needs to hear the result set change size.
+           */}
           <p aria-live="polite" className="text-muted-foreground text-sm">
             {productCount} מוצרים
           </p>
         </div>
 
-        <SortControl />
+        <SortControl query={query} basePath={basePath} />
       </div>
 
-      {/* Desktop: inline panel, above the grid. */}
-      <div
-        id={panelId}
-        hidden={!open}
-        className="border-border hidden border-b py-6 lg:block"
-        {...PLACEHOLDER_ATTR}
-      >
+      {/* Desktop: panel opens downward, above the grid. */}
+      <div id={panelId} hidden={!open} className="border-border hidden border-b py-6 lg:block">
         <div className="grid gap-x-10 gap-y-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filters.map((filter) => (
-            <FilterGroup key={filter.id} filter={filter} />
+          {facets.map((facet) => (
+            <FilterGroup key={facet.code} facet={facet} query={query} basePath={basePath} />
           ))}
         </div>
       </div>
@@ -110,7 +114,6 @@ export function FilterBar({
               }
             }}
             className="bg-card fixed inset-y-0 end-0 z-50 flex w-[min(22rem,90vw)] flex-col"
-            {...PLACEHOLDER_ATTR}
           >
             <div className="border-border flex h-16 shrink-0 items-center justify-between border-b px-4">
               <span className="text-sm font-medium">סינון</span>
@@ -126,8 +129,8 @@ export function FilterBar({
             </div>
 
             <div className="divide-border flex-1 divide-y overflow-y-auto overscroll-contain px-4">
-              {filters.map((filter) => (
-                <FilterGroup key={filter.id} filter={filter} />
+              {facets.map((facet) => (
+                <FilterGroup key={facet.code} facet={facet} query={query} basePath={basePath} />
               ))}
             </div>
           </div>
@@ -137,19 +140,28 @@ export function FilterBar({
   );
 }
 
-/**
- * One filter group.
- *
- * A `<fieldset>` with a `<legend>`, so a screen reader announces which filter a
- * checkbox belongs to. The disclosure carries `aria-expanded`/`aria-controls`.
- */
-function FilterGroup({ filter }: { filter: FilterDefinition }) {
-  const [open, setOpen] = useState(true);
+function FilterGroup({
+  facet,
+  query,
+  basePath,
+}: {
+  facet: Facet;
+  query: CatalogQuery;
+  basePath: string;
+}) {
+  // Groups with a selection open by default, so an active filter is never
+  // hidden behind a collapsed heading after a reload.
+  const hasSelection =
+    facet.code === 'price'
+      ? query.minPrice !== null || query.maxPrice !== null
+      : query.values[facet.code].length > 0;
+
+  const [open, setOpen] = useState(hasSelection || facet.code === 'price');
   const panelId = useId();
 
   return (
     <fieldset className="py-4">
-      <legend className="sr-only">{filter.label}</legend>
+      <legend className="sr-only">{facet.labelHe}</legend>
 
       <button
         type="button"
@@ -158,7 +170,7 @@ function FilterGroup({ filter }: { filter: FilterDefinition }) {
         onClick={() => setOpen((value) => !value)}
         className="flex w-full items-center justify-between text-start text-sm font-medium"
       >
-        {filter.label}
+        {facet.labelHe}
         {open ? (
           <MinusIcon className="text-muted-foreground size-4" />
         ) : (
@@ -168,32 +180,55 @@ function FilterGroup({ filter }: { filter: FilterDefinition }) {
 
       {open && (
         <div id={panelId} className="mt-3">
-          {filter.kind === 'range' ? (
-            <RangeFilter />
+          {facet.code === 'price' ? (
+            <PriceFilter facet={facet} query={query} basePath={basePath} />
           ) : (
-            <ul className={cn(filter.kind === 'swatch' ? 'flex flex-wrap gap-3' : 'space-y-2')}>
-              {filter.options?.map((option) => (
-                <li key={option.id}>
-                  <label className="flex cursor-pointer items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      name={filter.id}
-                      value={option.id}
-                      className="accent-accent size-4"
-                    />
+            <ul className={cn(facet.code === 'gold_color' ? 'flex flex-wrap gap-3' : 'space-y-2')}>
+              {facet.values.map((value) => {
+                const active = query.values[facet.code].includes(value.value);
+                const href = buildCatalogHref(
+                  basePath,
+                  query,
+                  { toggle: { code: facet.code, token: value.token } },
+                  [facet],
+                );
 
-                    {option.swatch && (
+                return (
+                  <li key={value.value}>
+                    <Link
+                      href={href}
+                      scroll={false}
+                      className="group flex items-center gap-2 text-sm"
+                    >
                       <span
                         aria-hidden="true"
-                        style={{ backgroundColor: option.swatch }}
-                        className="border-border-strong size-4 rounded-full border"
-                      />
-                    )}
+                        className={cn(
+                          'flex size-4 shrink-0 items-center justify-center rounded-xs border',
+                          active
+                            ? 'border-foreground bg-foreground text-background'
+                            : 'border-border-strong group-hover:border-foreground',
+                        )}
+                      >
+                        {active && '✓'}
+                      </span>
 
-                    <span className="text-muted-foreground">{option.label}</span>
-                  </label>
-                </li>
-              ))}
+                      {value.hexColor && (
+                        <span
+                          aria-hidden="true"
+                          style={{ backgroundColor: value.hexColor }}
+                          className="border-border-strong size-4 rounded-full border"
+                        />
+                      )}
+
+                      <span className={active ? 'text-foreground' : 'text-muted-foreground'}>
+                        {value.labelHe}
+                      </span>
+
+                      <span className="sr-only">{active ? ', הסרת הסינון' : ', הוספה לסינון'}</span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
@@ -205,38 +240,93 @@ function FilterGroup({ filter }: { filter: FilterDefinition }) {
 /**
  * Price range.
  *
- * Two number inputs rather than a dual-thumb slider: a slider needs a
- * dependency or a hand-rolled drag implementation with its own keyboard story,
- * and neither is justified while nothing is being filtered.
+ * A real form, submitted with the Enter key or the button, which pushes the
+ * resulting URL. Two number inputs rather than a dual-thumb slider: a slider
+ * needs a drag implementation with its own keyboard story and buys nothing a
+ * pair of inputs does not already give.
+ *
+ * The placeholders show the category's ACTUAL price bounds, so the range being
+ * asked for is anchored to what exists rather than to an arbitrary scale.
  */
-function RangeFilter() {
+function PriceFilter({
+  facet,
+  query,
+  basePath,
+}: {
+  facet: Facet;
+  query: CatalogQuery;
+  basePath: string;
+}) {
+  const router = useRouter();
+  const minId = useId();
+  const maxId = useId();
+
+  const bounds = facet.priceBounds;
+  const floor = bounds ? Math.floor(bounds.minAgorot / 100) : 0;
+  const ceiling = bounds ? Math.ceil(bounds.maxAgorot / 100) : 0;
+
   return (
-    <div className="flex items-center gap-2">
-      <label className="flex-1">
-        <span className="sr-only">מחיר מינימלי</span>
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+
+        const read = (name: string): number | null => {
+          const raw = String(data.get(name) ?? '').trim();
+          if (raw === '') return null;
+          const parsed = Number.parseInt(raw, 10);
+          return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+        };
+
+        router.push(
+          buildCatalogHref(basePath, query, {
+            minPrice: read('minPrice'),
+            maxPrice: read('maxPrice'),
+          }),
+          { scroll: false },
+        );
+      }}
+    >
+      <div className="flex items-center gap-2">
+        <label htmlFor={minId} className="sr-only">
+          מחיר מינימלי בשקלים
+        </label>
         <input
+          id={minId}
+          name="minPrice"
           type="number"
           inputMode="numeric"
           min={0}
-          placeholder="מ-"
+          defaultValue={query.minPrice ?? ''}
+          placeholder={String(floor)}
           className="border-input focus:border-accent w-full rounded-sm border px-3 py-2 text-sm outline-none"
         />
-      </label>
 
-      <span aria-hidden="true" className="text-muted-foreground">
-        –
-      </span>
+        <span aria-hidden="true" className="text-muted-foreground">
+          –
+        </span>
 
-      <label className="flex-1">
-        <span className="sr-only">מחיר מקסימלי</span>
+        <label htmlFor={maxId} className="sr-only">
+          מחיר מקסימלי בשקלים
+        </label>
         <input
+          id={maxId}
+          name="maxPrice"
           type="number"
           inputMode="numeric"
           min={0}
-          placeholder="עד"
+          defaultValue={query.maxPrice ?? ''}
+          placeholder={String(ceiling)}
           className="border-input focus:border-accent w-full rounded-sm border px-3 py-2 text-sm outline-none"
         />
-      </label>
-    </div>
+      </div>
+
+      <button
+        type="submit"
+        className="border-border-strong hover:bg-muted mt-2 h-9 w-full rounded-sm border text-sm"
+      >
+        עדכון טווח מחירים
+      </button>
+    </form>
   );
 }

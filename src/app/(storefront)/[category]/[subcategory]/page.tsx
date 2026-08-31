@@ -5,7 +5,8 @@ import { Suspense } from 'react';
 
 import { CategoryPageShell } from '@/components/category/CategoryPageShell';
 import { CategoryResults, CategoryResultsSkeleton } from '@/components/category/CategoryResults';
-import { getCategoryBySlug } from '@/lib/catalog/queries';
+import { descendantCategoryIds, getCategoryBySlug } from '@/lib/catalog/queries';
+import { canonicalFor, parseCatalogSearchParams, type SearchParams } from '@/lib/catalog/filters';
 
 /**
  * Subcategory page - /rings/engagement-rings.
@@ -26,8 +27,10 @@ import { getCategoryBySlug } from '@/lib/catalog/queries';
  */
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ category: string; subcategory: string }>;
+  searchParams: Promise<SearchParams>;
 }): Promise<Metadata> {
   const { subcategory } = await params;
   const found = await getCategoryBySlug(subcategory);
@@ -37,15 +40,26 @@ export async function generateMetadata({
   return {
     title: found.seoTitle ?? found.nameHe,
     description: found.seoDescription ?? found.descriptionHe ?? undefined,
+    // CANONICAL STRATEGY. Filters are refinements of one page, not pages of
+    // their own, so every filtered URL points its canonical at the unfiltered
+    // category. Pagination is different: page 3 holds different products, so it
+    // is self-canonical and keeps its `?page=`. This is the whole strategy -
+    // no per-filter metadata, nothing generated from the query string.
+    alternates: { canonical: canonicalFor(found.href, await searchParams) },
   };
 }
 
 export default async function SubcategoryPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ category: string; subcategory: string }>;
+  searchParams: Promise<SearchParams>;
 }) {
-  const { category: parentSlug, subcategory: slug } = await params;
+  const [{ category: parentSlug, subcategory: slug }, rawSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
   const category = await getCategoryBySlug(slug);
 
   if (!category) notFound();
@@ -81,8 +95,13 @@ export default async function SubcategoryPage({
       ]}
       activeSubcategoryId={category.id}
     >
-      <Suspense fallback={<CategoryResultsSkeleton />}>
-        <CategoryResults categoryId={category.id} categorySlug={parent.slug} />
+      <Suspense key={JSON.stringify(rawSearchParams)} fallback={<CategoryResultsSkeleton />}>
+        <CategoryResults
+          categoryIds={await descendantCategoryIds(category.id)}
+          filterConfig={category.filterConfig}
+          basePath={category.href}
+          rawQuery={parseCatalogSearchParams(rawSearchParams)}
+        />
       </Suspense>
     </CategoryPageShell>
   );

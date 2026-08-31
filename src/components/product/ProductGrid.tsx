@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import { cn } from '@/components/ui/cn';
 
 import { ProductCard } from './ProductCard';
@@ -24,6 +26,7 @@ export function ProductGrid({
   className,
   emptyTitle = 'אין כרגע מוצרים בקטגוריה הזו.',
   emptyBody = 'הקטלוג מתעדכן. אפשר לעבור לקטגוריה אחרת דרך התפריט.',
+  emptyAction,
 }: {
   products: readonly ProductCardData[];
   compact?: boolean;
@@ -31,6 +34,8 @@ export function ProductGrid({
   /** Overridden where "category" is the wrong word - a collection, a search. */
   emptyTitle?: string;
   emptyBody?: string;
+  /** A way out of the empty state - typically "clear filters". */
+  emptyAction?: ReactNode;
 }) {
   // A genuinely empty category is a normal state for a shop, not an error, so
   // this explains and offers a way onward rather than leaving a blank column.
@@ -39,6 +44,7 @@ export function ProductGrid({
       <div className="border-border rounded-sm border border-dashed py-16 text-center">
         <p className="text-sm">{emptyTitle}</p>
         <p className="text-muted-foreground mt-2 text-sm">{emptyBody}</p>
+        {emptyAction}
       </div>
     );
   }

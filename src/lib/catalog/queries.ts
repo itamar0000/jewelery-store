@@ -37,8 +37,13 @@ import type {
  * accepts a price as input.
  */
 
-/** Products a customer may see. Active, published, not archived. */
-const activeProduct = {
+/**
+ * Products a customer may see. Active, published, not archived.
+ *
+ * Exported so `browse.ts` reuses the exact same predicate. A second copy of
+ * this is how an unpublished draft eventually leaks onto a filtered page.
+ */
+export const activeProduct = {
   isActive: true,
   archivedAt: null,
   publishedAt: { not: null },
@@ -88,6 +93,7 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryDetail | 
       descriptionHe: true,
       seoTitle: true,
       seoDescription: true,
+      filterConfig: true,
       parent: { select: { id: true, slug: true, nameHe: true, parentId: true } },
       children: {
         where: { isActive: true, archivedAt: null },
@@ -111,6 +117,7 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryDetail | 
     descriptionHe: row.descriptionHe,
     seoTitle: row.seoTitle,
     seoDescription: row.seoDescription,
+    filterConfig: row.filterConfig,
     href: categoryHref(row.slug, parent?.slug),
     ancestors,
     children: row.children.map((child) => ({
@@ -174,7 +181,7 @@ export async function countProductsByCategory(categoryId: string): Promise<numbe
  * (section 5: category, then subcategory). Deliberately not a recursive CTE -
  * that would be a raw query for a tree that is two levels tall.
  */
-async function descendantCategoryIds(categoryId: string): Promise<string[]> {
+export async function descendantCategoryIds(categoryId: string): Promise<string[]> {
   const children = await prisma.category.findMany({
     where: { parentId: categoryId, isActive: true, archivedAt: null },
     select: { id: true },
@@ -523,7 +530,7 @@ const diamondSelect = {
  * made-to-order badge all live there - a card cannot be built from the product
  * row alone.
  */
-const productCardSelect = {
+export const productCardSelect = {
   id: true,
   slug: true,
   nameHe: true,
@@ -595,7 +602,7 @@ type ProductCardRow = {
  * real inventory data that `ProductCardData.stockNotice` was designed for
  * (docs/DECISIONS.md D3.4) - the component still invents nothing.
  */
-function toProductCard(row: ProductCardRow): ProductCardData {
+export function toProductCard(row: ProductCardRow): ProductCardData {
   const availabilities = row.variants.map((variant) =>
     toAvailability(variant.inventory, {
       productThreshold: row.lowStockThreshold,
