@@ -72,7 +72,7 @@ Per Development Rule 1, none of these is guessed. Where a *technical* default wa
 
 | # | Decision | Spec | Blocks | Default | Reversal cost |
 |---|---|---|---|---|---|
-| I1 | **Image / media storage provider** | §42 | Phase 2 | `StorageProvider` port; local-disk adapter for development only, which **throws in production** | Low — port isolates it; stored keys are provider-neutral |
+| ~~I1~~ | ~~**Image / media storage provider**~~ **RESOLVED (Phase 4A):** S3-compatible object storage, Cloudflare R2 recommended; `next/image` for transformation. See [docs/MEDIA_STORAGE_DECISION.md](docs/MEDIA_STORAGE_DECISION.md). **No account is provisioned yet** — the integration is complete and tested against MinIO, and needs only credentials. | §42 | Phase 4A | Implemented in `src/lib/media`; storage optional at runtime | Resolved |
 | I2 | **Email provider** | §42 | Phase 6b | `EmailProvider` port, no implementation | Low |
 | I3 | **Managed Postgres host** | §42 | Phase 9 | Docker Postgres 16 locally; production host undecided | Low — connection string only |
 | I4 | ~~Money as integer agorot vs `Decimal`~~ | — | ~~Phase 1~~ **CLOSED Phase 2B** | **Integer agorot**, implemented in `@/lib/money` and in every monetary column of the schema (D0.1, D1.4). No `Float` holds money anywhere. | Resolved |

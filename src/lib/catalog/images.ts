@@ -1,21 +1,22 @@
+import { getMediaStorage, isPrivateKey } from '@/lib/media';
+
 /**
  * Resolves a stored media key to something the browser can load.
  *
  * `ProductImage.storageKey` is a KEY, never a URL - a deliberate schema
- * decision, because the storage provider is still undecided (TBD.md I1) and
- * keys survive a provider change while URLs do not.
+ * decision, because keys survive a provider change while URLs do not
+ * (ARCHITECTURE section 8, docs/MEDIA_STORAGE_DECISION.md).
  *
- * NO PROVIDER IS CONFIGURED YET, so this returns `null` for every key, and the
- * gallery falls back to the tonal placeholder surface. That is the honest
- * outcome: there is no photography, and inventing a URL would produce broken
- * images rather than a visible gap.
+ * WHEN STORAGE IS NOT CONFIGURED THIS RETURNS `null`, and the gallery falls
+ * back to the tonal placeholder surface. That is the honest outcome while no
+ * bucket is provisioned: a fabricated URL would render as a broken image, which
+ * is worse than a visible gap.
  *
  * WHAT IS REAL EVEN WITHOUT FILES. The image ROWS are real database records
- * with real alt text, real ordering and a real variant association. So the
- * gallery genuinely queries images, genuinely picks the variant's images over
- * the product's, and genuinely re-orders on a variant change - the only missing
- * piece is the bytes. When a provider lands, this one function starts returning
- * URLs and the gallery needs no change.
+ * with real alt text, ordering and variant association. The gallery genuinely
+ * queries images, genuinely prefers a variant's images over the product's, and
+ * genuinely re-orders on a variant change - only the bytes are missing. Once a
+ * bucket exists, this function starts returning URLs and nothing else changes.
  */
 export interface ResolvedImage {
   readonly id: string;
@@ -30,11 +31,18 @@ export interface ResolvedImage {
 }
 
 /**
- * Turns a storage key into a URL.
+ * Turns a storage key into a public URL.
  *
- * Returns `null` until a provider exists. Kept as a function rather than a
- * constant so the call sites are already correct.
+ * Returns `null` when storage is unconfigured, and for a PRIVATE key - a
+ * custom-request upload has no public URL by design, and callers on the
+ * storefront must never be handed one. Private objects are served to admins
+ * through `signedReadUrl`.
  */
-export function resolveImageUrl(_storageKey: string): string | null {
-  return null;
+export function resolveImageUrl(storageKey: string): string | null {
+  if (storageKey.length === 0 || isPrivateKey(storageKey)) return null;
+
+  const storage = getMediaStorage();
+  if (storage === null) return null;
+
+  return storage.publicUrl(storageKey);
 }

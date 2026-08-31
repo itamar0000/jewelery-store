@@ -39,5 +39,41 @@ services:
       retries: 12
       start_period: 10s
 
+  # ------------------------------------------------------------------ media
+  #
+  # MinIO speaks the S3 API, so the storage adapter runs against a REAL
+  # endpoint locally and in CI - no cloud account, no mocked client. That is a
+  # large part of why S3-compatible storage was chosen over a hosted
+  # transformation service (docs/MEDIA_STORAGE_DECISION.md).
+  #
+  # Started on demand with `npm run media:up`, not by `npm run db:up`, because
+  # the storefront renders perfectly well without it.
+  #
+  # These credentials are development-only and deliberately committed, exactly
+  # like the Postgres ones above. They must never be reused anywhere else.
+  minio:
+    image: minio/minio:latest
+    container_name: jewelry-minio
+    restart: unless-stopped
+    profiles: ['media']
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: jewelry_dev
+      MINIO_ROOT_PASSWORD: jewelry_local_dev
+    ports:
+      # 9000 is the S3 API, 9001 the web console. Both are host ports that a
+      # developer may already be using; change them here if so.
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - jewelry-minio-data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
 volumes:
   jewelry-postgres-data:
+  jewelry-minio-data:

@@ -25,11 +25,16 @@
     "db:validate": "prisma validate",
     "db:seed": "node prisma/seed.ts",
     "search:reindex": "node scripts/reindex-search.ts",
+    "media:up": "docker compose --profile media up -d --wait minio",
+    "media:down": "docker compose --profile media down",
+    "media:init": "node scripts/init-media-bucket.ts",
     "db:reset": "prisma migrate reset --force --skip-generate",
     "postinstall": "prisma generate",
     "verify": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1121.0",
+    "@aws-sdk/s3-request-presigner": "^3.1121.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "next": "^15.5.24",

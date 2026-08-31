@@ -262,7 +262,11 @@ Design notes:
 - The database stores **keys, not URLs**, so changing provider does not invalidate every stored row.
 - **Customer uploads are untrusted** (§48): content type and size are enforced server-side when the signed URL is issued, files land in a non-executable private namespace, and image dimensions are validated before use.
 - **Custom-request uploads are not publicly listable.** They are private business correspondence and are served only to admins through signed, expiring URLs.
-- Cloudinary and S3-compatible storage are both viable (§42). The port makes the choice genuinely reversible; the decision stays in TBD.md.
+- **DECIDED (Phase 4A): S3-compatible object storage, Cloudflare R2 recommended.** Transformation is handled by `next/image`, not by the storage provider. Full reasoning in [docs/MEDIA_STORAGE_DECISION.md](docs/MEDIA_STORAGE_DECISION.md); the short version is that this project builds its own Admin (so a provider media library is redundant), already runs Next.js (so responsive widths and AVIF/WebP come free), and needs private expiring reads for custom-request uploads (which is S3 presigning's primary use case).
+- The implementation lives in `src/lib/media`. Its interface is `createUpload` / `delete` / `publicUrl` / `signedReadUrl` — four operations, no transformation method, because adding one would either duplicate `next/image` or bind the schema to a vendor's URL syntax.
+- **Storage is optional at runtime.** With no `MEDIA_S3_*` variables the application boots, the catalog renders and images fall back to the placeholder surface; a *partial* configuration throws, because half-set variables are a deployment mistake rather than an absence.
+- **MinIO in Docker Compose** provides a real S3 endpoint locally (`npm run media:up`), so the adapter is integration-tested against the actual API with no cloud account.
+- **Keys are built from a random id plus an extension derived from the validated content type** — never from the uploaded filename. SVG is rejected outright: it is executable markup and would be a stored-XSS vector served from the asset origin.
 
 ---
 

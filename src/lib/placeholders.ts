@@ -72,7 +72,8 @@ export const PLACEHOLDERS: readonly PlaceholderEntry[] = [
   },
   {
     id: 'imagery',
-    what: 'ProductImage rows are real - real alt text, real ordering, real variant association - but no storage provider is configured, so resolveImageUrl returns null and every image renders as a tonal placeholder.',
-    replacedBy: 'A storage provider (TBD.md I1) plus brand photography (section 2 and 57).',
+    what: 'The storage layer is built and tested (src/lib/media), but no bucket is provisioned, so resolveImageUrl returns null and images render as a tonal placeholder. ProductImage rows are real throughout - alt text, ordering, variant association.',
+    replacedBy:
+      'MEDIA_S3_* credentials (see docs/MEDIA_STORAGE_DECISION.md) plus brand photography (section 2 and 57).',
   },
 ];

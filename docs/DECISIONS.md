@@ -1314,7 +1314,7 @@ contains, whole-phrase similarity. It collapsed on real queries:
 
 Each typed term now scores on its own, weighted by where it hits — the product
 NAME counts three times what the document does, because a word in the name is
-what the product *is*. Category relevance uses **trigram similarity, not
+what the product _is_. Category relevance uses **trigram similarity, not
 equality**, so "טבעת אירוסין" credits the category "טבעות אירוסין" despite the
 plural; equality was the specific cause of the buried-engagement-rings bug.
 Synonym hits score well below typed terms.
@@ -1349,7 +1349,7 @@ parents, collections, gold option labels, diamond shape, lab-grown marker,
 attribute values. Out: SKUs, prices, stock, ids, certificate numbers.
 
 The exclusions are not tidiness. Trigram similarity is **inversely proportional
-to document length**, so a longer document scores *worse* — stuffing prices and
+to document length**, so a longer document scores _worse_ — stuffing prices and
 SKUs in would dilute every score and make the products harder to find. That is
 also why the description is capped.
 
@@ -1434,3 +1434,115 @@ routes onward: clear the search, try a suggested term, or browse a real
 category — categories read from the database, so a suggestion never points
 somewhere that does not exist. **No "similar" products are substituted.**
 Showing items the shopper did not ask for is how a search stops being trusted.
+
+---
+
+# Phase 4A — decision record
+
+Media storage foundation. Resolves TBD **I1**.
+
+---
+
+## D4A.1 — S3-compatible object storage, not Cloudinary
+
+Full reasoning in [docs/MEDIA_STORAGE_DECISION.md](MEDIA_STORAGE_DECISION.md).
+The three arguments that actually decided it, all specific to this project:
+
+1. **We are building our own Admin.** Cloudinary's strongest differentiator is a
+   media-library UI for non-technical users — but the owner will manage images
+   beside the product they belong to, in our Admin. Sending them to a second
+   system to manage the same assets is worse, not better.
+2. **`next/image` already transforms.** Responsive `srcset`, AVIF and WebP ship
+   with the framework this project already uses. Paying a second service to do
+   the same job buys nothing here.
+3. **Custom-request uploads are private customer files** (§17, §48). Presigned
+   reads against a private prefix are S3's primary use case; on a
+   transformation-first product they are the awkward path.
+
+Portability was already designed in — the database stores keys, not URLs — so
+the choice stays reversible. R2 is the recommended instance for zero egress
+fees, but nothing in the code depends on it.
+
+---
+
+## D4A.2 — No transformation method on the interface
+
+`MediaStorage` is `createUpload` / `delete` / `publicUrl` / `signedReadUrl`.
+
+A `transform()` or `getVariantUrl()` was considered and rejected: it would
+either duplicate `next/image`, or bind stored data to one vendor's URL syntax —
+undoing the portability that keys-not-URLs was chosen for. One stored object per
+image, with widths and formats derived at request time, also means deletion and
+re-upload have nothing to keep in sync.
+
+---
+
+## D4A.3 — Storage is optional at runtime, and partial configuration is not
+
+No bucket is provisioned. So with no `MEDIA_S3_*` variables the application
+boots, the catalog renders, tests run, and images fall back to the placeholder
+surface. Nothing pretends an upload happened.
+
+A **partial** configuration behaves differently: it throws, naming the missing
+variables. Half-set variables are a deployment mistake, and treating them as
+"storage is off" would hide it until someone noticed images silently missing in
+production. Error messages never contain a variable's value — asserted by test.
+
+---
+
+## D4A.4 — Keys are built from content type, never from the filename
+
+The extension comes from the **validated content type**; the filename
+contributes at most a cosmetic slug of `[a-z0-9-]`. That single choice removes
+the entire class of `evil.php.jpg`, `../../etc/passwd` and RTL-override bugs,
+rather than trying to escape them.
+
+**SVG is refused**, not merely unsupported: it is executable markup, and serving
+one from the asset origin is a stored-XSS vector. Accepted formats are JPEG,
+PNG, WebP and AVIF.
+
+Keys carry a random id, so re-uploading the same filename never overwrites an
+existing object, and a `public/` or `private/` prefix that the bucket policy
+keys on — which is what makes customer uploads private by construction rather
+than by convention.
+
+---
+
+## D4A.5 — Presigned PUT, validated before signing
+
+The browser uploads directly; bytes never pass through the Next.js server,
+avoiding serverless body limits. The signature covers the key, the method, the
+content type **and the declared length**, so a URL issued for one small JPEG
+cannot be reused for something else or something larger — asserted against a
+real endpoint.
+
+Validation runs *before* signing, because the signature **is** the
+authorization: checking afterwards would check nothing.
+
+---
+
+## D4A.6 — MinIO in Compose, so the adapter is genuinely tested
+
+MinIO speaks the S3 API, so the adapter is exercised against a real endpoint
+locally and in CI with no cloud account. This is not a fake adapter — it is the
+same protocol R2 and S3 serve.
+
+The integration suite **skips loudly** when MinIO is not running, rather than
+failing: storage is optional infrastructure and `npm test` must pass on a
+machine that has never started it. The skip prints a visible warning, so a green
+suite never silently means the round trip was untried. Both paths were verified:
+126 ms with MinIO up, 21 ms plus the warning with it stopped.
+
+---
+
+## D4A.7 — No schema change
+
+`ProductImage` already carries product association, optional variant
+association, storage key, required alt text, width, height, position,
+`isPrimary`, media type and timestamps, with indexes on `[productId, position]`
+and `[variantId, position]`.
+
+Every field the media architecture needs already exists, so no migration was
+created. `contentType` and `bytes` columns were considered and rejected: nothing
+reads them, and the content type is already fixed by the key's extension.
+Migration churn for fields with no reader is a cost with no benefit.
