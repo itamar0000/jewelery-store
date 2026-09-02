@@ -133,6 +133,46 @@ export function FilterBar({
                 <FilterGroup key={facet.code} facet={facet} query={query} basePath={basePath} />
               ))}
             </div>
+
+            {/*
+             * DRAWER FOOTER - reset and dismiss.
+             *
+             * The drawer previously ended at the last filter group, which left
+             * two things with no home on a phone. There was no way to clear a
+             * filter set except by unticking values one at a time, and no
+             * obvious way back to the results except the small X in the corner
+             * or a tap on the backdrop.
+             *
+             * There is deliberately NO "apply" here. Filtering is URL state and
+             * every value navigates the moment it is tapped, so the results
+             * behind the drawer are already correct; an Apply button would
+             * imply a pending change that does not exist. The primary control
+             * therefore says how many products are waiting and closes.
+             *
+             * Reset is a `Link` for the same reason every value is - it is a
+             * navigation to the unfiltered URL, so it works with the back
+             * button and can be opened in a new tab.
+             */}
+            <div className="border-border flex shrink-0 items-center gap-3 border-t p-4">
+              {activeCount > 0 && (
+                <Link
+                  href={buildCatalogHref(basePath, query, { clearAll: true, sort: query.sort })}
+                  scroll={false}
+                  onClick={() => setOpen(false)}
+                  className="text-muted-foreground hover:text-foreground shrink-0 text-sm underline underline-offset-4 transition-colors"
+                >
+                  נקה סינון
+                </Link>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="bg-foreground text-background hover:bg-foreground/90 inline-flex h-12 flex-1 items-center justify-center rounded-sm text-sm font-medium transition-colors"
+              >
+                הצגת {productCount} מוצרים
+              </button>
+            </div>
           </div>
         </div>
       )}
