@@ -8,7 +8,7 @@ import { Bidi } from '@/lib/rtl/bidi';
 
 export const metadata: Metadata = {
   title: 'שאלות ותשובות',
-  description: 'תשובות על יהלומי מעבדה, מידות, קראט וגווני זהב, משלוחים והחזרות.',
+  description: 'תשובות על יהלומים טבעיים ויהלומי מעבדה, מידות, קראט וגווני זהב, משלוחים והחזרות.',
 };
 
 /**
@@ -39,6 +39,25 @@ interface Faq {
 }
 
 const FAQS: readonly Faq[] = [
+  /**
+   * FIRST, because it is now the question the catalog raises.
+   *
+   * The store carries BOTH natural and lab-grown stones, so "which kind is
+   * this?" has to be answerable before the explanatory questions below it mean
+   * anything. The answer deliberately points at the product page rather than
+   * stating a store-wide fact: the stone type is a per-product column
+   * (DiamondSpec.isLabGrown) and this page must not contradict it.
+   */
+  {
+    id: 'natural-or-lab',
+    question: 'היהלומים בחנות טבעיים או יהלומי מעבדה?',
+    answer: (
+      <>
+        גם וגם. בקטלוג יש תכשיטים המשובצים ביהלומים טבעיים ותכשיטים המשובצים ביהלומי מעבדה. סוג
+        האבן מצוין במפורש בעמוד כל מוצר, תחת פרטי היהלום.
+      </>
+    ),
+  },
   {
     id: 'lab-grown',
     question: 'מה זה יהלום מעבדה?',
@@ -137,7 +156,7 @@ export default function FaqPage() {
     <>
       <PageHero
         title="שאלות ותשובות"
-        description="מה שכדאי לדעת לפני קנייה — על יהלומי מעבדה, זהב, מידות והזמנה אישית."
+        description="מה שכדאי לדעת לפני קנייה — על יהלומים, זהב, מידות והזמנה אישית."
         trail={[{ label: 'דף הבית', href: '/' }, { label: 'שאלות ותשובות' }]}
         imageLabel="שאלות ותשובות"
       />

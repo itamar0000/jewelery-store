@@ -26,7 +26,11 @@ export const metadata: Metadata = {
   // as such rather than invented, so nothing here reads as a settled brand
   // decision.
   title: 'חנות תכשיטים',
-  description: 'תכשיטי זהב ויהלומי מעבדה.',
+  // The catalog carries BOTH natural and lab-grown diamonds, so no site-level
+  // string may position the store as exclusively one or the other. The stone
+  // type is a per-product fact and is stated on the product page from
+  // DiamondSpec.isLabGrown, never here.
+  description: 'תכשיטי זהב ויהלומים, בעיצוב אישי ובהתאמה מלאה.',
   openGraph: {
     locale: SITE_LOCALE,
   },

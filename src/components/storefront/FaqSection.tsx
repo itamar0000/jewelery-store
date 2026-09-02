@@ -19,9 +19,9 @@ import { SectionHeading } from './SectionHeading';
  */
 const FAQ_TOPICS: readonly { id: string; title: string; summary: string }[] = [
   {
-    id: 'lab-grown',
-    title: 'מה זה יהלום מעבדה?',
-    summary: 'מה ההבדל מיהלום כרוי, ואיך זה משפיע על המחיר.',
+    id: 'natural-or-lab',
+    title: 'היהלומים טבעיים או יהלומי מעבדה?',
+    summary: 'בקטלוג יש משני הסוגים. סוג האבן מצוין בעמוד כל מוצר.',
   },
   { id: 'ring-size', title: 'איך יודעים מידת טבעת?', summary: 'איך למדוד מידה נכון לפני הזמנה.' },
   {
@@ -34,7 +34,7 @@ const FAQ_TOPICS: readonly { id: string; title: string; summary: string }[] = [
 
 export function FaqSection() {
   return (
-    <Container as="section" aria-labelledby="guides-heading" className="py-16 md:py-20">
+    <Container as="section" aria-labelledby="guides-heading" className="py-section md:py-feature">
       <SectionHeading
         id="faq-heading"
         title="שאלות ותשובות"

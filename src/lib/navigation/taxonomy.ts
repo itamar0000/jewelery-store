@@ -126,7 +126,7 @@ export const PRIMARY_NAV: readonly NavItem[] = [
     ],
     feature: {
       title: 'אוסף האירוסין',
-      description: 'טבעות אירוסין ביהלומי מעבדה, בהתאמה אישית מלאה.',
+      description: 'טבעות אירוסין ביהלומים טבעיים וביהלומי מעבדה, בהתאמה אישית מלאה.',
       href: '/rings/engagement-rings',
       linkLabel: 'לצפייה באוסף',
     },

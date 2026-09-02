@@ -321,7 +321,7 @@ async function main(): Promise<void> {
     slug: 'rings',
     nameHe: 'טבעות',
     descriptionHe:
-      'טבעות אירוסין, נישואין וטבעות יומיום. כל היהלומים הם יהלומי מעבדה, וניתן להתאים כל דגם לפי קראט, גוון זהב ומידה.',
+      'טבעות אירוסין, נישואין וטבעות יומיום, ביהלומים טבעיים וביהלומי מעבדה. ניתן להתאים כל דגם לפי קראט, גוון זהב ומידה.',
     position: 1,
     facets: RING_FACETS,
   });
@@ -329,7 +329,7 @@ async function main(): Promise<void> {
   const engagementRings = await createCategory({
     slug: 'engagement-rings',
     nameHe: 'טבעות אירוסין',
-    descriptionHe: 'טבעות אירוסין ביהלומי מעבדה, בהתאמה אישית מלאה.',
+    descriptionHe: 'טבעות אירוסין ביהלומים טבעיים וביהלומי מעבדה, בהתאמה אישית מלאה.',
     parentId: rings.id,
     position: 1,
     facets: RING_FACETS,
@@ -338,7 +338,7 @@ async function main(): Promise<void> {
   const diamondRings = await createCategory({
     slug: 'diamond-rings',
     nameHe: 'טבעות יהלומים',
-    descriptionHe: 'טבעות משובצות יהלומי מעבדה.',
+    descriptionHe: 'טבעות משובצות יהלומים, טבעיים או מיהלומי מעבדה.',
     parentId: rings.id,
     position: 2,
     facets: RING_FACETS,
@@ -365,7 +365,7 @@ async function main(): Promise<void> {
   const earrings = await createCategory({
     slug: 'earrings',
     nameHe: 'עגילים',
-    descriptionHe: 'עגילים צמודים, חישוקים ועגילים תלויים בזהב ובשילוב יהלומי מעבדה.',
+    descriptionHe: 'עגילים צמודים, חישוקים ועגילים תלויים בזהב ובשילוב יהלומים.',
     position: 2,
     facets: EARRING_FACETS,
   });
@@ -428,7 +428,7 @@ async function main(): Promise<void> {
   const tennisBracelets = await createCategory({
     slug: 'tennis-bracelets',
     nameHe: 'צמידי טניס',
-    descriptionHe: 'צמידי טניס משובצים יהלומי מעבדה.',
+    descriptionHe: 'צמידי טניס משובצים יהלומים.',
     parentId: bracelets.id,
     position: 1,
     facets: BRACELET_FACETS,
@@ -485,7 +485,7 @@ async function main(): Promise<void> {
     {
       slug: 'colored-diamond-rings',
       nameHe: 'טבעות עם יהלומים צבעוניים',
-      descriptionHe: 'טבעות משובצות יהלומי מעבדה בגוונים.',
+      descriptionHe: 'טבעות משובצות יהלומים צבעוניים.',
       parentId: rings.id,
       position: 5,
       facets: RING_FACETS,
@@ -493,7 +493,7 @@ async function main(): Promise<void> {
     {
       slug: 'diamond-earrings',
       nameHe: 'עגילי יהלום',
-      descriptionHe: 'עגילים משובצים יהלומי מעבדה.',
+      descriptionHe: 'עגילים משובצים יהלומים.',
       parentId: earrings.id,
       position: 3,
       facets: EARRING_FACETS,
@@ -533,7 +533,7 @@ async function main(): Promise<void> {
     {
       slug: 'diamond-bracelets',
       nameHe: 'צמידי יהלומים',
-      descriptionHe: 'צמידים משובצים יהלומי מעבדה.',
+      descriptionHe: 'צמידים משובצים יהלומים.',
       parentId: bracelets.id,
       position: 3,
       facets: BRACELET_FACETS,
@@ -881,8 +881,8 @@ async function main(): Promise<void> {
     data: {
       slug: 'demo-stud-earrings',
       nameHe: 'עגילי יהלום צמודים',
-      shortDescriptionHe: `${DEMO_NOTICE} עגילים צמודים עם יהלומי מעבדה.`,
-      descriptionHe: `${DEMO_NOTICE}\n\nזוג עגילים צמודים, יהלום מעבדה בכל עגיל, עם סגר בורגי.`,
+      shortDescriptionHe: `${DEMO_NOTICE} עגילים צמודים עם יהלומים טבעיים.`,
+      descriptionHe: `${DEMO_NOTICE}\n\nזוג עגילים צמודים, יהלום טבעי בכל עגיל, עם סגר בורגי.`,
       primaryCategoryId: studEarrings.id,
       productType: 'EARRINGS',
       basePriceAgorot: 215_000,
@@ -895,7 +895,7 @@ async function main(): Promise<void> {
       collections: { create: [{ collectionId: bestSellers.id, position: 3 }] },
       diamondSpec: {
         create: {
-          isLabGrown: true,
+          isLabGrown: false,
           totalCaratWeight: '0.40',
           stoneCount: 2,
           color: 'G',
@@ -1154,7 +1154,7 @@ async function main(): Promise<void> {
       slug: 'demo-tennis-bracelet',
       nameHe: 'צמיד טניס יהלומים',
       shortDescriptionHe: `${DEMO_NOTICE} צמיד טניס משובץ לכל האורך.`,
-      descriptionHe: `${DEMO_NOTICE}\n\nצמיד טניס משובץ יהלומי מעבדה לכל אורכו, עם סגר בטחון כפול. מיוצר לפי אורך היד.`,
+      descriptionHe: `${DEMO_NOTICE}\n\nצמיד טניס משובץ יהלומים טבעיים לכל אורכו, עם סגר בטחון כפול. מיוצר לפי אורך היד.`,
       primaryCategoryId: tennisBracelets.id,
       productType: 'BRACELET',
       basePriceAgorot: 725_000,
@@ -1164,7 +1164,7 @@ async function main(): Promise<void> {
       attributes: { style: 'classic' },
       isActive: true,
       publishedAt: new Date(),
-      seoTitle: 'צמיד טניס יהלומי מעבדה',
+      seoTitle: 'צמיד טניס יהלומים טבעיים',
       categories: { create: [{ categoryId: bracelets.id }] },
       collections: {
         create: [
@@ -1174,7 +1174,7 @@ async function main(): Promise<void> {
       },
       diamondSpec: {
         create: {
-          isLabGrown: true,
+          isLabGrown: false,
           totalCaratWeight: '3.00',
           stoneCount: 42,
           color: 'F',
