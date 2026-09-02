@@ -56,7 +56,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   ];
 
   return (
-    <Container className="py-8 md:py-tight">
+    <Container className="md:py-tight py-8">
       <Breadcrumbs trail={trail} />
 
       <div className="mt-8">

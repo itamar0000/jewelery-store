@@ -127,7 +127,7 @@ export function Header() {
          */}
         <Link
           href="/"
-          className="tracking-tight shrink-0 text-lg font-medium whitespace-nowrap lg:text-2xl"
+          className="shrink-0 text-lg font-medium tracking-tight whitespace-nowrap lg:text-2xl"
           aria-label="לדף הבית"
         >
           חנות תכשיטים
