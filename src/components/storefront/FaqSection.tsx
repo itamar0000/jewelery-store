@@ -3,64 +3,65 @@ import Link from 'next/link';
 import { Container } from '@/components/ui/Container';
 import { ChevronIcon } from '@/components/ui/icons';
 
-import { SectionHeading } from './SectionHeading';
-
 /**
- * FAQ entry points on the homepage.
+ * A short FAQ preview, low on the homepage.
  *
- * MASTER_SPECIFICATION section 33 lists the educational content the store
- * should carry. These are the TOPIC titles from that section, which are
- * structural rather than authored - the guide bodies themselves are a content
- * task that has not happened, so each card links to `/faq`, where the answer
- * actually lives, rather than to an article route that would 404.
+ * DELIBERATELY SMALL. The homepage is a shopping experience, not a help centre.
+ * The previous version gave this a full centred `SectionHeading`, the same
+ * vertical padding as the product bands and a four-item two-column grid, which
+ * bought a support page roughly the same visual weight as the best sellers.
+ * Three questions on a single narrow column, under a modest heading, is the
+ * amount of room the subject earns here.
  *
- * A plain list, not cards with imagery: this sits low on the page and competing
- * with the product sections above it would be a mistake.
+ * The questions are the three a first-time jewellery buyer actually asks - what
+ * kind of stone, what karat means, and how to size a ring. Everything else,
+ * including care and delivery, lives behind the link.
+ *
+ * Each item links to `/faq`, where the answer is written, rather than to an
+ * article route that would 404. The bodies of the section 33 educational guides
+ * are still an unwritten content task.
  */
-const FAQ_TOPICS: readonly { id: string; title: string; summary: string }[] = [
-  {
-    id: 'natural-or-lab',
-    title: 'היהלומים טבעיים או יהלומי מעבדה?',
-    summary: 'בקטלוג יש משני הסוגים. סוג האבן מצוין בעמוד כל מוצר.',
-  },
-  { id: 'ring-size', title: 'איך יודעים מידת טבעת?', summary: 'איך למדוד מידה נכון לפני הזמנה.' },
-  {
-    id: 'gold',
-    title: 'מה ההבדל בין 14K ל-18K?',
-    summary: '14K מול 18K, וההבדל בין צהוב, לבן ורוז.',
-  },
-  { id: 'care', title: 'איך שומרים על התכשיט?', summary: 'שמירה על תכשיט לאורך זמן.' },
+const FAQ_TOPICS: readonly { id: string; title: string }[] = [
+  { id: 'natural-or-lab', title: 'היהלומים טבעיים או יהלומי מעבדה?' },
+  { id: 'gold', title: 'מה ההבדל בין 14K ל-18K?' },
+  { id: 'ring-size', title: 'איך יודעים מידת טבעת?' },
 ];
 
 export function FaqSection() {
   return (
-    <Container as="section" aria-labelledby="guides-heading" className="py-section md:py-feature">
-      <SectionHeading
-        id="faq-heading"
-        title="שאלות ותשובות"
-        description="מה שכדאי לדעת לפני קנייה."
-        href="/faq"
-      />
+    <Container as="section" aria-labelledby="faq-heading" className="py-section">
+      <div className="mx-auto max-w-(--container-narrow)">
+        <h2
+          id="faq-heading"
+          className="font-display text-xl tracking-tight text-balance md:text-2xl"
+        >
+          שאלות נפוצות
+        </h2>
 
-      <ul className="border-border grid gap-px border-y md:grid-cols-2">
-        {FAQ_TOPICS.map((topic) => (
-          <li key={topic.id}>
-            <Link
-              href="/faq"
-              className="group hover:bg-muted/60 flex items-center justify-between gap-4 py-5 transition-colors"
-            >
-              <span>
-                <span className="group-hover:text-accent block text-sm transition-colors">
+        <ul className="border-border mt-6 border-t">
+          {FAQ_TOPICS.map((topic) => (
+            <li key={topic.id} className="border-border border-b">
+              <Link
+                href="/faq"
+                className="group flex items-center justify-between gap-4 py-4 transition-colors"
+              >
+                <span className="group-hover:text-accent text-sm transition-colors">
                   {topic.title}
                 </span>
-                <span className="text-muted-foreground mt-1 block text-xs">{topic.summary}</span>
-              </span>
+                <ChevronIcon className="text-muted-foreground icon-directional size-4 shrink-0" />
+              </Link>
+            </li>
+          ))}
+        </ul>
 
-              <ChevronIcon className="text-muted-foreground icon-directional size-4 shrink-0" />
-            </Link>
-          </li>
-        ))}
-      </ul>
+        <Link
+          href="/faq"
+          className="hover:text-accent mt-6 inline-flex items-center gap-1 text-sm transition-colors"
+        >
+          לכל השאלות
+          <ChevronIcon className="icon-directional size-4" />
+        </Link>
+      </div>
     </Container>
   );
 }

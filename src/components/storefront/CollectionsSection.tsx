@@ -37,27 +37,44 @@ export function CollectionsSection({
         description="אוספים נבנים בנפרד מהקטגוריות ומתעדכנים לאורך השנה."
       />
 
-      {/* Unframed, for the same reason as the product grid and the category
-          band: the picture is the object, and a hairline around it is one more
-          rectangle competing with it. */}
-      <ul className="grid gap-x-6 gap-y-10 md:grid-cols-3">
+      {/*
+       * TALL TILES WITH THE COPY OVER THE IMAGE.
+       *
+       * This is the third browse band on the homepage, after the category grid
+       * and the best-seller rail, and the visual pass found all three built the
+       * same way: centred heading, one row, caption under each picture. Three
+       * identical structures in a row is what made the page read as a template.
+       *
+       * So each band now states itself differently - the category grid is
+       * asymmetric with overlaid labels, the product rail is captioned below,
+       * and a collection is a tall portrait with its name and description laid
+       * over the bottom of the frame. A collection is a mood rather than a
+       * SKU, and copy on the image is the form that says so.
+       */}
+      <ul className="grid gap-4 md:grid-cols-3">
         {collections.slice(0, limit).map((collection) => (
           <li key={collection.id}>
             <Link href={collection.href} className="group block">
-              <div className="bg-muted/50 overflow-hidden">
+              <div className="relative overflow-hidden">
                 <PlaceholderImage
-                  ratio="landscape"
+                  ratio="tall"
                   label={collection.nameHe}
-                  className="transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                  className="transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                 />
-              </div>
-              <div className="pt-4">
-                <h3 className="group-hover:text-accent text-sm font-medium transition-colors">
-                  {collection.nameHe}
-                </h3>
-                {collection.descriptionHe && (
-                  <p className="text-muted-foreground mt-1.5 text-xs">{collection.descriptionHe}</p>
-                )}
+
+                <div
+                  aria-hidden="true"
+                  className="from-foreground/70 absolute inset-0 bg-gradient-to-t via-transparent to-transparent"
+                />
+
+                <div className="text-background absolute inset-x-0 bottom-0 p-5 md:p-6">
+                  <h3 className="text-base font-medium md:text-lg">{collection.nameHe}</h3>
+                  {collection.descriptionHe && (
+                    <p className="text-background/75 mt-1.5 text-xs text-pretty">
+                      {collection.descriptionHe}
+                    </p>
+                  )}
+                </div>
               </div>
             </Link>
           </li>

@@ -5,7 +5,6 @@ import { FeatureBanner } from '@/components/storefront/FeatureBanner';
 import { FeaturedProducts } from '@/components/storefront/FeaturedProducts';
 import { FaqSection } from '@/components/storefront/FaqSection';
 import { Hero } from '@/components/storefront/Hero';
-import { ReviewsSection } from '@/components/storefront/ReviewsSection';
 import { getCollection, getCollections, getProductsByCollection } from '@/lib/catalog/queries';
 
 /**
@@ -17,21 +16,39 @@ import { getCollection, getCollections, getProductsByCollection } from '@/lib/ca
  * exist, and the newsletter block needs an email system and a consent decision
  * that is a legal question (section 52).
  *
- * THE SEQUENCE CHANGED IN THE VISUAL PASS, for two reasons.
+ * COMPOSITION: PEAKS AND VALLEYS, NOT A STACK OF EQUALS.
  *
- *   - COLLECTIONS MOVED UP, next to best sellers. The two shopping bands were
- *     separated by the diamond education panel, so the page asked the visitor
- *     to shop, then stopped to explain the product, then asked them to shop
- *     again. Grouping the two leaves one clean transition from browsing into
- *     the brand story.
- *   - BRIDAL BECAME A FULL-BLEED BANNER rather than a third split panel. Three
- *     consecutive `EditorialPanel`s were the page's biggest compositional
- *     weakness: identical proportions repeating down the scroll, with nothing
- *     allowed to be the high point. See `FeatureBanner` for the full argument.
+ * The page is deliberately NOT a run of same-weight bands. Reviewed as rendered
+ * output, its worst fault was that three consecutive sections - categories,
+ * best sellers, collections - were built identically: a centred heading, one
+ * row of things, captions underneath. Nothing was allowed to be the high point,
+ * so nothing was.
  *
- * The resulting arc is: look (hero) - browse (categories, best sellers,
- * collections) - understand (diamonds) - aspire (bridal) - commission
- * (custom) - trust (reviews, FAQ).
+ * Each band now states itself differently, and they alternate in weight:
+ *
+ *   hero          PEAK    full-viewport image, no competing content
+ *   categories    high    asymmetric grid, lead tile, labels ON the images
+ *   best sellers  valley  centred heading, four products, captions below
+ *   diamonds      mid     split editorial on a muted ground
+ *   bridal        PEAK    full-bleed campaign banner
+ *   custom        mid     split editorial, mirrored from the diamonds panel
+ *   collections   high    tall portrait tiles, copy over the frame
+ *   FAQ           valley  three questions in a narrow column
+ *
+ * Two sections were REMOVED rather than restyled. Reviews is gone entirely -
+ * three empty testimonial cards read as broken product cards, and no real
+ * reviews exist to put in them (see the git history of ReviewsSection.tsx for
+ * why fabricating them was never an option). The FAQ band shrank from four
+ * topics with a full section heading to three questions in a narrow column: the
+ * homepage is a shopping experience, not a help centre.
+ *
+ * Collections moved AFTER the two editorial panels. It had been a third browse
+ * band stacked directly onto the first two; landing it late gives the lower
+ * half of the page an image-led moment of its own and separates the two
+ * editorial panels from each other.
+ *
+ * The resulting arc is: look - browse - understand - aspire - commission -
+ * discover - reassure.
  *
  * ALL COPY HERE IS PROVISIONAL AND DESCRIPTIVE, NOT MARKETING. The brand name,
  * slogan and voice are TBD (section 2 and 57). Every string below states a
@@ -90,8 +107,6 @@ export default async function HomePage() {
         products={bestSellers}
       />
 
-      <CollectionsSection collections={collections} />
-
       <EditorialPanel
         id="diamonds-heading"
         eyebrow="יהלומים"
@@ -127,7 +142,7 @@ export default async function HomePage() {
         imageLabel="עבודת צורף"
       />
 
-      <ReviewsSection />
+      <CollectionsSection collections={collections} />
 
       <FaqSection />
     </>
