@@ -24,8 +24,8 @@ export function Footer() {
 
   return (
     <footer className="border-border bg-muted/40 mt-24 border-t">
-      <Container className="py-14">
-        <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-3 lg:grid-cols-5">
+      <Container className="py-section">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-3 lg:grid-cols-5">
           {FOOTER_COLUMNS.map((column) => (
             <nav key={column.id} aria-labelledby={`footer-${column.id}`}>
               <h2 id={`footer-${column.id}`} className="mb-4 text-sm font-medium">

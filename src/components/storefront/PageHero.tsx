@@ -41,7 +41,7 @@ export function PageHero({
         ratio="wide"
         label={imageLabel ?? title}
         hideLabel
-        className="max-h-72 min-h-52 w-full"
+        className="max-h-80 min-h-60 w-full"
       />
 
       {/* Vertical scrim: direction-agnostic, unlike the homepage hero, because

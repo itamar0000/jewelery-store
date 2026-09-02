@@ -45,7 +45,7 @@ export function CategoryPageShell({
     <>
       <PageHero title={title} description={description} trail={trail} imageLabel={title} />
 
-      <Container className="py-8 md:py-10">
+      <Container className="py-8 md:py-tight">
         <SubcategoryNav links={subcategories} activeId={activeSubcategoryId} />
 
         <div className="mt-8">{children}</div>

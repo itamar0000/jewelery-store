@@ -90,7 +90,7 @@ export function MobileNav({
          */
         className="bg-card fixed inset-y-0 start-0 z-50 flex w-[min(22rem,88vw)] flex-col shadow-xl"
       >
-        <div className="border-border flex h-16 shrink-0 items-center justify-between border-b px-4">
+        <div className="border-border flex h-16 shrink-0 items-center justify-between border-b px-5">
           <span className="text-sm font-medium">תפריט</span>
           <button
             ref={closeRef}
@@ -116,7 +116,7 @@ export function MobileNav({
                     <Link
                       href={item.href}
                       onClick={() => dispatch({ type: 'CLOSE_MOBILE_MENU' })}
-                      className="hover:bg-muted block px-4 py-3.5 text-sm"
+                      className="hover:bg-muted block px-5 py-4 text-base"
                     >
                       {item.label}
                     </Link>
@@ -142,7 +142,7 @@ export function MobileNav({
                     <Link
                       href={item.href}
                       onClick={() => dispatch({ type: 'CLOSE_MOBILE_MENU' })}
-                      className="flex-1 px-4 py-3.5 text-sm"
+                      className="flex-1 px-5 py-4 text-base"
                     >
                       {item.label}
                     </Link>
@@ -176,7 +176,7 @@ export function MobileNav({
                             <Link
                               href={link.href}
                               onClick={() => dispatch({ type: 'CLOSE_MOBILE_MENU' })}
-                              className="text-muted-foreground hover:text-foreground block py-2.5 ps-8 pe-4 text-sm"
+                              className="text-muted-foreground hover:text-foreground block py-3 ps-9 pe-5 text-sm"
                             >
                               {link.label}
                             </Link>

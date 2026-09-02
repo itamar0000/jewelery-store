@@ -42,16 +42,25 @@ export default function CustomPage() {
 
       <Container className="py-12 md:py-16">
         <section aria-labelledby="process-heading">
-          <h2 id="process-heading" className="text-center text-xl tracking-tight">
+          <h2 id="process-heading" className="text-center text-2xl tracking-tight md:text-3xl">
             איך זה עובד
           </h2>
 
-          <ol className="mt-6 grid gap-6 md:grid-cols-3">
+          {/*
+           * Three unframed columns under a hairline, not three bordered cards.
+           *
+           * Section 17 calls custom work a differentiator and the visual brief
+           * asks this page to feel bespoke rather than transactional. A row of
+           * outlined boxes is the shape of a pricing table; a rule with the
+           * step set beneath it is the shape of a process described in a
+           * catalogue, which is what this actually is.
+           */}
+          <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-12">
             {STEPS.map((step, index) => (
-              <li key={step.id} className="border-border bg-card rounded-sm border p-6">
+              <li key={step.id} className="border-border border-t pt-6">
                 <span className="text-accent text-2xs font-medium">שלב {index + 1}</span>
-                <h3 className="mt-2 text-sm font-medium">{step.title}</h3>
-                <p className="text-muted-foreground mt-2 text-sm">{step.body}</p>
+                <h3 className="mt-3 text-base font-medium">{step.title}</h3>
+                <p className="text-muted-foreground mt-2 text-sm text-pretty">{step.body}</p>
               </li>
             ))}
           </ol>
