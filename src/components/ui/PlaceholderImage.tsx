@@ -1,32 +1,52 @@
 import { cn } from './cn';
 
 /**
- * A neutral stand-in for photography that does not exist yet.
+ * A stand-in for photography that does not exist yet.
  *
- * TEMPORARY - REMOVE WHEN REAL ASSETS LAND.
+ * TEMPORARY - DELETE THIS FILE WHEN REAL ASSETS LAND, along with the
+ * `--ref-placeholder*` tokens.
  *
- * The product, hero and collection photography is TBD
- * (MASTER_SPECIFICATION section 2 and 57, TBD.md). Two things this deliberately
- * is NOT:
+ * WHY IT LOOKS THE WAY IT DOES NOW.
  *
- *   - not stock or generated jewellery imagery, which would put invented
- *     product creative in front of a reviewer as though it were the real thing;
- *   - not an empty box, which makes layout review impossible.
+ * The first version rendered a cream-to-white wash - a surface almost exactly
+ * the tone of the page behind it. The intent was restraint. The effect, once
+ * the whole storefront was reviewed as rendered pages rather than as code, was
+ * that every image on the site read as blank paper. The homepage looked like a
+ * wireframe with generous margins, and its real problem - that it had no
+ * visual anchors - was indistinguishable from "the photography is pending".
  *
- * Instead it renders a calm tonal surface at the correct aspect ratio, so
- * spacing, grid rhythm and card proportions can be judged now. `label` names
- * what belongs there, which doubles as a checklist when the shoot is briefed.
+ * A photograph is the densest object on a page. A stand-in that is not dense
+ * does not stand in for anything: it makes the layout under review a different
+ * layout from the one that will ship, and it hides exactly the compositional
+ * faults this pass exists to find.
  *
- * It is `aria-hidden` and carries no alt text on purpose: there is no content
- * here to describe, and announcing "placeholder" to a screen-reader user adds
- * nothing. The surrounding card supplies the accessible name.
+ * So this is now a clearly visible neutral media frame:
+ *
+ *   - a mid-tone surface that holds its own against the page;
+ *   - a hairline inset so the frame's edges are legible against any neighbour;
+ *   - a caption naming what belongs there, which doubles as the shot list when
+ *     the photography is briefed.
+ *
+ * It is deliberately NOT stock or generated jewellery imagery. Inventing
+ * product creative would put fake goods in front of a reviewer as though they
+ * were real, and it would flatter the design with photography nobody has
+ * commissioned. Neutral and obviously provisional is the honest option.
+ *
+ * It stays `aria-hidden` with no alt text: there is no content here to
+ * describe, and announcing "placeholder" to a screen-reader user adds nothing.
+ * The surrounding card or section supplies the accessible name.
  */
 const RATIOS = {
   square: 'aspect-square',
   portrait: 'aspect-[4/5]',
+  /** Taller than portrait. Editorial category tiles and campaign panels. */
+  tall: 'aspect-[3/4]',
   landscape: 'aspect-[3/2]',
   wide: 'aspect-[16/9]',
+  /** Tall crop on a phone, cinematic on a desktop. */
   hero: 'aspect-[4/5] md:aspect-[21/9]',
+  /** Fills whatever box the caller sizes. For full-viewport heroes. */
+  fill: 'h-full w-full',
 } as const;
 
 export type PlaceholderRatio = keyof typeof RATIOS;
@@ -38,11 +58,11 @@ export function PlaceholderImage({
   className,
 }: {
   ratio?: PlaceholderRatio;
-  /** What the final asset should show. Shown only at larger sizes. */
+  /** What the final asset should show. Shown only where there is room. */
   label?: string;
   /**
-   * Suppresses the caption chip. Used where the placeholder sits BEHIND text -
-   * a page hero - because the centred chip and the centred title land on top of
+   * Suppresses the caption. Used where the placeholder sits BEHIND text - a
+   * hero - because the centred caption and the centred headline land on top of
    * each other and the overlap reads as a rendering bug.
    */
   hideLabel?: boolean;
@@ -52,16 +72,44 @@ export function PlaceholderImage({
     <div
       aria-hidden="true"
       className={cn(
-        'relative flex items-center justify-center overflow-hidden',
-        // A soft diagonal wash reads as "surface", not as a broken image.
-        'from-muted via-card to-accent-muted bg-gradient-to-bl',
+        'bg-placeholder text-placeholder-foreground relative flex items-center justify-center overflow-hidden',
         RATIOS[ratio],
         className,
       )}
     >
+      {/*
+       * Inset hairline. Reads as the edge of a photograph rather than as a
+       * component border, which is why it is inset rather than on the box.
+       *
+       * Suppressed together with the caption. `hideLabel` marks the cases where
+       * this is a full-bleed BACKGROUND layer - a hero, a campaign banner - and
+       * there a rectangle inset from the viewport edge does not read as a photo
+       * edge at all; it reads as the section having a border, which is exactly
+       * the framed look the rest of this pass removed.
+       */}
       {!hideLabel && (
-        <span className="border-border-strong/60 text-muted-foreground/70 text-2xs tracking-snug hidden rounded-full border px-3 py-1 sm:inline-block">
-          {label ?? 'תמונה'}
+        <span
+          aria-hidden="true"
+          className="border-placeholder-foreground/20 pointer-events-none absolute inset-2 border"
+        />
+      )}
+
+      {!hideLabel && (
+        <span className="relative flex max-w-[85%] flex-col items-center gap-1.5 px-3 text-center">
+          {/* A camera glyph, so the frame is recognisable as "image goes here"
+              at sizes too small for the caption to render. */}
+          <svg viewBox="0 0 24 24" fill="none" className="size-5 opacity-45" aria-hidden="true">
+            <path
+              d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.6l1-1.7a1 1 0 0 1 .87-.5h6.06a1 1 0 0 1 .86.5l1 1.7h2.61A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5v-9Z"
+              stroke="currentColor"
+              strokeWidth="1.4"
+            />
+            <circle cx="12" cy="13" r="3.2" stroke="currentColor" strokeWidth="1.4" />
+          </svg>
+
+          {label && (
+            <span className="text-2xs hidden leading-snug font-medium sm:block">{label}</span>
+          )}
         </span>
       )}
     </div>

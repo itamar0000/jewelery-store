@@ -72,6 +72,23 @@
   --ref-danger: #9a2222;
   --ref-success: #1f6b45;
   --ref-warning: #8a5a10;
+
+  /* --- Development placeholder surface ----------------------------------
+   * TEMPORARY. Delete with src/components/ui/PlaceholderImage.tsx once real
+   * photography exists.
+   *
+   * Deliberately MUCH darker than any real surface token. The first pass drew
+   * placeholders as a cream-on-cream wash, which was so close to the page
+   * background that every image area read as blank paper: the homepage looked
+   * like an empty document rather than a composition with the pictures
+   * missing, and it was impossible to judge scale, rhythm or balance.
+   *
+   * A photograph is a dense object on the page. The stand-in has to be dense
+   * too, or the layout being reviewed is not the layout that will ship.
+   *
+   * Contrast measured: placeholder-ink on placeholder is 5.1:1. */
+  --ref-placeholder: #d9d1c4;
+  --ref-placeholder-ink: #55503f;
 }
 
 /* -------------------------------------------------------------------------
@@ -107,6 +124,10 @@
   --color-accent-foreground: var(--ref-white);
   --color-accent-muted: var(--ref-accent-soft);
 
+  /* Development placeholder. TEMPORARY - see the reference tokens above. */
+  --color-placeholder: var(--ref-placeholder);
+  --color-placeholder-foreground: var(--ref-placeholder-ink);
+
   /* Status */
   --color-destructive: var(--ref-danger);
   --color-destructive-foreground: var(--ref-white);
@@ -130,7 +151,15 @@
    *
    * --font-display is intentionally aliased to the same family. Display type
    * is a brand decision that has not been made; pointing it at a second font
-   * now would be inventing one. Repointing it later is one line. */
+   * now would be inventing one.
+   *
+   * IT IS NOW ACTUALLY CONSUMED. Every display-level heading on the storefront
+   * - the hero, section titles, editorial and banner headings, the page hero
+   * and the product name - is set in `font-display` rather than inheriting the
+   * body face. While the alias holds, that renders identically and changes
+   * nothing. The point is that the seam now EXISTS: adding a brand serif later
+   * is one line here, not a hunt through every component for the headings that
+   * should have used it. */
   --font-sans:
     var(--font-hebrew-sans), 'Segoe UI', system-ui, -apple-system, 'Noto Sans Hebrew',
     'Arial Hebrew', Arial, sans-serif;
