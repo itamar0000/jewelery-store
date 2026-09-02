@@ -52,7 +52,12 @@ export function ProductGrid({
   return (
     <ul
       className={cn(
-        'grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6',
+        // Wider gutters than the bordered card needed. A framed card is
+        // separated from its neighbour by its own border; an unframed one is
+        // separated only by the space around it, so the space has to do that
+        // work. The row gap is larger than the column gap because the caption
+        // block under each image would otherwise crowd the next row's picture.
+        'grid grid-cols-2 gap-x-5 gap-y-12 sm:gap-x-8 md:gap-y-16',
         compact ? 'md:grid-cols-3 xl:grid-cols-4' : 'md:grid-cols-3 lg:grid-cols-4',
         className,
       )}

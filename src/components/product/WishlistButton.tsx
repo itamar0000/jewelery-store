@@ -44,8 +44,13 @@ export function WishlistButton({
       aria-labelledby={labelId}
       onClick={() => setSaved((value) => !value)}
       className={cn(
-        'inline-flex size-9 items-center justify-center rounded-full',
-        'bg-card/85 text-foreground backdrop-blur-sm transition-colors duration-200',
+        // Quieter at rest than the first pass. On an unframed card the white
+        // disc was the highest-contrast object in the grid - a row of them read
+        // as the primary UI, above the jewellery. It keeps a backing rather
+        // than going bare, because the contrast of a lone icon against
+        // photography that does not exist yet cannot be guaranteed.
+        'inline-flex size-8 items-center justify-center rounded-full',
+        'bg-card/70 text-foreground backdrop-blur-sm transition-colors duration-200',
         'hover:bg-card focus-visible:bg-card',
         className,
       )}

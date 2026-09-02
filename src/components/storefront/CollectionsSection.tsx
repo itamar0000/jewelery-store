@@ -30,31 +30,33 @@ export function CollectionsSection({
   if (collections.length === 0) return null;
 
   return (
-    <Container as="section" aria-labelledby="collections-heading" className="py-16 md:py-20">
+    <Container as="section" aria-labelledby="collections-heading" className="py-section">
       <SectionHeading
         id="collections-heading"
         title="אוספים"
         description="אוספים נבנים בנפרד מהקטגוריות ומתעדכנים לאורך השנה."
       />
 
-      <ul className="grid gap-4 md:grid-cols-3">
+      {/* Unframed, for the same reason as the product grid and the category
+          band: the picture is the object, and a hairline around it is one more
+          rectangle competing with it. */}
+      <ul className="grid gap-x-6 gap-y-10 md:grid-cols-3">
         {collections.slice(0, limit).map((collection) => (
           <li key={collection.id}>
-            <Link
-              href={collection.href}
-              className="group border-border bg-card hover:border-border-strong block overflow-hidden rounded-sm border transition-colors"
-            >
-              <PlaceholderImage
-                ratio="landscape"
-                label={collection.nameHe}
-                className="transition-transform duration-500 group-hover:scale-[1.03]"
-              />
-              <div className="p-5">
+            <Link href={collection.href} className="group block">
+              <div className="bg-muted/50 overflow-hidden">
+                <PlaceholderImage
+                  ratio="landscape"
+                  label={collection.nameHe}
+                  className="transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                />
+              </div>
+              <div className="pt-4">
                 <h3 className="group-hover:text-accent text-sm font-medium transition-colors">
                   {collection.nameHe}
                 </h3>
                 {collection.descriptionHe && (
-                  <p className="text-muted-foreground mt-1 text-xs">{collection.descriptionHe}</p>
+                  <p className="text-muted-foreground mt-1.5 text-xs">{collection.descriptionHe}</p>
                 )}
               </div>
             </Link>

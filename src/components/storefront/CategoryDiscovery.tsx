@@ -30,7 +30,7 @@ const DISCOVERY_CATEGORIES: readonly { id: string; label: string; href: string }
 
 export function CategoryDiscovery() {
   return (
-    <Container as="section" aria-labelledby="discovery-heading" className="py-16 md:py-20">
+    <Container as="section" aria-labelledby="discovery-heading" className="py-section md:py-feature">
       <SectionHeading
         id="discovery-heading"
         title="קטגוריות"
@@ -41,19 +41,31 @@ export function CategoryDiscovery() {
        * Two columns on mobile, three from tablet, five on desktop, so the five
        * cards form one clean row on a wide screen instead of a 4+1 orphan.
        */}
-      <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+      {/*
+       * Unframed, and taller than wide.
+       *
+       * Two changes from the first pass, both for the same reason - the brief
+       * asks this band to read as editorial rather than as a row of cards:
+       *
+       *   - the border and card fill are gone, so what the eye sees is five
+       *     photographs, not five rectangles with pictures in them;
+       *   - the crop is PORTRAIT rather than square. Five squares in a row is
+       *     the shape of a category chip; the taller crop is the shape of a
+       *     fashion lookbook, and it is also the crop jewellery on a model
+       *     actually needs.
+       */}
+      <ul className="grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3 lg:grid-cols-5 lg:gap-x-6">
         {DISCOVERY_CATEGORIES.map((category) => (
           <li key={category.id}>
-            <Link
-              href={category.href}
-              className="group border-border bg-card hover:border-border-strong block overflow-hidden rounded-sm border transition-colors"
-            >
-              <PlaceholderImage
-                ratio="square"
-                label={category.label}
-                className="transition-transform duration-500 group-hover:scale-[1.04]"
-              />
-              <span className="group-hover:text-accent block px-4 py-3.5 text-center text-sm transition-colors">
+            <Link href={category.href} className="group block">
+              <div className="bg-muted/50 overflow-hidden">
+                <PlaceholderImage
+                  ratio="portrait"
+                  label={category.label}
+                  className="transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                />
+              </div>
+              <span className="group-hover:text-accent mt-4 block text-center text-sm transition-colors">
                 {category.label}
               </span>
             </Link>
