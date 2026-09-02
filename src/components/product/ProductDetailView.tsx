@@ -77,14 +77,23 @@ export function ProductDetailView({ product }: { product: ProductDetail }) {
   const diamond = selectedVariant?.diamond ?? product.diamond;
 
   return (
-    <div className="grid gap-8 md:grid-cols-2 md:gap-12">
-      <div>
-        <div className="relative">
+    /*
+     * THE GALLERY IS WIDER THAN THE CONTROLS.
+     *
+     * The first pass split the page 50/50. On a jewellery product page that is
+     * the wrong ratio: half the screen of swatches and size pills against half
+     * a screen of photograph makes the page read as a configurator, and the
+     * brief is explicit that the image should dominate and that the page must
+     * not look like a form. 7 columns of picture to 5 of controls keeps every
+     * control comfortably wide while the photograph clearly leads.
+     */
+    <div className="grid gap-8 md:grid-cols-12 md:gap-12 lg:gap-16">
+      <div className="md:col-span-7">
+        <div className="bg-muted/40 relative">
           <PlaceholderImage
             key={images[0]?.id ?? 'fallback'}
             ratio="square"
             label={images[0]?.altHe ?? product.nameHe}
-            className="rounded-sm"
           />
           <WishlistButton productName={product.nameHe} className="absolute end-4 top-4 z-10" />
         </div>
@@ -93,28 +102,40 @@ export function ProductDetailView({ product }: { product: ProductDetail }) {
           <ul className="mt-3 grid grid-cols-4 gap-3">
             {images.slice(1, 5).map((image) => (
               <li key={image.id}>
-                <PlaceholderImage ratio="square" label={image.altHe} className="rounded-sm" />
+                <div className="bg-muted/40">
+                  <PlaceholderImage ratio="square" label={image.altHe} />
+                </div>
               </li>
             ))}
           </ul>
         )}
       </div>
 
-      <div>
+      <div className="md:col-span-5">
         {availability?.state === 'MADE_TO_ORDER' && (
           <Badge tone="info" className="mb-4">
             בהזמנה אישית
           </Badge>
         )}
 
-        <h1 className="text-2xl tracking-tight">{product.nameHe}</h1>
+        {/*
+         * The product name was `text-2xl` - SMALLER than the `text-4xl` title
+         * on the category page that links here, so the most important page on
+         * the site had the least important heading on it.
+         */}
+        <h1 className="text-2xl tracking-tight text-balance md:text-3xl">{product.nameHe}</h1>
 
         {product.shortDescriptionHe && (
-          <p className="text-muted-foreground mt-2 text-sm">{product.shortDescriptionHe}</p>
+          <p className="text-muted-foreground mt-3 text-sm">{product.shortDescriptionHe}</p>
         )}
 
-        <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <span className={cn('text-lg font-medium', compareAt && 'text-accent')}>
+        {/*
+         * Price at `text-2xl`, up from `text-lg`. It is the single number the
+         * page exists to communicate, and at 18px it was competing on equal
+         * terms with the SKU line and the option legends.
+         */}
+        <div className="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span className={cn('text-2xl tracking-tight', compareAt && 'text-accent')}>
             {formatPrice(price)}
           </span>
           {compareAt && (
@@ -137,32 +158,70 @@ export function ProductDetailView({ product }: { product: ProductDetail }) {
               </span>
             </legend>
 
-            <div className="mt-3 flex flex-wrap gap-2">
+            {/*
+             * A COLOUR OPTION RENDERS AS A SWATCH, NOT AS A LABELLED PILL.
+             *
+             * The first pass drew every axis value the same way: a bordered
+             * pill with the name in it and, for gold, a 16px dot beside the
+             * text. Selecting one inverted the whole pill to solid black - so
+             * choosing a gold colour put a small gold disc on a black
+             * rectangle, which is both the black-and-gold cliché the visual
+             * direction rejects (section 2) and, worse, the moment the metal
+             * itself became the least visible thing in the control.
+             *
+             * Swatches invert that. The circle is large, it IS the material,
+             * and selection is shown by a ring drawn OUTSIDE it, so nothing
+             * ever covers or recolours the metal. The chosen value is still
+             * named in words - the legend above prints it - so the control does
+             * not rely on colour alone to communicate state, which also keeps
+             * it usable for a colour-blind shopper.
+             */}
+            <div className="mt-3.5 flex flex-wrap gap-2">
               {option.values.map((value) => {
                 const active = axisSelection[option.id] === value.id;
+                const select = () =>
+                  setAxisSelection((current) => ({ ...current, [option.id]: value.id }));
+
+                if (value.hexColor) {
+                  return (
+                    <button
+                      key={value.id}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={select}
+                      title={value.labelHe}
+                      className={cn(
+                        'inline-flex size-9 items-center justify-center rounded-full transition-shadow',
+                        // The ring sits outside the swatch via an offset, so
+                        // the metal colour is never overlaid.
+                        active
+                          ? 'ring-foreground ring-offset-background ring-1 ring-offset-2'
+                          : 'hover:ring-border-strong hover:ring-offset-background hover:ring-1 hover:ring-offset-2',
+                      )}
+                    >
+                      <span
+                        aria-hidden="true"
+                        style={{ backgroundColor: value.hexColor }}
+                        className="border-border-strong/70 size-full rounded-full border"
+                      />
+                      <span className="sr-only">{value.labelHe}</span>
+                    </button>
+                  );
+                }
 
                 return (
                   <button
                     key={value.id}
                     type="button"
                     aria-pressed={active}
-                    onClick={() =>
-                      setAxisSelection((current) => ({ ...current, [option.id]: value.id }))
-                    }
+                    onClick={select}
                     className={cn(
-                      'inline-flex h-10 items-center gap-2 rounded-sm border px-3 text-sm transition-colors',
+                      'inline-flex h-10 items-center rounded-sm border px-4 text-sm transition-colors',
                       active
                         ? 'border-foreground bg-foreground text-background'
                         : 'border-border hover:border-border-strong hover:bg-muted',
                     )}
                   >
-                    {value.hexColor && (
-                      <span
-                        aria-hidden="true"
-                        style={{ backgroundColor: value.hexColor }}
-                        className="border-border-strong size-4 rounded-full border"
-                      />
-                    )}
                     {value.labelHe}
                   </button>
                 );
@@ -278,9 +337,6 @@ function AvailabilityLine({
 /** Diamond characteristics. Latin grading terms are bidi-isolated (section 49). */
 function DiamondSpecTable({ diamond }: { diamond: NonNullable<ProductDetail['diamond']> }) {
   const rows: readonly { label: string; value: string }[] = [
-    diamond.isLabGrown
-      ? { label: 'מקור', value: 'יהלום מעבדה' }
-      : { label: 'מקור', value: 'יהלום כרוי' },
     ...(diamond.totalCaratWeight
       ? [{ label: 'משקל כולל', value: `${diamond.totalCaratWeight} קראט` }]
       : []),
@@ -299,7 +355,25 @@ function DiamondSpecTable({ diamond }: { diamond: NonNullable<ProductDetail['dia
         פרטי היהלום
       </h2>
 
-      <dl className="divide-border mt-3 divide-y text-sm">
+      {/*
+       * THE STONE TYPE IS PULLED OUT OF THE TABLE AND STATED FIRST.
+       *
+       * The store carries both natural and lab-grown diamonds, so "which kind
+       * is this?" is now a question every diamond product has to answer
+       * plainly. As one row among seven - between carat weight and clarity - it
+       * read as another grading attribute, and a shopper scanning the table
+       * could easily miss the one line that is not a grade at all.
+       *
+       * The value comes from `DiamondSpec.isLabGrown` on the selected variant,
+       * falling back to the product. It is never asserted anywhere above this
+       * component: no page-level or site-level copy claims a type, because the
+       * truth is per product and lives in the database.
+       */}
+      <p className="border-accent/50 bg-muted/40 mt-3 border-s-2 px-4 py-3 text-sm">
+        {diamond.isLabGrown ? 'יהלום מעבדה' : 'יהלום טבעי'}
+      </p>
+
+      <dl className="divide-border mt-4 divide-y text-sm">
         {rows.map((row) => (
           <div key={row.label} className="flex justify-between gap-4 py-2">
             <dt className="text-muted-foreground">{row.label}</dt>
