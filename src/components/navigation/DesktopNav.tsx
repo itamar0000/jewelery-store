@@ -75,7 +75,16 @@ export function DesktopNav({
         }
       }}
     >
-      <ul className="flex items-center">
+      {/*
+       * Centred, and spaced by a real gap rather than by per-item padding.
+       *
+       * Padding-only spacing made the row read as one dense band of text: the
+       * gap between two labels was 16px of dead padding that also belonged to
+       * the hover target, so the items had no individual presence. A `gap`
+       * separates the items optically while each one keeps a tight, precise
+       * hit area.
+       */}
+      <ul className="flex items-center justify-center gap-1 xl:gap-3">
         {PRIMARY_NAV.map((item) => {
           const hasMenu = item.columns !== undefined;
           const isOpen = state.openMegaMenu === item.id;
@@ -87,7 +96,7 @@ export function DesktopNav({
               <li key={item.id}>
                 <Link
                   href={item.href}
-                  className="hover:text-accent inline-flex h-16 items-center px-2 text-sm whitespace-nowrap transition-colors duration-150 xl:px-3"
+                  className="hover:text-accent inline-flex h-12 items-center px-3 text-sm whitespace-nowrap transition-colors duration-150"
                 >
                   {item.label}
                 </Link>
@@ -116,8 +125,16 @@ export function DesktopNav({
                   }
                 }}
                 className={cn(
-                  'inline-flex h-16 items-center gap-1 px-2 text-sm whitespace-nowrap transition-colors duration-150 xl:px-3',
-                  isOpen ? 'text-accent' : 'hover:text-accent',
+                  // The open state is marked by a hairline under the label as
+                  // well as by colour. Colour alone had to fight the accent
+                  // used elsewhere in the row, and a rule that appears exactly
+                  // under the open item is the clearer tie between the trigger
+                  // and the panel it just opened.
+                  'relative inline-flex h-12 items-center gap-1.5 px-3 text-sm whitespace-nowrap transition-colors duration-150',
+                  'after:bg-accent after:absolute after:inset-x-3 after:bottom-0 after:h-px after:origin-center after:transition-transform after:duration-200',
+                  isOpen
+                    ? 'text-accent after:scale-x-100'
+                    : 'hover:text-accent after:scale-x-0 hover:after:scale-x-100',
                 )}
               >
                 {item.label}

@@ -85,40 +85,65 @@ export function Header() {
         scrolled ? 'border-border border-b shadow-sm' : 'border-b border-transparent',
       )}
     >
-      <Container className="relative flex h-16 items-center justify-between gap-4">
-        {/* Hamburger: mobile only. Desktop navigation is always visible
-            (section 6), so this is hidden from `lg` upward. */}
-        <button
-          ref={hamburgerRef}
-          type="button"
-          aria-expanded={state.mobileMenuOpen}
-          onClick={() => dispatch({ type: 'TOGGLE_MOBILE_MENU' })}
-          className="hover:bg-muted -ms-2 inline-flex size-10 items-center justify-center rounded-sm lg:hidden"
-        >
-          <MenuIcon className="size-5" />
-          <span className="sr-only">פתיחת תפריט הניווט</span>
-        </button>
+      {/*
+       * ROW 1 - the masthead: wordmark centred, utilities at the inline end.
+       *
+       * The first pass ran everything in ONE row: wordmark, then eight nav
+       * items, then four icons. At 1440 that packed the navigation into the
+       * middle third at `text-sm` with 8px of padding per item, and the
+       * wordmark carried exactly the same visual weight as the word "צמידים"
+       * next to it - so the page had no brand, only a toolbar.
+       *
+       * Splitting the two jobs is what boutique mastheads do, and it buys both
+       * of them room: the name gets the optical centre and a size of its own,
+       * and the navigation gets a full-width row on the line below.
+       *
+       * The two `flex-1` cells are what centre the wordmark OPTICALLY rather
+       * than by text-align: they balance each other, so the name sits in the
+       * true middle of the container whatever the icons do.
+       */}
+      <Container className="flex h-16 items-center gap-4 lg:h-20">
+        <div className="flex flex-1 items-center justify-start">
+          {/* Hamburger: mobile only. Desktop navigation is always visible
+              (section 6), so this is hidden from `lg` upward. */}
+          <button
+            ref={hamburgerRef}
+            type="button"
+            aria-expanded={state.mobileMenuOpen}
+            onClick={() => dispatch({ type: 'TOGGLE_MOBILE_MENU' })}
+            className="hover:text-accent -ms-2 inline-flex size-10 items-center justify-center transition-colors lg:hidden"
+          >
+            <MenuIcon className="size-5" />
+            <span className="sr-only">פתיחת תפריט הניווט</span>
+          </button>
+        </div>
 
         {/*
          * Wordmark. PLACEHOLDER - the brand name and logo are TBD
          * (section 2 and 57). Set as plain type rather than an invented mark,
-         * so nothing here reads as a settled identity.
+         * so nothing here reads as a settled identity. Given real size and the
+         * centre of the masthead, because "the brand is TBD" is a reason not to
+         * invent a LOGO, not a reason to leave the name looking like a link.
          */}
         <Link
           href="/"
-          className="tracking-snug shrink-0 text-base font-medium whitespace-nowrap lg:me-4 lg:text-lg"
+          className="tracking-tight shrink-0 text-lg font-medium whitespace-nowrap lg:text-2xl"
           aria-label="לדף הבית"
         >
           חנות תכשיטים
         </Link>
 
-        <DesktopNav state={state} dispatch={dispatch} />
-
-        <div className="flex items-center gap-0.5">
+        <div className="flex flex-1 items-center justify-end">
+          {/*
+           * Icons lose the filled hover chip they had. A grey rounded square
+           * under the cursor is app chrome; at this size the colour shift alone
+           * reads as the more expensive interaction, and the hit area stays the
+           * full 40px either way.
+           */}
           <button
             type="button"
             onClick={() => dispatch({ type: 'OPEN_SEARCH' })}
-            className="hover:bg-muted inline-flex size-10 items-center justify-center rounded-sm"
+            className="hover:text-accent inline-flex size-10 items-center justify-center transition-colors"
           >
             <SearchIcon className="size-5" />
             <span className="sr-only">חיפוש</span>
@@ -131,7 +156,7 @@ export function Header() {
            */}
           <Link
             href="/wishlist"
-            className="hover:bg-muted hidden size-10 items-center justify-center rounded-sm sm:inline-flex"
+            className="hover:text-accent hidden size-10 items-center justify-center transition-colors sm:inline-flex"
             {...PLACEHOLDER_ATTR}
           >
             <HeartIcon className="size-5" />
@@ -140,7 +165,7 @@ export function Header() {
 
           <Link
             href="/account"
-            className="hover:bg-muted hidden size-10 items-center justify-center rounded-sm sm:inline-flex"
+            className="hover:text-accent hidden size-10 items-center justify-center transition-colors sm:inline-flex"
             {...PLACEHOLDER_ATTR}
           >
             <UserIcon className="size-5" />
@@ -149,7 +174,7 @@ export function Header() {
 
           <Link
             href="/cart"
-            className="hover:bg-muted -me-2 inline-flex size-10 items-center justify-center rounded-sm"
+            className="hover:text-accent -me-2 inline-flex size-10 items-center justify-center transition-colors"
             {...PLACEHOLDER_ATTR}
           >
             <BagIcon className="size-5" />
@@ -157,6 +182,20 @@ export function Header() {
           </Link>
         </div>
       </Container>
+
+      {/*
+       * ROW 2 - primary navigation, desktop only.
+       *
+       * `relative` lives here rather than on the masthead because the mega menu
+       * panel is positioned `top-full` against its nearest positioned ancestor:
+       * anchoring it to this row is what makes it open under the whole header
+       * instead of through the middle of it.
+       */}
+      <div className="border-border/70 relative hidden border-t lg:block">
+        <Container>
+          <DesktopNav state={state} dispatch={dispatch} />
+        </Container>
+      </div>
 
       <MobileNav state={state} dispatch={dispatch} />
       <SearchOverlay state={state} dispatch={dispatch} />
