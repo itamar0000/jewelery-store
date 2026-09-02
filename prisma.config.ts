@@ -37,19 +37,70 @@ try {
  * endpoint, which is the RIGHT choice for the running application - serverless
  * functions need pooling - and the wrong one for the CLI.
  *
- * So the two are separated. DIRECT_DATABASE_URL, when set, is the unpooled
- * endpoint (the same host with `-pooler` removed) and is used only by the
- * Prisma CLI. The application never reads this file; it connects through the
- * driver adapter in src/lib/db using DATABASE_URL, unchanged.
- *
- * Falls back to DATABASE_URL so local development, where Postgres is reached
- * directly and no pooler exists, needs no extra variable.
+ * So the CLI connection is resolved separately from the application's. The
+ * application never reads this file; it connects through the driver adapter in
+ * src/lib/db using DATABASE_URL, unchanged. See `migrationUrl` below for how
+ * the CLI's connection is chosen.
  */
-const MIGRATION_URL_VAR = process.env.DIRECT_DATABASE_URL ? 'DIRECT_DATABASE_URL' : 'DATABASE_URL';
+
+/**
+ * Resolves the connection the Prisma CLI should use.
+ *
+ * Three sources, in order:
+ *
+ *   1. DIRECT_DATABASE_URL, if set. The explicit answer, and the one to prefer
+ *      - it works whatever the provider and whatever their host naming.
+ *   2. DATABASE_URL with the Neon pooler suffix removed, if it is recognisably
+ *      a Neon pooled endpoint. Neon gives every project two endpoints that
+ *      differ ONLY by a `-pooler` suffix on the first host label, so the direct
+ *      one can be derived rather than configured.
+ *   3. DATABASE_URL unchanged. Local development and any non-Neon host.
+ *
+ * Step 2 exists because step 1 is a manual step that has to happen in the
+ * Vercel dashboard, and a deploy that fails until someone remembers it is a
+ * trap. Deriving it means the build works out of the box and DIRECT_DATABASE_URL
+ * becomes an override rather than a requirement.
+ *
+ * The rewrite is deliberately narrow: it fires only when the host both contains
+ * `-pooler.` and ends in `.neon.tech`, it touches nothing but the hostname, and
+ * it says so on stdout so the substitution is never invisible in a build log.
+ */
+function migrationUrl(): string {
+  const explicit = process.env.DIRECT_DATABASE_URL;
+  if (explicit !== undefined && explicit !== '') return explicit;
+
+  const pooled = process.env.DATABASE_URL;
+  if (pooled === undefined || pooled === '') {
+    // Let env() below produce Prisma's own "variable not found" error rather
+    // than inventing a worse one here.
+    return env('DATABASE_URL');
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(pooled);
+  } catch {
+    // Not a URL this can reason about - hand it over untouched.
+    return pooled;
+  }
+
+  if (!parsed.hostname.includes('-pooler.') || !parsed.hostname.endsWith('.neon.tech')) {
+    return pooled;
+  }
+
+  parsed.hostname = parsed.hostname.replace('-pooler.', '.');
+  console.log(
+    `[prisma.config] migrations will use the direct Neon endpoint ${parsed.hostname} ` +
+      `(pooled endpoints cannot hold the advisory lock migrate deploy needs). ` +
+      `Set DIRECT_DATABASE_URL to override.`,
+  );
+
+  return parsed.toString();
+}
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   datasource: {
-    url: env(MIGRATION_URL_VAR),
+    url: migrationUrl(),
   },
 });
