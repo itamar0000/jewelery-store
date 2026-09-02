@@ -48,6 +48,41 @@ if (!connectionString) {
   throw new Error('DATABASE_URL is not set. Copy .env.example to .env and run `npm run db:up`.');
 }
 
+/**
+ * THE REAL GUARD: which database, not which NODE_ENV.
+ *
+ * The check above is close to useless on its own, and that is worth stating
+ * plainly because it looks like protection. It reads the environment of the
+ * MACHINE RUNNING THE SCRIPT, not the database being written to. Running
+ *
+ *   DATABASE_URL="<production Neon URL>" npm run db:seed
+ *
+ * from a laptop passes it every time - NODE_ENV is unset there - and the first
+ * thing `main` does is `resetDemoData()`, which deletes every product,
+ * category, collection and coupon in whatever it just connected to.
+ *
+ * So the target is what gets checked. Anything that is not a local host has to
+ * be confirmed explicitly on the command line:
+ *
+ *   DATABASE_URL="postgresql://..." npm run db:seed -- --allow-remote
+ *
+ * Deliberately a flag rather than a prompt: this runs in CI and in shells with
+ * no TTY, and a prompt that cannot be answered is a hang rather than a guard.
+ */
+const REMOTE_CONFIRMATION = '--allow-remote';
+const hostname = new URL(connectionString).hostname;
+const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+
+if (!isLocal && !process.argv.includes(REMOTE_CONFIRMATION)) {
+  throw new Error(
+    `Refusing to seed a non-local database (${hostname}).\n\n` +
+      `This seed DELETES every product, category, collection and coupon before\n` +
+      `inserting fictional demo data. Check what is there first with\n` +
+      `  node scripts/db-status.ts\n` +
+      `and if you are sure, re-run with ${REMOTE_CONFIRMATION}.`,
+  );
+}
+
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
 
 /** Clear demo data so the seed is repeatable. Order respects foreign keys. */

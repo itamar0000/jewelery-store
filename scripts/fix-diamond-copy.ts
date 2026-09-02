@@ -172,7 +172,9 @@ async function main(): Promise<void> {
   }
 
   if (!APPLY) {
-    console.log(`\nDry run - nothing written. Re-run with --apply to update ${planned.length} row(s).`);
+    console.log(
+      `\nDry run - nothing written. Re-run with --apply to update ${planned.length} row(s).`,
+    );
     return;
   }
 
