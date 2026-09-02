@@ -98,13 +98,23 @@ export function ProductDetailView({ product }: { product: ProductDetail }) {
           <WishlistButton productName={product.nameHe} className="absolute end-4 top-4 z-10" />
         </div>
 
+        {/*
+         * A FILMSTRIP, NOT A FOUR-COLUMN GRID.
+         *
+         * `grid-cols-4` sized each thumbnail to a quarter of the gallery no
+         * matter how many existed, so a variant with two photographs rendered
+         * one large thumbnail followed by three empty cells - which reads as
+         * images failing to load rather than as a product with two views. How
+         * many photographs a variant has is real data and varies.
+         *
+         * Flex with a fixed basis keeps every thumbnail the same size whatever
+         * the count, and a short strip simply looks short.
+         */}
         {images.length > 1 && (
-          <ul className="mt-3 grid grid-cols-4 gap-3">
+          <ul className="mt-3 flex gap-3">
             {images.slice(1, 5).map((image) => (
-              <li key={image.id}>
-                <div className="bg-muted/40">
-                  <PlaceholderImage ratio="square" label={image.altHe} />
-                </div>
+              <li key={image.id} className="basis-1/5">
+                <PlaceholderImage ratio="square" label={image.altHe} />
               </li>
             ))}
           </ul>
@@ -123,7 +133,9 @@ export function ProductDetailView({ product }: { product: ProductDetail }) {
          * on the category page that links here, so the most important page on
          * the site had the least important heading on it.
          */}
-        <h1 className="text-2xl tracking-tight text-balance md:text-3xl">{product.nameHe}</h1>
+        <h1 className="font-display text-2xl tracking-tight text-balance md:text-3xl">
+          {product.nameHe}
+        </h1>
 
         {product.shortDescriptionHe && (
           <p className="text-muted-foreground mt-3 text-sm">{product.shortDescriptionHe}</p>
