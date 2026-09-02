@@ -158,6 +158,11 @@
   --text-4xl--line-height: 1.1;
   --text-5xl: 3.75rem;
   --text-5xl--line-height: 1.05;
+  /* Display only - the homepage hero at `xl` and above. Hebrew has no
+   * ascender/descender rhythm to carry a tall line box, so the leading is
+   * pulled tighter than the Latin convention at this size. */
+  --text-6xl: 4.5rem;
+  --text-6xl--line-height: 1;
 
   /* Letter-spacing. Hebrew must never be letter-spaced positively - it breaks
    * glyph joins and legibility - so the scale runs tight-to-normal only. */
@@ -169,6 +174,30 @@
    * Tailwind v4 derives its whole spacing scale from this one value, so p-4 is
    * 4 x 0.25rem = 1rem. Changing this rescales the entire UI. */
   --spacing: 0.25rem;
+
+  /* --- Section rhythm ---------------------------------------------------
+   * Vertical space between page sections, as named tiers rather than one
+   * value repeated at every call site.
+   *
+   * The first pass gave every homepage band the same `py-16 md:py-20`. That
+   * is consistent but FLAT: nine sections of identical weight read as a list
+   * of blocks rather than a composition, and nothing is allowed to feel more
+   * important than anything else. A boutique page needs a quiet rail and a
+   * full-stop statement to be visibly different sizes.
+   *
+   * Tailwind's `--spacing-*` namespace generates the utilities, so a section
+   * writes `py-section md:py-section-lg` and never a raw number. Sections
+   * pick a tier by their role:
+   *
+   *   tight    - a rail sitting directly under the band above it
+   *   section  - the default band, and the mobile size of most sections
+   *   feature  - a section that should stop the scroll (bridal, custom)
+   *   finale   - the closing statement before the footer
+   */
+  --spacing-tight: 3rem;
+  --spacing-section: 4.5rem;
+  --spacing-feature: 7rem;
+  --spacing-finale: 9rem;
 
   /* --- Radius -----------------------------------------------------------
    * Restrained. Heavily rounded corners read as consumer-app, not boutique. */
