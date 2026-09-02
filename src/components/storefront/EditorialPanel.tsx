@@ -44,7 +44,7 @@ export function EditorialPanel({
 }: EditorialPanelProps) {
   return (
     <section aria-labelledby={id} className={cn(tone === 'muted' && 'bg-muted/50')}>
-      <Container className="py-16 md:py-20">
+      <Container className="py-section md:py-feature">
         <div className="grid items-center gap-8 md:grid-cols-2 md:gap-12 lg:gap-16">
           <div className={cn(imageSide === 'end' && 'md:order-2')}>
             <PlaceholderImage
@@ -59,11 +59,15 @@ export function EditorialPanel({
               <p className="text-accent text-2xs tracking-snug mb-3 font-medium">{eyebrow}</p>
             )}
 
-            <h2 id={id} className="text-2xl tracking-tight text-balance">
+            <h2 id={id} className="text-2xl tracking-tight text-balance md:text-3xl">
               {title}
             </h2>
 
-            <p className="text-muted-foreground mt-4 text-sm text-pretty">{body}</p>
+            {/* Body steps up from `text-sm` to `text-base`. This is the one
+                place on the homepage that asks to be READ rather than scanned,
+                and 14px Hebrew in a half-width column is a paragraph people
+                skip. */}
+            <p className="text-muted-foreground mt-5 text-base text-pretty">{body}</p>
 
             {points && points.length > 0 && (
               <ul className="mt-6 space-y-2.5">

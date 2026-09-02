@@ -1,6 +1,7 @@
 import { CategoryDiscovery } from '@/components/storefront/CategoryDiscovery';
 import { CollectionsSection } from '@/components/storefront/CollectionsSection';
 import { EditorialPanel } from '@/components/storefront/EditorialPanel';
+import { FeatureBanner } from '@/components/storefront/FeatureBanner';
 import { FeaturedProducts } from '@/components/storefront/FeaturedProducts';
 import { FaqSection } from '@/components/storefront/FaqSection';
 import { Hero } from '@/components/storefront/Hero';
@@ -15,6 +16,22 @@ import { getCollection, getCollections, getProductsByCollection } from '@/lib/ca
  * entries are absent on purpose: "recently viewed" needs a session that does not
  * exist, and the newsletter block needs an email system and a consent decision
  * that is a legal question (section 52).
+ *
+ * THE SEQUENCE CHANGED IN THE VISUAL PASS, for two reasons.
+ *
+ *   - COLLECTIONS MOVED UP, next to best sellers. The two shopping bands were
+ *     separated by the diamond education panel, so the page asked the visitor
+ *     to shop, then stopped to explain the product, then asked them to shop
+ *     again. Grouping the two leaves one clean transition from browsing into
+ *     the brand story.
+ *   - BRIDAL BECAME A FULL-BLEED BANNER rather than a third split panel. Three
+ *     consecutive `EditorialPanel`s were the page's biggest compositional
+ *     weakness: identical proportions repeating down the scroll, with nothing
+ *     allowed to be the high point. See `FeatureBanner` for the full argument.
+ *
+ * The resulting arc is: look (hero) - browse (categories, best sellers,
+ * collections) - understand (diamonds) - aspire (bridal) - commission
+ * (custom) - trust (reviews, FAQ).
  *
  * ALL COPY HERE IS PROVISIONAL AND DESCRIPTIVE, NOT MARKETING. The brand name,
  * slogan and voice are TBD (section 2 and 57). Every string below states a
@@ -56,7 +73,7 @@ export default async function HomePage() {
   return (
     <>
       <Hero
-        title="תכשיטי זהב ויהלומי מעבדה"
+        title="תכשיטי זהב ויהלומים"
         subtitle="עיצוב וייצור בישראל, עם אפשרות התאמה אישית לכל דגם. טקסט זה זמני ויוחלף עם גיבוש שפת המותג."
         primaryAction={{ label: 'לקטלוג', href: '/rings' }}
         secondaryAction={{ label: 'עיצוב אישי', href: '/custom' }}
@@ -73,15 +90,17 @@ export default async function HomePage() {
         products={bestSellers}
       />
 
+      <CollectionsSection collections={collections} />
+
       <EditorialPanel
-        id="lab-grown-heading"
-        eyebrow="יהלומי מעבדה"
-        title="אותו יהלום, מקור אחר"
-        body="יהלום מעבדה זהה ליהלום כרוי בהרכב הכימי, במבנה הגבישי ובתכונות האופטיות. ההבדל הוא באופן ההיווצרות, ובמחיר."
+        id="diamonds-heading"
+        eyebrow="יהלומים"
+        title="טבעי או מעבדה — הבחירה שלך"
+        body="בקטלוג יש תכשיטים המשובצים ביהלומים טבעיים ותכשיטים המשובצים ביהלומי מעבדה. שני הסוגים זהים בהרכב הכימי, במבנה הגבישי ובתכונות האופטיות; ההבדל הוא במקור ההיווצרות ובמחיר."
         points={[
-          'זהה מבחינה פיזיקלית וכימית ליהלום כרוי',
+          'סוג היהלום מצוין במפורש בעמוד כל מוצר',
           'תעודה לכל אבן מעל משקל מסוים',
-          'מחיר נמוך יותר עבור אותו גודל ואיכות',
+          'יהלום מעבדה — מחיר נמוך יותר לאותו גודל ואיכות',
         ]}
         action={{ label: 'לשאלות ותשובות', href: '/faq' }}
         imageSide="start"
@@ -89,7 +108,14 @@ export default async function HomePage() {
         imageLabel="תהליך היצירה"
       />
 
-      <CollectionsSection collections={collections} />
+      <FeatureBanner
+        id="bridal-heading"
+        eyebrow="כלה"
+        title="אירוסין ונישואין"
+        body="טבעות אירוסין, טבעות נישואין וסטים תואמים. כל דגם ניתן להתאמה לפי משקל קראט, גוון זהב ומידה."
+        action={{ label: 'לאוסף הכלה', href: '/collections/bridal' }}
+        imageLabel="אוסף כלה"
+      />
 
       <EditorialPanel
         id="custom-heading"
@@ -99,17 +125,6 @@ export default async function HomePage() {
         action={{ label: 'לפרטים ולפנייה', href: '/custom' }}
         imageSide="end"
         imageLabel="עבודת צורף"
-      />
-
-      <EditorialPanel
-        id="bridal-heading"
-        eyebrow="כלה"
-        title="אירוסין ונישואין"
-        body="טבעות אירוסין, טבעות נישואין וסטים תואמים. כל דגם ניתן להתאמה לפי משקל קראט, גוון זהב ומידה."
-        action={{ label: 'לאוסף הכלה', href: '/collections/bridal' }}
-        imageSide="start"
-        tone="muted"
-        imageLabel="אוסף כלה"
       />
 
       <ReviewsSection />

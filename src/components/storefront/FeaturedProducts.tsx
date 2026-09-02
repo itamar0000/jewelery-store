@@ -33,7 +33,7 @@ export function FeaturedProducts({
   if (products.length === 0) return null;
 
   return (
-    <Container as="section" aria-labelledby={id} className="py-16 md:py-20">
+    <Container as="section" aria-labelledby={id} className="py-section">
       <SectionHeading id={id} title={title} description={description} href={href} />
       <ProductGrid products={products.slice(0, limit)} compact />
     </Container>

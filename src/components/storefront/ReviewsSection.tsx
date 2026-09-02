@@ -25,7 +25,7 @@ import { SectionHeading } from './SectionHeading';
  */
 export function ReviewsSection() {
   return (
-    <Container as="section" aria-labelledby="reviews-heading" className="py-16 md:py-20">
+    <Container as="section" aria-labelledby="reviews-heading" className="py-section">
       <SectionHeading
         id="reviews-heading"
         title="ביקורות לקוחות"

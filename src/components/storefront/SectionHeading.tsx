@@ -33,13 +33,16 @@ export function SectionHeading({
   linkLabel?: string;
 }) {
   return (
-    <div className="mb-10 text-center">
-      <h2 id={id} className="text-2xl tracking-tight text-balance">
+    <div className="mb-12 text-center">
+      {/* Steps up on desktop. With the hero headline now running to
+          `--text-6xl`, a section title fixed at `text-2xl` sat too close to
+          body copy to register as a level of its own. */}
+      <h2 id={id} className="text-2xl tracking-tight text-balance md:text-3xl">
         {title}
       </h2>
 
       {description && (
-        <p className="text-muted-foreground mx-auto mt-3 max-w-(--container-prose) text-sm text-pretty">
+        <p className="text-muted-foreground mx-auto mt-4 max-w-(--container-prose) text-sm text-pretty">
           {description}
         </p>
       )}

@@ -71,15 +71,27 @@ export function Hero({
 
       <div className="absolute inset-0 flex items-center">
         <Container width={layout === 'full' ? 'wide' : 'content'}>
-          <div className="max-w-lg">
-            <h1 className="text-3xl tracking-tight text-balance md:text-4xl">{title}</h1>
+          {/*
+           * The headline runs up to `--text-6xl` on wide screens.
+           *
+           * The first pass topped out at `text-4xl` (3rem), which is roughly
+           * the size of a category page title. A hero set at the same size as
+           * every other page heading has no more presence than they do, and the
+           * one place the store gets to look expensive is the first screen. The
+           * measure widens with it so the line breaks stay controlled rather
+           * than turning into three short stacked words.
+           */}
+          <div className="max-w-lg xl:max-w-xl">
+            <h1 className="text-3xl tracking-tight text-balance md:text-5xl xl:text-6xl">
+              {title}
+            </h1>
 
             {subtitle && (
-              <p className="text-muted-foreground mt-4 text-base text-pretty">{subtitle}</p>
+              <p className="text-muted-foreground mt-5 text-base text-pretty">{subtitle}</p>
             )}
 
             {(primaryAction ?? secondaryAction) && (
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-10 flex flex-wrap gap-3">
                 {primaryAction && (
                   <Button href={primaryAction.href} variant="primary" size="lg">
                     {primaryAction.label}
