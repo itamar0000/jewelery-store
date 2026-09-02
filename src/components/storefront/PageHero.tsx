@@ -59,7 +59,9 @@ export function PageHero({
             </div>
           )}
 
-          <h1 className="text-center text-3xl tracking-tight text-balance md:text-4xl">{title}</h1>
+          <h1 className="font-display text-center text-3xl tracking-tight text-balance md:text-4xl">
+            {title}
+          </h1>
 
           {description && (
             <p className="text-muted-foreground mx-auto mt-3 max-w-(--container-prose) text-center text-sm text-pretty">

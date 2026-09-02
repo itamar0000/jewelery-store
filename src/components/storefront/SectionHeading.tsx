@@ -37,7 +37,7 @@ export function SectionHeading({
       {/* Steps up on desktop. With the hero headline now running to
           `--text-6xl`, a section title fixed at `text-2xl` sat too close to
           body copy to register as a level of its own. */}
-      <h2 id={id} className="text-2xl tracking-tight text-balance md:text-3xl">
+      <h2 id={id} className="font-display text-2xl tracking-tight text-balance md:text-3xl">
         {title}
       </h2>
 

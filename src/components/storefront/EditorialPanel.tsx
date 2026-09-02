@@ -59,7 +59,7 @@ export function EditorialPanel({
               <p className="text-accent text-2xs tracking-snug mb-3 font-medium">{eyebrow}</p>
             )}
 
-            <h2 id={id} className="text-2xl tracking-tight text-balance md:text-3xl">
+            <h2 id={id} className="font-display text-2xl tracking-tight text-balance md:text-3xl">
               {title}
             </h2>
 

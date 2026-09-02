@@ -67,7 +67,7 @@ export function FeatureBanner({
           <div className="max-w-lg">
             {eyebrow && <p className="text-accent text-2xs mb-3 font-medium">{eyebrow}</p>}
 
-            <h2 id={id} className="text-3xl tracking-tight text-balance md:text-4xl">
+            <h2 id={id} className="font-display text-3xl tracking-tight text-balance md:text-4xl">
               {title}
             </h2>
 
