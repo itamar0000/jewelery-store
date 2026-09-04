@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
-import { PlaceholderImage } from '@/components/ui/PlaceholderImage';
+import { EditorialImage } from '@/components/ui/EditorialImage';
+import type { EditorialAssetId } from '@/lib/content/editorial-assets';
 
 /**
  * A full-bleed image band with copy laid over it.
@@ -34,6 +35,7 @@ export function FeatureBanner({
   body,
   action,
   imageLabel,
+  assetId = 'bridal',
 }: {
   id: string;
   eyebrow?: string;
@@ -41,15 +43,24 @@ export function FeatureBanner({
   body: string;
   action?: { label: string; href: string };
   imageLabel?: string;
+  /** Which registry asset fills the banner. */
+  assetId?: EditorialAssetId;
 }) {
   return (
     <section aria-labelledby={id} className="relative isolate">
-      <PlaceholderImage
-        ratio="wide"
-        label={imageLabel ?? title}
-        hideLabel
-        className="max-h-[34rem] min-h-[26rem] w-full"
-      />
+      {/*
+       * A campaign moment: one large image, minimal copy over it. The box is
+       * sized here and the picture covers it, so the crop adapts to the
+       * viewport instead of a fixed ratio dictating the height.
+       */}
+      <div className="relative max-h-[34rem] min-h-[26rem] w-full" style={{ height: '55vh' }}>
+        <EditorialImage
+          id={assetId}
+          sizes="100vw"
+          hidePlaceholderLabel
+          placeholderLabel={imageLabel ?? title}
+        />
+      </div>
 
       {/*
        * `to-t` is a PHYSICAL direction and correct here: the copy is anchored

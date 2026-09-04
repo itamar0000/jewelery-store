@@ -76,6 +76,29 @@
     transform: scaleX(-1);
   }
 
+  /*
+   * Focal point for an art-directed editorial image.
+   *
+   * The phone crop and the desktop crop of one asset are different
+   * photographs, so they need different `object-position` values - but
+   * <picture> resolves to a SINGLE <img>, and an inline style cannot hold two
+   * values behind a media query. The values themselves stay data: they arrive
+   * as custom properties set by EditorialImage from the registry's focal
+   * points, and this rule only chooses between them.
+   *
+   * The breakpoint is `--breakpoint-md`, and must match the `media` on the
+   * <source> in EditorialImage.
+   */
+  .editorial-focal {
+    object-position: var(--editorial-focal-mobile, 50% 50%);
+  }
+
+  @media (width >= 48rem) {
+    .editorial-focal {
+      object-position: var(--editorial-focal-desktop, 50% 50%);
+    }
+  }
+
   /* Cancels the flip inside an explicitly LTR subtree, so a directional icon
    * embedded in LTR content (a code sample, an English spec table) still
    * points the right way. */

@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
-import { PlaceholderImage } from '@/components/ui/PlaceholderImage';
+import { EditorialImage } from '@/components/ui/EditorialImage';
+import type { EditorialAssetId } from '@/lib/content/editorial-assets';
 import { cn } from '@/components/ui/cn';
 
 /**
@@ -59,6 +60,7 @@ export function Hero({
   primaryAction,
   secondaryAction,
   imageLabel,
+  assetId = 'hero',
   tone = 'dark',
   align = 'start',
   height = 'full',
@@ -68,6 +70,8 @@ export function Hero({
   primaryAction?: HeroAction;
   secondaryAction?: HeroAction;
   imageLabel?: string;
+  /** Which registry asset fills the plane. See lib/content/editorial-assets. */
+  assetId?: EditorialAssetId;
   /** `dark` = dark copy on a light scrim. `light` = light copy on a dark one. */
   tone?: 'dark' | 'light';
   align?: 'start' | 'center';
@@ -83,7 +87,21 @@ export function Hero({
        * viewport the authority on scale.
        */}
       <div className="absolute inset-0 -z-20">
-        <PlaceholderImage ratio="fill" label={imageLabel} hideLabel className="h-full w-full" />
+        {/*
+         * PRIORITY. This is the largest contentful paint on the homepage, and
+         * the only image on the site that opts out of lazy loading.
+         *
+         * `100vw` because the hero is full-bleed at every width - anything
+         * narrower would make the browser pick a source too small and upscale
+         * it across the whole first screen.
+         */}
+        <EditorialImage
+          id={assetId}
+          sizes="100vw"
+          priority
+          hidePlaceholderLabel
+          placeholderLabel={imageLabel}
+        />
       </div>
 
       {/*

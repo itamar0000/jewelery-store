@@ -58,6 +58,16 @@ export function CollectionsSection({
               <div className="relative overflow-hidden">
                 <PlaceholderImage
                   ratio="tall"
+                  /*
+                   * A COLLECTION image, not an editorial one. Collections are
+                   * database records with their own `imageKey`, curated and
+                   * changed by the owner; the editorial registry holds fixed
+                   * campaign photography that ships with a deploy. Naming the
+                   * pipeline here is the point of the marker - a reviewer
+                   * seeing a grey tile needs to know it is waiting on the
+                   * admin, not on the photographer.
+                   */
+                  marker="Collection image placeholder"
                   label={collection.nameHe}
                   className="transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                 />

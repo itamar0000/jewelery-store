@@ -26,6 +26,7 @@
     "db:validate": "prisma validate",
     "db:seed": "node prisma/seed.ts",
     "search:reindex": "node scripts/reindex-search.ts",
+    "editorial:shots": "node scripts/editorial-shot-list.ts",
     "media:up": "docker compose --profile media up -d --wait minio",
     "media:down": "docker compose --profile media down",
     "media:init": "node scripts/init-media-bucket.ts",

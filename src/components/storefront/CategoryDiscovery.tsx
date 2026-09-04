@@ -1,7 +1,8 @@
 import Link from 'next/link';
 
 import { Container } from '@/components/ui/Container';
-import { PlaceholderImage } from '@/components/ui/PlaceholderImage';
+import { EditorialImage } from '@/components/ui/EditorialImage';
+import type { EditorialAssetId } from '@/lib/content/editorial-assets';
 import { cn } from '@/components/ui/cn';
 
 /**
@@ -42,13 +43,14 @@ const DISCOVERY_CATEGORIES: readonly {
   id: string;
   label: string;
   href: string;
+  assetId: EditorialAssetId;
   lead?: boolean;
 }[] = [
-  { id: 'rings', label: 'טבעות', href: '/rings', lead: true },
-  { id: 'earrings', label: 'עגילים', href: '/earrings' },
-  { id: 'necklaces', label: 'שרשראות', href: '/necklaces' },
-  { id: 'bracelets', label: 'צמידים', href: '/bracelets' },
-  { id: 'sets', label: 'סטים', href: '/sets' },
+  { id: 'rings', label: 'טבעות', href: '/rings', assetId: 'category-rings', lead: true },
+  { id: 'earrings', label: 'עגילים', href: '/earrings', assetId: 'category-earrings' },
+  { id: 'necklaces', label: 'שרשראות', href: '/necklaces', assetId: 'category-necklaces' },
+  { id: 'bracelets', label: 'צמידים', href: '/bracelets', assetId: 'category-bracelets' },
+  { id: 'sets', label: 'סטים', href: '/sets', assetId: 'category-sets' },
 ];
 
 export function CategoryDiscovery() {
@@ -81,14 +83,31 @@ export function CategoryDiscovery() {
         {DISCOVERY_CATEGORIES.map((category) => (
           <li key={category.id} className={cn(category.lead && 'col-span-2 md:row-span-2')}>
             <Link href={category.href} className="group block h-full">
-              <div className="relative h-full overflow-hidden">
-                <PlaceholderImage
-                  ratio={category.lead ? 'tall' : 'square'}
-                  label={category.label}
-                  className={cn(
-                    'h-full w-full transition-transform duration-700 ease-out group-hover:scale-[1.04]',
-                    category.lead && 'md:aspect-auto',
-                  )}
+              {/*
+               * The ratio lives on the WRAPPER, not the image, because
+               * EditorialImage fills its parent. That is what lets the lead
+               * tile stretch to the grid row while the others stay square.
+               */}
+              <div
+                className={cn(
+                  'relative h-full overflow-hidden',
+                  category.lead ? 'aspect-[3/4] md:aspect-auto' : 'aspect-square',
+                )}
+              >
+                <EditorialImage
+                  id={category.assetId}
+                  /*
+                   * Two columns on a phone, and at most half the container on
+                   * desktop for the lead tile, a quarter for the rest. Without
+                   * this every tile would ask for a full-width source.
+                   */
+                  sizes={
+                    category.lead
+                      ? '(max-width: 767px) 100vw, 45vw'
+                      : '(max-width: 767px) 50vw, 23vw'
+                  }
+                  placeholderLabel={category.label}
+                  className="transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                 />
 
                 {/*

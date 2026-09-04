@@ -39,6 +39,14 @@ export function PageHero({
     <section className="relative isolate">
       <PlaceholderImage
         ratio="wide"
+        /*
+         * Not an editorial registry slot. The brief's editorial set is the
+         * homepage's nine images; the banner behind a category heading is a
+         * per-category asset that belongs with the category record, not with
+         * the campaign photography, and giving it a registry id would invent a
+         * slot nobody has briefed. The marker says so out loud.
+         */
+        marker="Page header placeholder"
         label={imageLabel ?? title}
         hideLabel
         className="max-h-80 min-h-60 w-full"

@@ -24,16 +24,25 @@ import { getCollection, getCollections, getProductsByCollection } from '@/lib/ca
  * row of things, captions underneath. Nothing was allowed to be the high point,
  * so nothing was.
  *
- * Each band now states itself differently, and they alternate in weight:
+ * Each band states itself differently, and they alternate in weight:
  *
  *   hero          PEAK    full-viewport image, no competing content
  *   categories    high    asymmetric grid, lead tile, labels ON the images
  *   best sellers  valley  centred heading, four products, captions below
  *   diamonds      mid     split editorial on a muted ground
- *   bridal        PEAK    full-bleed campaign banner
- *   custom        mid     split editorial, mirrored from the diamonds panel
  *   collections   high    tall portrait tiles, copy over the frame
+ *   atelier       mid     split editorial, mirrored from the diamonds panel
+ *   bridal        PEAK    full-bleed campaign banner, the closing image
  *   FAQ           valley  three questions in a narrow column
+ *
+ * ORDER CHANGED IN THE EDITORIAL PASS. Bridal and the atelier panel swapped
+ * places, and collections moved up between the two editorial panels. The
+ * reason is that bridal is now a full-bleed campaign frame rather than another
+ * split panel: as the last image before the FAQ it closes the page on its
+ * strongest picture, where in the middle it competed with the hero. Collections
+ * landing between the two split panels also stops those panels sitting back to
+ * back, which was the mirrored-layout repetition the previous pass had been
+ * trying to avoid by other means.
  *
  * Two sections were REMOVED rather than restyled. Reviews is gone entirely -
  * three empty testimonial cards read as broken product cards, and no real
@@ -42,13 +51,8 @@ import { getCollection, getCollections, getProductsByCollection } from '@/lib/ca
  * topics with a full section heading to three questions in a narrow column: the
  * homepage is a shopping experience, not a help centre.
  *
- * Collections moved AFTER the two editorial panels. It had been a third browse
- * band stacked directly onto the first two; landing it late gives the lower
- * half of the page an image-led moment of its own and separates the two
- * editorial panels from each other.
- *
- * The resulting arc is: look - browse - understand - aspire - commission -
- * discover - reassure.
+ * The resulting arc is: look - browse - understand - discover - commission -
+ * aspire - reassure.
  *
  * ALL COPY HERE IS PROVISIONAL AND DESCRIPTIVE, NOT MARKETING. The brand name,
  * slogan and voice are TBD (section 2 and 57). Every string below states a
@@ -120,17 +124,11 @@ export default async function HomePage() {
         action={{ label: 'לשאלות ותשובות', href: '/faq' }}
         imageSide="start"
         tone="muted"
-        imageLabel="תהליך היצירה"
+        assetId="diamonds"
+        imageLabel="תקריב יהלום"
       />
 
-      <FeatureBanner
-        id="bridal-heading"
-        eyebrow="כלה"
-        title="אירוסין ונישואין"
-        body="טבעות אירוסין, טבעות נישואין וסטים תואמים. כל דגם ניתן להתאמה לפי משקל קראט, גוון זהב ומידה."
-        action={{ label: 'לאוסף הכלה', href: '/collections/bridal' }}
-        imageLabel="אוסף כלה"
-      />
+      <CollectionsSection collections={collections} />
 
       <EditorialPanel
         id="custom-heading"
@@ -139,10 +137,19 @@ export default async function HomePage() {
         body="ניתן להזמין תכשיט בעיצוב אישי, לשנות דגם קיים או להוסיף חריטה ושמות. התהליך מתחיל בפנייה, וממשיך בשרטוט ובאישור לפני הייצור."
         action={{ label: 'לפרטים ולפנייה', href: '/custom' }}
         imageSide="end"
+        assetId="atelier"
         imageLabel="עבודת צורף"
       />
 
-      <CollectionsSection collections={collections} />
+      <FeatureBanner
+        id="bridal-heading"
+        eyebrow="כלה"
+        title="אירוסין ונישואין"
+        body="טבעות אירוסין, טבעות נישואין וסטים תואמים. כל דגם ניתן להתאמה לפי משקל קראט, גוון זהב ומידה."
+        action={{ label: 'לאוסף הכלה', href: '/collections/bridal' }}
+        assetId="bridal"
+        imageLabel="אוסף כלה"
+      />
 
       <FaqSection />
     </>
