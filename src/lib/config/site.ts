@@ -22,3 +22,32 @@ export const SITE_DIR = 'rtl';
  * through this value; nothing may hard-code a locale string of its own.
  */
 export const SITE_LOCALE = 'he-IL';
+
+/**
+ * The store's name, everywhere it is spoken: the wordmark, the `<title>`
+ * template and the copyright line.
+ *
+ * INTERIM, AND DELIBERATELY A NAME RATHER THAN A DESCRIPTION. What stood here
+ * was "חנות תכשיטים" - literally "jewellery shop" - in all three places. A
+ * category cannot be remembered, recommended or searched for, and jewellery is
+ * sold on a name more than most things are. Any real name outperforms the
+ * category, which is why this is provisional rather than pending.
+ *
+ * "עדי" is the Biblical Hebrew word for an ornament or a piece of jewellery
+ * (Exodus 33, Ezekiel 16). It is also an ordinary Israeli given name, which is
+ * how this market's established houses are named - Malka, Goldy, Yaniv - so it
+ * reads as a jeweller rather than as a coined brand.
+ *
+ * ONE CONSTANT, ON PURPOSE. Replacing it when the real name is settled is an
+ * edit here and nowhere else; nothing downstream spells the name out.
+ */
+export const SITE_NAME = 'עדי';
+
+/**
+ * One line describing the store, for the home page `<title>` and share cards.
+ *
+ * Says what is sold and what is distinctive, and asserts nothing the catalog
+ * does not back: the store carries BOTH natural and lab-grown stones, so this
+ * may never position it as exclusively one (MASTER_SPECIFICATION section 2).
+ */
+export const SITE_TAGLINE = 'תכשיטי זהב ויהלומים בעיצוב אישי';

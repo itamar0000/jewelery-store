@@ -248,15 +248,16 @@
    *
    * READ THE FALLBACK ORDER BELOW AS A MECHANISM, NOT A SAFETY NET. Font
    * fallback is per-GLYPH, not per-element: the browser walks the list for
-   * each character and takes the first family that has it. Cormorant carries
-   * Latin only, so in `--font-display` it claims the Latin glyphs and every
-   * Hebrew glyph falls straight through to Heebo. One heading can hold both
-   * scripts and each is set correctly, with no per-language markup anywhere.
+   * each character and takes the first family that has it. Frank Ruhl Libre
+   * carries BOTH scripts, so it claims every glyph in a heading and one line
+   * holding Hebrew and Latin together does not change face mid-word.
    *
-   * THE ORDER IS LEAD-LATIN, THEN HEBREW, AND IT CANNOT BE REVERSED. Heebo
+   * THE DISPLAY FACE MUST STAY AHEAD OF HEEBO AND CANNOT BE REVERSED. Heebo
    * covers Latin as well as Hebrew, so listing it first would win every glyph
    * and the display face would silently never render - a failure that looks
-   * exactly like the font failing to load.
+   * exactly like the font failing to load. That is not hypothetical: the
+   * previous display face was Latin-only on a Hebrew site, which had the same
+   * effect for a different reason.
    *
    * The generic at the end differs between the two stacks (`sans-serif` for
    * body, `serif` for display) so that a total webfont failure still degrades
@@ -265,7 +266,7 @@
     var(--font-hebrew-sans), 'Segoe UI', system-ui, -apple-system, 'Noto Sans Hebrew',
     'Arial Hebrew', Arial, sans-serif;
   --font-display:
-    var(--font-latin-display), var(--font-hebrew-sans), 'Segoe UI', system-ui, -apple-system,
+    var(--font-display-serif), var(--font-hebrew-sans), 'Segoe UI', system-ui, -apple-system,
     'Noto Sans Hebrew', 'Arial Hebrew', Arial, serif;
 
   /* Type scale. Line heights are generous - Hebrew has no ascender/descender

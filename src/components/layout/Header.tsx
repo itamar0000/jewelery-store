@@ -1,5 +1,6 @@
 'use client';
 
+import { SITE_NAME } from '@/lib/config/site';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useReducer, useRef } from 'react';
@@ -130,7 +131,7 @@ export function Header() {
           className="shrink-0 text-lg font-medium tracking-tight whitespace-nowrap lg:text-2xl"
           aria-label="לדף הבית"
         >
-          חנות תכשיטים
+          {SITE_NAME}
         </Link>
 
         <div className="flex flex-1 items-center justify-end">

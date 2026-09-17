@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 
-import { SITE_DIR, SITE_LANG, SITE_LOCALE } from '@/lib/config/site';
+import { SITE_DIR, SITE_LANG, SITE_LOCALE, SITE_NAME, SITE_TAGLINE } from '@/lib/config/site';
 import { env } from '@/lib/env';
-import { hebrewSans, latinDisplay } from '@/lib/fonts';
+import { displaySerif, hebrewSans } from '@/lib/fonts';
 
 import './globals.css';
 
@@ -21,11 +21,19 @@ export const metadata: Metadata = {
    */
   metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
 
-  // Brand name, description and canonical domain are TBD
-  // (MASTER_SPECIFICATION section 2 and 57, TBD.md). Placeholders are marked
-  // as such rather than invented, so nothing here reads as a settled brand
-  // decision.
-  title: 'חנות תכשיטים',
+  /*
+   * A TEMPLATE, not a fixed string. Every page that sets its own title gets
+   * the brand appended; the home page uses `default` on its own.
+   *
+   * This matters more than it looks. A tab, a bookmark and a search result all
+   * show the title, and "טבעות" alone says nothing about whose rings they are.
+   * The separator is a thin space either side of a bar, which reads cleanly
+   * right-to-left.
+   */
+  title: {
+    default: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    template: `%s | ${SITE_NAME}`,
+  },
   // The catalog carries BOTH natural and lab-grown diamonds, so no site-level
   // string may position the store as exclusively one or the other. The stone
   // type is a per-product fact and is stated on the product page from
@@ -73,14 +81,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     //
     // BOTH font variables are bound here, and neither sets a font-family by
     // itself. `hebrewSans.variable` puts --font-hebrew-sans on <html> and
-    // `latinDisplay.variable` puts --font-latin-display beside it; the token
+    // `displaySerif.variable` puts --font-display-serif beside it; the token
     // layer composes them into --font-sans and --font-display. Which face
     // actually renders a given glyph is decided by the fallback order in
     // tokens.css, per glyph - see src/lib/fonts.ts.
     <html
       lang={SITE_LANG}
       dir={SITE_DIR}
-      className={`${hebrewSans.variable} ${latinDisplay.variable}`}
+      className={`${hebrewSans.variable} ${displaySerif.variable}`}
     >
       <body>{children}</body>
     </html>

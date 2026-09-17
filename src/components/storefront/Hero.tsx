@@ -73,16 +73,18 @@ export function Hero({
    * in this register.
    *
    * WHY THE SLOT EXISTS AT ALL. `--font-display` resolves to a Latin-only face
-   * backed by the Hebrew face (src/lib/fonts.ts), so marking a Hebrew heading
-   * `font-display` renders it in Heebo exactly as before - the token does
-   * nothing until Latin glyphs pass through it. This is the slot where they
-   * do.
+   * backed by the Hebrew face (src/lib/fonts.ts). That is no longer true: the
+   * display face now carries Hebrew as well, so `font-display` sets a Hebrew
+   * heading in the serif too and this slot is no longer the only place the
+   * brand voice appears.
    *
-   * IT IS A SEPARATE ELEMENT RATHER THAN PART OF THE HEADLINE, and that is a
-   * typographic requirement rather than a preference. Cormorant has a much
-   * smaller x-height than Heebo, so the two faces do not read as the same size
-   * at the same `font-size`; mixed inside one line they look like a rendering
-   * fault. Given its own line at its own size, the pairing is deliberate.
+   * IT REMAINS A SEPARATE ELEMENT RATHER THAN PART OF THE HEADLINE, but for a
+   * compositional reason now rather than a technical one. The old pairing had
+   * badly mismatched x-heights and could not be mixed inside a line without
+   * looking like a rendering fault; one family across both scripts removes
+   * that constraint. What is left is the layout argument - an eyebrow set
+   * wide and small above the headline is a different beat from the headline
+   * itself.
    *
    * IT IS NOT A TRANSLATION OF THE HEADLINE. It sits outside the heading
    * element and is not announced as one - a screen-reader user gets the Hebrew
@@ -177,8 +179,9 @@ export function Hero({
            * whole effect - so it reaches past the scale deliberately, and the
            * scale stays honest for everything else.
            *
-           * `font-light` picks Cormorant's 300. At 400 the same line reads as a
-           * wedding invitation, which section 2 rules out.
+           * `font-light` picks 300 from the display face's variable range. The
+           * heavier cuts read as a wedding invitation, which section 2 rules
+           * out.
            */}
           {displayLine && (
             <p
