@@ -32,7 +32,7 @@
     "media:init": "node scripts/init-media-bucket.ts",
     "db:reset": "prisma migrate reset --force --skip-generate",
     "postinstall": "prisma generate",
-    "verify": "npm run lint && npm run typecheck && npm run test && npm run build",
+    "verify": "npm run lint && npm run typecheck && npm run format:check && npm run test && npm run build",
     "editorial:generate": "node scripts/generate-editorial.ts",
     "editorial:prepare": "node scripts/prepare-editorial.ts",
     "db:fix": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/fix-docker.ps1"
