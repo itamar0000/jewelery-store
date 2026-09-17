@@ -36,7 +36,7 @@
  * bucket policy are all proven by the act of loading the catalog, instead of
  * being discovered later by the first person to use the real upload form.
  */
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 
@@ -121,7 +121,30 @@ async function main(): Promise<void> {
   const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
 
   const entries = JSON.parse(await readFile(manifestPath, 'utf8')) as Entry[];
-  const available = new Set(await readdir(dir));
+
+  /**
+   * Existence is checked per entry rather than against a flat listing of
+   * `--dir`, so a manifest may name a file in a SUBDIRECTORY. Photography
+   * arrives in batches, each in its own folder, and a catalog-wide load - the
+   * one that seeds a fresh environment - has to span all of them. A flat
+   * readdir made that impossible and forced one invocation per batch, which is
+   * how a slot gets missed.
+   *
+   * Every file is still checked BEFORE anything is uploaded or written, so a
+   * typo in the manifest fails the run rather than leaving it half applied.
+   */
+  const missing = (
+    await Promise.all(
+      entries.map(async (entry) => {
+        try {
+          await stat(path.join(dir, entry.file));
+          return null;
+        } catch {
+          return entry;
+        }
+      }),
+    )
+  ).filter((entry): entry is Entry => entry !== null);
 
   let uploaded = 0;
   let rowsUpdated = 0;
@@ -130,7 +153,7 @@ async function main(): Promise<void> {
 
   try {
     for (const entry of entries) {
-      if (!available.has(entry.file)) {
+      if (missing.includes(entry)) {
         problems.push(`${entry.slug}: file not found - ${entry.file}`);
         continue;
       }
