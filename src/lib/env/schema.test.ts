@@ -84,4 +84,23 @@ describe('parseEnv', () => {
     expect(message).not.toContain('sup3rs3cret');
     expect(message).not.toContain(secret);
   });
+  /*
+   * A forgotten variable here does not break anything visibly - it publishes
+   * provisional prices to search results, and nobody finds out until the shop
+   * is already listed. So the default is asserted rather than assumed.
+   */
+  it('keeps the site out of search results unless told otherwise', () => {
+    expect(parseEnv(VALID).SITE_INDEXABLE).toBe(false);
+    expect(parseEnv({ ...VALID, SITE_INDEXABLE: 'false' }).SITE_INDEXABLE).toBe(false);
+  });
+
+  it('opens indexing only for the exact string "true"', () => {
+    expect(parseEnv({ ...VALID, SITE_INDEXABLE: 'true' }).SITE_INDEXABLE).toBe(true);
+
+    // Anything else is a typo, and a typo must fail loudly rather than be
+    // coerced into one of the two answers.
+    for (const value of ['TRUE', '1', 'yes', 'on', '']) {
+      expect(() => parseEnv({ ...VALID, SITE_INDEXABLE: value })).toThrow();
+    }
+  });
 });

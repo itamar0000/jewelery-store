@@ -23,6 +23,23 @@ import { env } from '@/lib/env';
 export default function robots(): MetadataRoute.Robots {
   const base = env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '');
 
+  /*
+   * While the shop is not open, refuse everything.
+   *
+   * This alone would not be enough. `Disallow` asks a crawler not to FETCH a
+   * page; it does not stop the URL itself being listed, because a link from
+   * anywhere else is sufficient for that. The matching `noindex` lives in the
+   * root layout's metadata, and the two together are what actually keep the
+   * site out of results. Neither is a substitute for the other.
+   *
+   * No sitemap is advertised either: publishing a map of every page while
+   * asking not to be crawled is a contradiction, and some crawlers resolve it
+   * in favour of the sitemap.
+   */
+  if (!env.SITE_INDEXABLE) {
+    return { rules: { userAgent: '*', disallow: '/' } };
+  }
+
   return {
     rules: {
       userAgent: '*',

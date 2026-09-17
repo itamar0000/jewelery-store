@@ -31,6 +31,26 @@ export const metadata: Metadata = {
   // type is a per-product fact and is stated on the product page from
   // DiamondSpec.isLabGrown, never here.
   description: 'תכשיטי זהב ויהלומים, בעיצוב אישי ובהתאמה מלאה.',
+
+  /*
+   * Keep the shop out of search results until its prices are real.
+   *
+   * The catalog shows representative pieces - every one of them can actually
+   * be made - but the prices attached to them are not yet the prices anyone
+   * would be charged, and a price is the single fact a shopper is entitled to
+   * act on. A page that ranks is a page someone finds without context.
+   *
+   * THIS IS THE HALF THAT WORKS. robots.txt can only ask a crawler not to
+   * fetch a page; a link from anywhere else still gets the bare URL listed.
+   * `noindex` is what actually keeps it out, and it is honoured by every
+   * engine that matters. Both are set, from the same flag.
+   *
+   * Flipping SITE_INDEXABLE to true is the deliberate act of opening the shop.
+   */
+  robots: env.SITE_INDEXABLE
+    ? undefined
+    : { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } },
+
   openGraph: {
     locale: SITE_LOCALE,
   },
