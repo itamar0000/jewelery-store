@@ -18,6 +18,9 @@ import { getMediaStorage, isPrivateKey } from '@/lib/media';
  * genuinely re-orders on a variant change - only the bytes are missing. Once a
  * bucket exists, this function starts returning URLs and nothing else changes.
  */
+/** The prefix `buildStorageKey` gives every publicly-served object. */
+const PUBLIC_PREFIX = 'public/';
+
 export interface ResolvedImage {
   readonly id: string;
   /** Browser-loadable URL, or `null` while no storage provider is configured. */
@@ -40,6 +43,27 @@ export interface ResolvedImage {
  */
 export function resolveImageUrl(storageKey: string): string | null {
   if (storageKey.length === 0 || isPrivateKey(storageKey)) return null;
+
+  /*
+   * ONLY A KEY THIS APPLICATION ACTUALLY STORED CAN BE RESOLVED.
+   *
+   * `buildStorageKey` emits exactly two shapes - `public/...` and
+   * `private/...` - so a key with any other prefix was never written to a
+   * bucket by this system. The seed produces such keys on purpose
+   * (`demo/aurora/main.jpg`) to give every product a complete, correctly
+   * ordered set of image ROWS before any photograph exists.
+   *
+   * Without this guard those rows become BROKEN IMAGES the moment storage is
+   * configured: the resolver would happily build a URL for an object that is
+   * not there, the browser would request it, and the page would render a torn
+   * icon instead of the honest stand-in. That is the exact failure the header
+   * note above says must not happen - and it only appears once a bucket is
+   * provisioned, which is precisely when nobody is looking for it.
+   *
+   * Fifty-three rows were in that state the first time real photography was
+   * loaded, against eighty-four that had been delivered.
+   */
+  if (!storageKey.startsWith(PUBLIC_PREFIX)) return null;
 
   const storage = getMediaStorage();
   if (storage === null) return null;

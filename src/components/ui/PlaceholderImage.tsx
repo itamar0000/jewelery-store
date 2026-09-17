@@ -36,7 +36,15 @@ import { cn } from './cn';
  * describe, and announcing "placeholder" to a screen-reader user adds nothing.
  * The surrounding card or section supplies the accessible name.
  */
-const RATIOS = {
+/**
+ * The aspect boxes, exported so a real photograph can occupy exactly the same
+ * shape as the placeholder it replaces.
+ *
+ * If these lived only here, `ProductPhoto` would have to restate them, and the
+ * two would drift the first time a ratio changed - producing a grid that jumps
+ * as images load in.
+ */
+export const IMAGE_RATIOS = {
   square: 'aspect-square',
   portrait: 'aspect-[4/5]',
   /** Taller than portrait. Editorial category tiles and campaign panels. */
@@ -49,7 +57,7 @@ const RATIOS = {
   fill: 'h-full w-full',
 } as const;
 
-export type PlaceholderRatio = keyof typeof RATIOS;
+export type PlaceholderRatio = keyof typeof IMAGE_RATIOS;
 
 export function PlaceholderImage({
   ratio = 'square',
@@ -87,7 +95,7 @@ export function PlaceholderImage({
       aria-hidden="true"
       className={cn(
         'bg-placeholder text-placeholder-foreground relative flex items-center justify-center overflow-hidden',
-        RATIOS[ratio],
+        IMAGE_RATIOS[ratio],
         className,
       )}
     >

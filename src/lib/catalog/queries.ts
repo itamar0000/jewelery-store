@@ -1,4 +1,4 @@
-import type { ProductBadge, ProductCardData } from '@/components/product/types';
+import type { ProductBadge, ProductCardData, ProductSwatch } from '@/components/product/types';
 import { prisma } from '@/lib/db';
 import { resolveAvailability, type Availability } from '@/lib/inventory/availability';
 import { fromAgorot, toAgorot, type Money } from '@/lib/money';
@@ -564,11 +564,42 @@ export const productCardSelect = {
   lowStockThreshold: true,
   defaultPrepDays: true,
   publishedAt: true,
+  /*
+   * TWO images, not one. The second is what the card crossfades to on hover.
+   *
+   * `take: 2` rather than every image, because a card can only ever show two
+   * and a catalog grid of 24 products would otherwise pull a hundred rows it
+   * throws away.
+   */
   images: {
     where: { variantId: null },
     orderBy: { position: 'asc' },
+    take: 2,
+    select: { altHe: true, storageKey: true },
+  },
+  /*
+   * The gold-colour axis, for the chips on the card.
+   *
+   * Matched on `code`, which the schema documents as a stable per-product
+   * machine key ("gold_color"), NOT on `nameHe` - a display label is content
+   * and can be re-worded by whoever edits the catalog, so keying behaviour to
+   * it would break the day someone improves the Hebrew.
+   *
+   * `isVariantAxis` is checked as well as the code. An option that has been
+   * flipped to a selection is no longer a set of distinct purchasable
+   * products, and advertising it as one on a grid would misrepresent the
+   * catalog (TBD.md B11).
+   */
+  options: {
+    where: { code: 'gold_color', isVariantAxis: true },
     take: 1,
-    select: { altHe: true },
+    select: {
+      values: {
+        where: { isActive: true },
+        orderBy: { position: 'asc' },
+        select: { value: true, labelHe: true, hexColor: true },
+      },
+    },
   },
   variants: {
     where: activeVariant,
@@ -594,7 +625,8 @@ type ProductCardRow = {
   lowStockThreshold: number | null;
   defaultPrepDays: number | null;
   publishedAt: Date | null;
-  images: { altHe: string }[];
+  images: { altHe: string; storageKey: string }[];
+  options: { values: { value: string; labelHe: string; hexColor: string | null }[] }[];
   variants: {
     priceAgorot: number | null;
     compareAtAgorot: number | null;
@@ -659,12 +691,47 @@ export function toProductCard(row: ProductCardRow): ProductCardData {
   // The lowest genuinely-low stock figure across variants, if any.
   const lowStock = availabilities.find((availability) => availability.isLowStock);
 
+  /*
+   * Chips are only worth drawing when there is a CHOICE to communicate. A
+   * product made in one gold colour renders none: a lone chip tells a shopper
+   * nothing they could act on and reads as decoration.
+   */
+  const swatchValues = row.options[0]?.values ?? [];
+  const swatches: ProductSwatch[] =
+    swatchValues.length > 1
+      ? swatchValues.map((value) => ({
+          value: value.value,
+          labelHe: value.labelHe,
+          ...(value.hexColor !== null ? { hexColor: value.hexColor } : {}),
+        }))
+      : [];
+
   const card: ProductCardData = {
     id: row.id,
     slug: row.slug,
     name: row.nameHe,
     price: fromAgorot(minPrice),
     imageAlt: row.images[0]?.altHe ?? row.nameHe,
+    /*
+     * `resolveImageUrl` returns null while no storage provider is configured
+     * or for a private key, so an absent URL here is the ordinary
+     * undelivered-photography case rather than an error. The card renders a
+     * captioned stand-in for it.
+     */
+    ...(row.images[0] && resolveImageUrl(row.images[0].storageKey) !== null
+      ? { imageUrl: resolveImageUrl(row.images[0].storageKey)! }
+      : {}),
+    /*
+     * Only when a genuine second photograph exists. `?? row.nameHe` would be
+     * wrong here in a way it is not for `imageAlt`: falling back would give
+     * every product a hover state that crossfades one placeholder into an
+     * identical one, which is a broken interaction rather than a missing one.
+     */
+    ...(row.images[1] ? { hoverImageAlt: row.images[1].altHe } : {}),
+    ...(row.images[1] && resolveImageUrl(row.images[1].storageKey) !== null
+      ? { hoverImageUrl: resolveImageUrl(row.images[1].storageKey)! }
+      : {}),
+    ...(swatches.length > 0 ? { swatches } : {}),
     ...(compareCandidates.length > 0
       ? { compareAtPrice: fromAgorot(Math.max(...compareCandidates)) }
       : {}),

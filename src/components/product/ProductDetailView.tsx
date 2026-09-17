@@ -4,13 +4,13 @@ import { useMemo, useState } from 'react';
 
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { PlaceholderImage } from '@/components/ui/PlaceholderImage';
 import { cn } from '@/components/ui/cn';
 import type { ProductDetail, VariantView } from '@/lib/catalog/types';
 import { formatPrice } from '@/lib/money';
 import { PLACEHOLDER_ATTR } from '@/lib/placeholders';
 import { Bidi } from '@/lib/rtl/bidi';
 
+import { ProductGallery } from './ProductGallery';
 import { WishlistButton } from './WishlistButton';
 
 /**
@@ -88,37 +88,33 @@ export function ProductDetailView({ product }: { product: ProductDetail }) {
      * control comfortably wide while the photograph clearly leads.
      */
     <div className="grid gap-8 md:grid-cols-12 md:gap-12 lg:gap-16">
-      <div className="md:col-span-7">
-        <div className="bg-muted/40 relative">
-          <PlaceholderImage
-            key={images[0]?.id ?? 'fallback'}
-            ratio="square"
-            label={images[0]?.altHe ?? product.nameHe}
-          />
+      {/*
+       * THE GALLERY IS STUCK TO THE TOP OF THE COLUMN, NOT TO THE PAGE.
+       *
+       * `self-start` matters as much as `sticky` here: a grid item stretches
+       * to the row's height by default, which makes a sticky child have
+       * nothing to move within and quietly do nothing at all.
+       *
+       * WHY IT STICKS. Below the fold this page is long - options, then the
+       * diamond table, then the description - and all of it is text ABOUT the
+       * photograph. Scrolling to read a stone's clarity grade with the stone
+       * no longer on screen is the exact moment a shopper loses the thread.
+       *
+       * `top` clears the sticky header rather than guessing: the header is
+       * 8.125rem tall on desktop, the same figure the hero's viewport
+       * calculation uses.
+       */}
+      <div className="md:sticky md:top-[calc(8.125rem+1.5rem)] md:col-span-7 md:self-start">
+        <div className="relative">
+          <ProductGallery images={images} productName={product.nameHe} />
+
+          {/*
+           * `end` is the inline end - the LEFT of this RTL page - which is the
+           * side the thumbnail rail is NOT on, so the button never lands on a
+           * thumbnail.
+           */}
           <WishlistButton productName={product.nameHe} className="absolute end-4 top-4 z-10" />
         </div>
-
-        {/*
-         * A FILMSTRIP, NOT A FOUR-COLUMN GRID.
-         *
-         * `grid-cols-4` sized each thumbnail to a quarter of the gallery no
-         * matter how many existed, so a variant with two photographs rendered
-         * one large thumbnail followed by three empty cells - which reads as
-         * images failing to load rather than as a product with two views. How
-         * many photographs a variant has is real data and varies.
-         *
-         * Flex with a fixed basis keeps every thumbnail the same size whatever
-         * the count, and a short strip simply looks short.
-         */}
-        {images.length > 1 && (
-          <ul className="mt-3 flex gap-3">
-            {images.slice(1, 5).map((image) => (
-              <li key={image.id} className="basis-1/5">
-                <PlaceholderImage ratio="square" label={image.altHe} />
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
 
       <div className="md:col-span-5">
@@ -305,6 +301,8 @@ export function ProductDetailView({ product }: { product: ProductDetail }) {
           </p>
         )}
 
+        <ConsultationPrompt />
+
         {diamond && <DiamondSpecTable diamond={diamond} />}
 
         {product.descriptionHe && (
@@ -317,6 +315,66 @@ export function ProductDetailView({ product }: { product: ProductDetail }) {
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * The way out of the page that is not the cart.
+ *
+ * THE GAP THIS FILLS. Reviewed against the reference stores, the most striking
+ * thing this product page was missing had nothing to do with styling: every
+ * one of them offers a person, and this page offered a button. Malka prints
+ * "a sales advisor will contact you to review your order"; Yaniv prints "we
+ * will contact you personally"; Cartier declines to show a price on a solitaire
+ * at all and offers a phone number and an appointment instead.
+ *
+ * That is not decoration and it is not upselling. A four-figure piece that is
+ * sized to a finger, engraved, or built around a chosen stone is a
+ * CONVERSATION, and a page whose only affordance is "add to cart" quietly tells
+ * a shopper that the conversation is not on offer - so the ones who need it
+ * leave instead of asking.
+ *
+ * WHAT IT DELIBERATELY DOES NOT DO. It promises nothing. No response time, no
+ * callback, no "an advisor will contact you", no phone number - every one of
+ * those is a service commitment the business has to actually staff, and
+ * MASTER_SPECIFICATION section 52 is explicit that this kind of text is not
+ * authored here. It also carries no shipping, returns or warranty assurances
+ * for the same reason: B4, B5, L2 and L4 are open in TBD.md, and the reference
+ * stores' versions of this strip are exactly the promises that register lists.
+ *
+ * So it routes rather than reassures. Both destinations are real pages that
+ * already exist, and "you can ask before ordering" is a fact about the site
+ * rather than a policy about the business.
+ *
+ * When the service decisions land, the assurance lines belong here, above the
+ * links, taking their content as props from the route.
+ */
+function ConsultationPrompt() {
+  return (
+    <section aria-labelledby="consultation-heading" className="border-border mt-8 border-t pt-6">
+      <h2 id="consultation-heading" className="text-sm font-medium">
+        שאלות על הדגם?
+      </h2>
+
+      <p className="text-muted-foreground mt-2 text-sm">
+        אפשר לפנות לפני ההזמנה — לגבי מידה, גוון זהב, או התאמה של הדגם.
+      </p>
+
+      {/*
+       * Two links, both `secondary` rather than one of them `primary`. The one
+       * high-emphasis action on this page is the add-to-cart above; a filled
+       * button down here would compete with it and turn a quiet offer of help
+       * into a second call to action.
+       */}
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button href="/contact" variant="secondary" size="sm">
+          יצירת קשר
+        </Button>
+        <Button href="/custom" variant="secondary" size="sm">
+          עיצוב אישי
+        </Button>
+      </div>
+    </section>
   );
 }
 
