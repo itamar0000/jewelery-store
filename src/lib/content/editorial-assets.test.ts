@@ -1,6 +1,3 @@
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import path from 'node:path';
-
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
@@ -10,6 +7,11 @@ import {
   resolveEditorialAsset,
   type EditorialAssetId,
 } from './editorial-assets';
+import {
+  hideEditorialFile,
+  placeEditorialFile,
+  restoreEditorialFiles,
+} from '@/test/editorial-files';
 
 /**
  * Availability is decided by the filesystem, so the tests that cover it have to
@@ -20,19 +22,10 @@ import {
  * Real bytes are not needed: nothing here decodes the image. What is under test
  * is the presence check and everything it drives.
  */
-const created: string[] = [];
+const placeFile = placeEditorialFile;
+const hideFile = hideEditorialFile;
 
-function placeFile(publicPath: string): void {
-  const onDisk = path.join(process.cwd(), 'public', publicPath.replace(/^\/+/, ''));
-  mkdirSync(path.dirname(onDisk), { recursive: true });
-  writeFileSync(onDisk, '');
-  created.push(onDisk);
-}
-
-afterEach(() => {
-  for (const file of created) rmSync(file, { force: true });
-  created.length = 0;
-});
+afterEach(restoreEditorialFiles);
 
 describe('the editorial asset registry', () => {
   it('keys every asset by its own id', () => {
@@ -73,6 +66,32 @@ describe('the editorial asset registry', () => {
     for (const asset of EDITORIAL_ASSET_LIST) {
       expect(asset.brief.length).toBeGreaterThan(20);
       expect(asset.aspect.length).toBeGreaterThan(0);
+    }
+  });
+
+  /**
+   * `mobileSrc` and `master.mobile` are one decision recorded twice, so they
+   * are exactly the kind of pair that drifts. If a phone crop is added to the
+   * registry without a master size, the prepare script silently writes nothing
+   * for it and the storefront falls back to the desktop file - a regression
+   * that looks like a bad crop rather than a missing step.
+   */
+  it('declares a mobile master exactly when it declares a mobile source', () => {
+    for (const asset of EDITORIAL_ASSET_LIST) {
+      expect(asset.master.mobile !== undefined).toBe(asset.mobileSrc !== undefined);
+    }
+  });
+
+  it('gives every master a positive, landscape-or-portrait size', () => {
+    for (const asset of EDITORIAL_ASSET_LIST) {
+      for (const size of [asset.master.desktop, asset.master.mobile]) {
+        if (!size) continue;
+        expect(size.width).toBeGreaterThan(0);
+        expect(size.height).toBeGreaterThan(0);
+        // Guards a transposed pair: nothing here is a 10:1 letterbox.
+        expect(size.width / size.height).toBeGreaterThan(0.3);
+        expect(size.width / size.height).toBeLessThan(4);
+      }
     }
   });
 
@@ -121,6 +140,10 @@ describe('alt text', () => {
 
 describe('resolveEditorialAsset', () => {
   it('reports an asset as unavailable while its file is missing', () => {
+    // Forced absent: with real photography delivered this asset HAS a file,
+    // and the branch under test would never be reached.
+    hideFile(EDITORIAL_ASSETS['category-rings'].desktopSrc);
+
     const resolved = resolveEditorialAsset('category-rings');
 
     expect(resolved.available).toBe(false);
@@ -154,7 +177,13 @@ describe('resolveEditorialAsset', () => {
 
   describe('desktop and mobile selection', () => {
     it('offers the phone crop only when that file exists too', () => {
-      placeFile(EDITORIAL_ASSETS.hero.desktopSrc);
+      const { desktopSrc, mobileSrc } = EDITORIAL_ASSETS.hero;
+      if (mobileSrc === undefined) throw new Error('the hero is expected to declare a phone crop');
+
+      // The point of the test is a HALF-delivered pair, so the phone crop has
+      // to be absent even once the real one has been delivered.
+      hideFile(mobileSrc);
+      placeFile(desktopSrc);
 
       const resolved = resolveEditorialAsset('hero');
 
@@ -186,16 +215,42 @@ describe('resolveEditorialAsset', () => {
 });
 
 describe('missingEditorialAssets', () => {
-  it('lists everything that has not been delivered yet', () => {
-    expect(missingEditorialAssets()).toHaveLength(EDITORIAL_ASSET_LIST.length);
+  /**
+   * COUNTED AGAINST THE DISK, NOT AGAINST A FIXED NUMBER.
+   *
+   * These two assertions used to read `toHaveLength(EDITORIAL_ASSET_LIST.length)`
+   * and `length - 1`, which quietly encoded "no photography has been delivered
+   * yet" as an invariant of the project. True on the day they were written;
+   * false forever after the first real asset landed, and the failure pointed at
+   * the registry rather than at the assumption.
+   *
+   * The real contract has nothing to do with how many files exist: an asset is
+   * listed exactly when its file is not on disk.
+   */
+  it('lists exactly the assets whose files are not on disk', () => {
+    const missing = new Set(missingEditorialAssets().map((asset) => asset.id));
+
+    for (const asset of EDITORIAL_ASSET_LIST) {
+      expect(missing.has(asset.id)).toBe(!resolveEditorialAsset(asset.id).available);
+    }
   });
 
   it('drops an asset from the list once its file arrives', () => {
-    placeFile(EDITORIAL_ASSETS.bridal.desktopSrc);
+    const { desktopSrc, mobileSrc } = EDITORIAL_ASSETS.bridal;
 
-    const missing = missingEditorialAssets().map((asset) => asset.id);
+    // Start from a known state rather than whatever the working tree happens
+    // to hold, so the test measures the transition it is named after.
+    hideFile(desktopSrc);
+    if (mobileSrc) hideFile(mobileSrc);
 
-    expect(missing).not.toContain('bridal');
-    expect(missing).toHaveLength(EDITORIAL_ASSET_LIST.length - 1);
+    const before = missingEditorialAssets().map((asset) => asset.id);
+    expect(before).toContain('bridal');
+
+    placeFile(desktopSrc);
+
+    const after = missingEditorialAssets().map((asset) => asset.id);
+
+    expect(after).not.toContain('bridal');
+    expect(after).toHaveLength(before.length - 1);
   });
 });

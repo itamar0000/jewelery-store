@@ -1,11 +1,13 @@
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import path from 'node:path';
-
 import type { ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { EDITORIAL_ASSETS, type EditorialAssetId } from '@/lib/content/editorial-assets';
+import {
+  hideEditorialFile,
+  placeEditorialFile,
+  restoreEditorialFiles,
+} from '@/test/editorial-files';
 
 import { EditorialImage } from './EditorialImage';
 
@@ -14,10 +16,25 @@ import { EditorialImage } from './EditorialImage';
  * contract is the emitted markup, so no DOM is needed.
  *
  * Availability comes from the filesystem, so the tests that need a delivered
- * asset write one and remove it again - see editorial-assets.test.ts for why
- * empty files are enough.
+ * asset write one and remove it again. The fixtures live in
+ * `@/test/editorial-files`, which also explains why they have to stash any real
+ * photography rather than simply deleting what they find.
  */
-const created: string[] = [];
+/**
+ * Forces an asset back to its undelivered state for one test.
+ *
+ * The mirror image of `deliver`, and just as necessary. These tests were
+ * written while `public/images/editorial/` was empty, so "not delivered" was
+ * simply the ambient condition and nothing had to arrange it. Once real
+ * photography landed, every assertion about the placeholder branch was silently
+ * testing the delivered branch instead - and failing, which is the good outcome;
+ * had the assertions been looser they would have passed while testing nothing.
+ */
+function undeliver(id: EditorialAssetId): void {
+  const asset = EDITORIAL_ASSETS[id];
+  hideEditorialFile(asset.desktopSrc);
+  if (asset.mobileSrc) hideEditorialFile(asset.mobileSrc);
+}
 
 function deliver(id: EditorialAssetId, options: { readonly mobile?: boolean } = {}): void {
   const asset = EDITORIAL_ASSETS[id];
@@ -26,18 +43,10 @@ function deliver(id: EditorialAssetId, options: { readonly mobile?: boolean } = 
     ...(options.mobile && asset.mobileSrc ? [asset.mobileSrc] : []),
   ];
 
-  for (const src of sources) {
-    const onDisk = path.join(process.cwd(), 'public', src.replace(/^\/+/, ''));
-    mkdirSync(path.dirname(onDisk), { recursive: true });
-    writeFileSync(onDisk, '');
-    created.push(onDisk);
-  }
+  for (const src of sources) placeEditorialFile(src);
 }
 
-afterEach(() => {
-  for (const file of created) rmSync(file, { force: true });
-  created.length = 0;
-});
+afterEach(restoreEditorialFiles);
 
 function render(node: ReactElement): string {
   return renderToStaticMarkup(node);
@@ -51,6 +60,8 @@ describe('EditorialImage', () => {
      * to tell "the photograph is pending" from "the design is a beige box".
      */
     it('renders the development placeholder, not a broken image', () => {
+      undeliver('hero');
+
       const markup = render(<EditorialImage id="hero" sizes="100vw" />);
 
       expect(markup).not.toContain('<img');
@@ -58,6 +69,8 @@ describe('EditorialImage', () => {
     });
 
     it('captions the placeholder with what belongs there', () => {
+      undeliver('category-rings');
+
       const markup = render(
         <EditorialImage id="category-rings" sizes="50vw" placeholderLabel="טבעות" />,
       );
@@ -66,12 +79,16 @@ describe('EditorialImage', () => {
     });
 
     it('falls back to the shot brief when the caller names nothing', () => {
+      undeliver('atelier');
+
       const markup = render(<EditorialImage id="atelier" sizes="50vw" />);
 
       expect(markup).toContain('Craftsmanship');
     });
 
     it('can hide the caption where text sits over the image', () => {
+      undeliver('hero');
+
       const markup = render(
         <EditorialImage
           id="hero"
@@ -95,6 +112,10 @@ describe('EditorialImage', () => {
 
   describe('when the file has been delivered', () => {
     it('renders an optimized image', () => {
+      // Asserts the BEFORE state as well as the after, so the arrangement has
+      // to start from a genuinely undelivered asset.
+      undeliver('atelier');
+
       const markup = render(<EditorialImage id="atelier" sizes="50vw" />);
       expect(markup).not.toContain('<img');
 
@@ -127,6 +148,9 @@ describe('EditorialImage', () => {
     });
 
     it('emits no <source> when only the desktop file has arrived', () => {
+      // The phone crop is a real file now, so a half-delivered pair has to be
+      // arranged rather than assumed.
+      undeliver('hero');
       deliver('hero');
 
       const markup = render(<EditorialImage id="hero" sizes="100vw" priority />);

@@ -94,6 +94,14 @@ export default async function HomePage() {
   return (
     <>
       <Hero
+        /*
+         * Provisional like every other string on this page, and descriptive
+         * rather than promotional for the same reason: it names the category
+         * the store trades in, and asserts nothing about the brand. It is
+         * also, deliberately, the only Latin text in the storefront - see the
+         * `displayLine` contract on Hero.
+         */
+        displayLine="Fine Jewelry"
         title="תכשיטי זהב ויהלומים"
         subtitle="עיצוב וייצור בישראל, עם אפשרות התאמה אישית לכל דגם. טקסט זה זמני ויוחלף עם גיבוש שפת המותג."
         primaryAction={{ label: 'לקטלוג', href: '/rings' }}

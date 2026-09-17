@@ -53,6 +53,18 @@ export interface FocalPoint {
   readonly y: number;
 }
 
+/** Pixel dimensions for the encoded master file. */
+export interface EditorialMasterSize {
+  readonly width: number;
+  readonly height: number;
+}
+
+export interface EditorialMaster {
+  readonly desktop: EditorialMasterSize;
+  /** Present only for an asset that is separately art-directed for a phone. */
+  readonly mobile?: EditorialMasterSize;
+}
+
 export interface EditorialAsset {
   readonly id: EditorialAssetId;
   readonly section: EditorialSection;
@@ -75,6 +87,25 @@ export interface EditorialAsset {
   readonly mobileFocalPoint?: FocalPoint;
   /** The crop the section renders it at. Part of the shot brief. */
   readonly aspect: string;
+  /**
+   * The dimensions the delivered file should be encoded at.
+   *
+   * DELIBERATELY NOT THE SIZE IT RENDERS AT. Several of these slots are
+   * `object-fit: cover` inside a box whose shape depends on the viewport - the
+   * hero is a full screen minus the header, the bridal banner is `55vh` - so
+   * there is no single ratio they render at, and the category tiles render at
+   * 3:4 or 1:1 depending on whether they are the lead tile. `aspect` above
+   * describes the INTENT to a human; this describes the MASTER a tool encodes,
+   * chosen generously enough that every real crop is a subset of it.
+   *
+   * That generosity is what `focalPoint` then spends: the master carries more
+   * frame than any one slot needs, and the focal point decides which part
+   * survives.
+   *
+   * `mobile` is present exactly when `mobileSrc` is - they are the same
+   * decision, and a test asserts they cannot drift apart.
+   */
+  readonly master: EditorialMaster;
   /** What the picture must show. This IS the brief handed to whoever makes it. */
   readonly brief: string;
 }
@@ -123,6 +154,9 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     focalPoint: { x: 35, y: 40 },
     mobileFocalPoint: { x: 50, y: 32 },
     aspect: 'desktop ~21:9 full-bleed · mobile ~4:5 portrait',
+    // 21:9. The hero box runs between roughly 2:1 and 3:1 across real
+    // desktops; 21:9 sits in the middle, so neither extreme crops hard.
+    master: { desktop: { width: 2520, height: 1080 }, mobile: { width: 1280, height: 1600 } },
     brief:
       'Editorial jewellery campaign. A woman wearing the jewellery, modern luxury, ' +
       'warm ivory/champagne environment. Generous negative space on the inline-start ' +
@@ -136,6 +170,7 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     alt: '',
     focalPoint: { x: 50, y: 45 },
     aspect: '4:5 portrait',
+    master: { desktop: { width: 1400, height: 1750 } },
     brief: 'Close-up of a hand wearing a ring. Elegant styling, hand relaxed, ring in focus.',
   },
   'category-earrings': {
@@ -145,6 +180,7 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     alt: '',
     focalPoint: { x: 50, y: 40 },
     aspect: '4:5 portrait',
+    master: { desktop: { width: 1400, height: 1750 } },
     brief: 'Side profile, close on the ear. Earring catching the light, hair back or up.',
   },
   'category-necklaces': {
@@ -154,6 +190,7 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     alt: '',
     focalPoint: { x: 50, y: 45 },
     aspect: '4:5 portrait',
+    master: { desktop: { width: 1400, height: 1750 } },
     brief:
       'Neck and shoulder, necklace resting at the collarbone. Skin and metal, minimal clothing detail.',
   },
@@ -164,6 +201,7 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     alt: '',
     focalPoint: { x: 50, y: 50 },
     aspect: '4:5 portrait',
+    master: { desktop: { width: 1400, height: 1750 } },
     brief: 'Wrist and hand, bracelet in focus. Natural gesture rather than a posed product shot.',
   },
   'category-sets': {
@@ -173,6 +211,7 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     alt: '',
     focalPoint: { x: 50, y: 40 },
     aspect: '4:5 portrait',
+    master: { desktop: { width: 1400, height: 1750 } },
     brief:
       'The most editorial of the five: a lifestyle composition showing coordinated ' +
       'pieces worn together - necklace and earrings, or ring and bracelet.',
@@ -186,6 +225,7 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     alt: 'צורף עובד על תכשיט בשולחן עבודה',
     focalPoint: { x: 50, y: 50 },
     aspect: '4:5 portrait beside the copy',
+    master: { desktop: { width: 1400, height: 1750 } },
     brief:
       'Craftsmanship, not commerce. Hands working: stone setting, a goldsmith at the ' +
       'bench, tools, a sketch beside a piece. Warm task lighting. NOT a business ' +
@@ -199,8 +239,32 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     mobileSrc: `${BASE}/bridal/bridal-mobile.jpg`,
     alt: '',
     focalPoint: { x: 40, y: 40 },
-    mobileFocalPoint: { x: 50, y: 35 },
+    /*
+     * FAR to the inline start, and that is not a typo.
+     *
+     * The banner is a 2.5:1 landscape and the phone crop is 4:5 portrait, so
+     * cover keeps the full height and only 768px of a 2400px width - less than
+     * a third of the frame. WHERE that third is taken from is entirely this
+     * value's decision, and at the old 50% it was taken from x816-1584: the
+     * empty studio background the desktop composition deliberately reserves
+     * for the headline. The phone banner rendered as a blank cream rectangle
+     * with a corner of lace in it.
+     *
+     * The subject sits at roughly x0-840 (face ~300-600, ring ~480-840), so 5%
+     * takes x82-850 and frames her and the ring. The number looks extreme only
+     * because it is compensating for a deliberately off-centre composition.
+     *
+     * IT IS COUPLED TO THE PHOTOGRAPH. Re-shoot the bridal frame with the
+     * subject centred and this has to move back. That coupling is the cost of
+     * deriving the phone crop from the desktop file; a separately art-directed
+     * portrait master - which `mobileSrc` is documented to be - would not have
+     * it, and would also avoid the 1.67x upscale this crop currently needs.
+     */
+    mobileFocalPoint: { x: 5, y: 35 },
     aspect: 'full-bleed campaign banner',
+    // 2.5:1. The banner is `55vh` clamped between 26rem and 34rem, which is
+    // a wider, shorter box than the hero at every viewport.
+    master: { desktop: { width: 2400, height: 960 }, mobile: { width: 1280, height: 1600 } },
     brief:
       'A jewellery campaign that happens to be bridal - not wedding stock. Elegant, ' +
       'close or medium crop, jewellery clearly visible, soft refined light, ' +
@@ -214,6 +278,7 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     alt: 'תקריב של יהלום משובץ בתכשיט',
     focalPoint: { x: 50, y: 50 },
     aspect: '4:5 portrait beside the copy',
+    master: { desktop: { width: 1400, height: 1750 } },
     brief:
       'Macro of a diamond set into a piece. Premium gemstone close-up, real ' +
       'refraction rather than CGI sparkle. MUST NOT imply the stone is lab-grown: ' +

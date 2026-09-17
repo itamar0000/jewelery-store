@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
 import { EditorialImage } from '@/components/ui/EditorialImage';
+import { cn } from '@/components/ui/cn';
 import type { EditorialAssetId } from '@/lib/content/editorial-assets';
 
 /**
@@ -24,9 +25,9 @@ import type { EditorialAssetId } from '@/lib/content/editorial-assets';
  * route, the photography is still the shared placeholder surface, and the copy
  * is still the provisional descriptive text the rest of the page uses.
  *
- * The scrim is bottom-weighted because the copy sits low on mobile and centred
- * on desktop; as with the hero, contrast against photography that does not
- * exist yet cannot be guaranteed any other way.
+ * The scrim tracks the copy rather than covering the frame - vertical on mobile
+ * where the text sits low, horizontal from the inline start on desktop where it
+ * sits beside the subject. See the note on the gradient itself.
  */
 export function FeatureBanner({
   id,
@@ -63,14 +64,43 @@ export function FeatureBanner({
       </div>
 
       {/*
-       * `to-t` is a PHYSICAL direction and correct here: the copy is anchored
-       * to the bottom of the band on mobile, so the scrim has to be heaviest
-       * there. Unlike the homepage hero's inline-start gradient, this one does
-       * not change meaning under a different writing direction.
+       * THE SCRIM FOLLOWS THE COPY, AND THE COPY MOVES AT `md`.
+       *
+       * It used to be one full-width bottom-to-top wash at every size. That
+       * kept the text legible, but it also laid a 90%-opaque band of page
+       * colour across the ENTIRE bottom edge - including the half of the frame
+       * holding the hand and the rings, which is the subject the banner exists
+       * to show. On the bridal frame the engagement ring sits at roughly 30% in
+       * and 45% down, squarely under the heaviest part of that wash.
+       *
+       * So the gradient is now responsive, because the layout it is protecting
+       * is responsive:
+       *
+       *   mobile   copy is anchored to the BOTTOM and spans the full width
+       *            (`items-end pb-12`), so the scrim has to be vertical. A
+       *            side gradient here would leave the text on bare photograph.
+       *
+       *   md+      copy is vertically centred inside a `max-w-lg` block at the
+       *            inline start - the RIGHT of this RTL page - so the scrim
+       *            runs horizontally from that edge and is fully transparent
+       *            before it reaches the subject.
+       *
+       * `to-t` and `to-l` are PHYSICAL directions because CSS gradients have no
+       * logical equivalent. `to-l` is correct here only because the storefront
+       * is RTL-only (src/lib/config/site.ts), which makes the inline start the
+       * right edge; in an LTR context this would need to be `to-r`.
+       *
+       * The stops are explicit rather than left to Tailwind's defaults: fully
+       * covered behind the text, half-strength through the middle, and gone by
+       * 80% so the last fifth of the frame - the hand - is untouched.
        */}
       <div
         aria-hidden="true"
-        className="from-background/90 via-background/45 absolute inset-0 bg-gradient-to-t to-transparent"
+        className={cn(
+          'absolute inset-0',
+          'from-background/90 via-background/45 bg-linear-to-t to-transparent',
+          'md:from-background/90 md:via-background/60 md:bg-linear-to-l md:via-40% md:to-transparent md:to-80%',
+        )}
       />
 
       <div className="absolute inset-0 flex items-end pb-12 md:items-center md:pb-0">
