@@ -58,6 +58,54 @@
   }
 }
 
+/*
+ * Keyframes for the motion tokens in src/styles/tokens.css.
+ *
+ * Declared at the top level rather than inside `@layer base`, because an
+ * `@keyframes` block in a cascade layer is only reachable from that layer, and
+ * these are consumed by utilities.
+ *
+ * NOT WRAPPED IN A prefers-reduced-motion GUARD. The base layer already
+ * collapses every animation to 0.01ms under that query, so a component using
+ * one of these gets the honest end state with no motion, and no component has
+ * to remember to check.
+ */
+@keyframes frame-in {
+  from {
+    opacity: 0;
+    transform: scale(1.012);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    /* Physical `translateY`, and correctly so: this is a vertical movement,
+       and the vertical axis does not mirror with writing direction. */
+    transform: translateY(0.75rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hero-settle {
+  from {
+    transform: scale(1.04);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
 @layer utilities {
   /*
    * Mirrors an icon with the writing direction.

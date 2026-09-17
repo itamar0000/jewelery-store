@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 
 import { SITE_DIR, SITE_LANG, SITE_LOCALE } from '@/lib/config/site';
 import { env } from '@/lib/env';
-import { hebrewSans } from '@/lib/fonts';
+import { hebrewSans, latinDisplay } from '@/lib/fonts';
 
 import './globals.css';
 
@@ -51,9 +51,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // "VS1", "14K", "Rose Gold" inside Hebrew copy), which Phase 2's <Bidi>
     // component owns.
     //
-    // `hebrewSans.variable` puts --font-hebrew-sans on <html>, which is what
-    // --font-sans in the token layer resolves through.
-    <html lang={SITE_LANG} dir={SITE_DIR} className={hebrewSans.variable}>
+    // BOTH font variables are bound here, and neither sets a font-family by
+    // itself. `hebrewSans.variable` puts --font-hebrew-sans on <html> and
+    // `latinDisplay.variable` puts --font-latin-display beside it; the token
+    // layer composes them into --font-sans and --font-display. Which face
+    // actually renders a given glyph is decided by the fallback order in
+    // tokens.css, per glyph - see src/lib/fonts.ts.
+    <html
+      lang={SITE_LANG}
+      dir={SITE_DIR}
+      className={`${hebrewSans.variable} ${latinDisplay.variable}`}
+    >
       <body>{children}</body>
     </html>
   );
