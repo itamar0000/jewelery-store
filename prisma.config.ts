@@ -82,6 +82,17 @@ function migrationUrl(): string | undefined {
     // Returning undefined leaves the datasource unset, so generate succeeds and
     // the commands that really do connect fail with Prisma's own message about
     // a missing url - which is the accurate complaint.
+    // Say so in the build log. Prisma's own message - "the datasource.url
+    // property is required in your Prisma config file" - describes the config
+    // rather than the environment, which sends people to edit this file when
+    // the actual fault is a variable missing from the deployment. Names only,
+    // never values: this text goes to build logs (MASTER_SPECIFICATION 48).
+    console.error(
+      '[prisma.config] no database url: DIRECT_DATABASE_URL and DATABASE_URL are both ' +
+        'unset in this environment. Commands that connect (migrate, db push, studio) ' +
+        'cannot run; `generate` is unaffected.',
+    );
+
     return undefined;
   }
 
