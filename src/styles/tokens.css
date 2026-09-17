@@ -89,6 +89,22 @@
    * Contrast measured: placeholder-ink on placeholder is 5.1:1. */
   --ref-placeholder: #d9d1c4;
   --ref-placeholder-ink: #55503f;
+
+  /* --- Motion curves ----------------------------------------------------
+   * Raw timing functions, named by what they ARE. The semantic layer below
+   * decides which one is the house default.
+   *
+   * `settle` is measured from Cartier, whose whole site runs on it. It is not
+   * a symmetric ease: the curve leaves fast (0.4, 0.9) and arrives slowly
+   * (0.3, 1), so an element departs promptly and then takes its time coming to
+   * rest. That asymmetry is the entire perceptual difference between motion
+   * that reads as expensive and motion that reads as an app responding.
+   *
+   * `exit` is its mirror, for things leaving the screen - a closing drawer, a
+   * dismissed overlay. Anything on its way out should go quickly; only
+   * arrivals earn the long tail. */
+  --ref-ease-settle: cubic-bezier(0.4, 0.9, 0.3, 1);
+  --ref-ease-exit: cubic-bezier(0.45, 0, 0.9, 0.35);
 }
 
 /* -------------------------------------------------------------------------
@@ -138,32 +154,119 @@
 }
 
 /* -------------------------------------------------------------------------
+ * LAYER 2 - motion easing
+ *
+ * Separate `@theme inline` block for the same reason the colour block is
+ * inline: these are var() references, and plain `@theme` would freeze a copy
+ * of the value instead of resolving through to Layer 1.
+ *
+ * `--ease-*` is a Tailwind v4 namespace, so each entry also generates the
+ * matching utility - `--ease-settle` gives `ease-settle`.
+ * ---------------------------------------------------------------------- */
+@theme inline {
+  /* The house curve. Default for every transition on the site. */
+  --ease-settle: var(--ref-ease-settle);
+
+  /* For departures only. See the Layer 1 note. */
+  --ease-exit: var(--ref-ease-exit);
+
+  /*
+   * A new frame arriving in a gallery: fades up while easing back from a
+   * fractional over-scale.
+   *
+   * The 1.2% is deliberately almost invisible as MOVEMENT. What it does is
+   * stop the swap reading as an instant substitution - the frame appears to
+   * settle into the well rather than to have been replaced there. A larger
+   * value turns a photograph into a slide transition, which is the failure
+   * mode this is avoiding, not a stronger version of the effect.
+   *
+   * `both` holds the opening frame's state through the animation's delay, so
+   * the first paint after a remount is never the un-animated end state.
+   *
+   * The keyframes themselves live in globals.css: `@theme` declares design
+   * VALUES, and a keyframe block is a rule.
+   */
+  --animate-frame-in: frame-in var(--duration-reveal) var(--ref-ease-settle) both;
+
+  /*
+   * Copy arriving on first paint. Fades up a few pixels.
+   *
+   * `both` is load-bearing rather than tidy: without it a staggered element
+   * paints at its END state for the length of its own delay, then jumps back
+   * to the start to animate - so a stagger built without it flashes the whole
+   * block into view before playing.
+   */
+  --animate-rise-in: rise-in var(--duration-reveal) var(--ref-ease-settle) both;
+
+  /*
+   * The hero photograph coming to rest.
+   *
+   * A slow release from a 4% over-scale, over two seconds. This is the one
+   * piece of motion on the site that is purely atmospheric - it communicates
+   * nothing and responds to nothing - and it is here because the first screen
+   * is the only place that is worth spending. It is also the reason the
+   * duration is well past the `drift` tier: at anything quicker the eye reads
+   * it as the page still loading rather than as the image settling.
+   *
+   * `ease-out` rather than the house curve. `settle` is tuned for a departure
+   * followed by an arrival; this has no departure, and its long tail is the
+   * entire effect.
+   */
+  --animate-hero-settle: hero-settle 2000ms ease-out both;
+
+  /*
+   * THE SINGLE HIGHEST-LEVERAGE LINE IN THIS FILE.
+   *
+   * Tailwind's built-in default timing function is a symmetric
+   * `cubic-bezier(0.4, 0, 0.2, 1)`. Overriding it here re-times EVERY
+   * `transition-*` utility already written across the storefront - every
+   * `hover:text-accent`, every border change, every drawer - onto the house
+   * curve, without editing a single component.
+   *
+   * A component that wants different motion still says so locally. This only
+   * moves the floor.
+   */
+  --default-transition-timing-function: var(--ref-ease-settle);
+}
+
+/* -------------------------------------------------------------------------
  * LAYER 2 - non-colour tokens
  *
  * Plain @theme: these are literal values with nothing to indirect through.
  * ---------------------------------------------------------------------- */
 @theme {
   /* --- Typography -------------------------------------------------------
-   * --font-hebrew-sans is supplied at runtime by next/font, bound to <html>
-   * in the root layout. See src/lib/fonts.ts - that file is the single place
-   * the final brand font gets configured. The stack below it is the fallback
-   * chain used before the webfont loads and if it fails.
+   * Both webfont variables are supplied at runtime by next/font and bound to
+   * <html> in the root layout. See src/lib/fonts.ts - that file is the single
+   * place the brand faces get configured, and it carries the reasoning for
+   * running two of them.
    *
-   * --font-display is intentionally aliased to the same family. Display type
-   * is a brand decision that has not been made; pointing it at a second font
-   * now would be inventing one.
+   * THE SEAM IS NOW FILLED. `--font-display` used to alias `--font-sans`,
+   * which meant every heading marked `font-display` rendered identically to
+   * body copy: the seam existed but nothing came through it. It now resolves
+   * to a real display serif.
    *
-   * IT IS NOW ACTUALLY CONSUMED. Every display-level heading on the storefront
-   * - the hero, section titles, editorial and banner headings, the page hero
-   * and the product name - is set in `font-display` rather than inheriting the
-   * body face. While the alias holds, that renders identically and changes
-   * nothing. The point is that the seam now EXISTS: adding a brand serif later
-   * is one line here, not a hunt through every component for the headings that
-   * should have used it. */
+   * READ THE FALLBACK ORDER BELOW AS A MECHANISM, NOT A SAFETY NET. Font
+   * fallback is per-GLYPH, not per-element: the browser walks the list for
+   * each character and takes the first family that has it. Cormorant carries
+   * Latin only, so in `--font-display` it claims the Latin glyphs and every
+   * Hebrew glyph falls straight through to Heebo. One heading can hold both
+   * scripts and each is set correctly, with no per-language markup anywhere.
+   *
+   * THE ORDER IS LEAD-LATIN, THEN HEBREW, AND IT CANNOT BE REVERSED. Heebo
+   * covers Latin as well as Hebrew, so listing it first would win every glyph
+   * and the display face would silently never render - a failure that looks
+   * exactly like the font failing to load.
+   *
+   * The generic at the end differs between the two stacks (`sans-serif` for
+   * body, `serif` for display) so that a total webfont failure still degrades
+   * to the right KIND of face. */
   --font-sans:
     var(--font-hebrew-sans), 'Segoe UI', system-ui, -apple-system, 'Noto Sans Hebrew',
     'Arial Hebrew', Arial, sans-serif;
-  --font-display: var(--font-sans);
+  --font-display:
+    var(--font-latin-display), var(--font-hebrew-sans), 'Segoe UI', system-ui, -apple-system,
+    'Noto Sans Hebrew', 'Arial Hebrew', Arial, serif;
 
   /* Type scale. Line heights are generous - Hebrew has no ascender/descender
    * rhythm to lean on, and section 2 asks for generous whitespace. */
@@ -247,6 +350,48 @@
   --shadow-md: 0 4px 12px -2px rgb(20 16 10 / 0.08), 0 2px 4px -2px rgb(20 16 10 / 0.04);
   --shadow-lg: 0 12px 28px -6px rgb(20 16 10 / 0.1), 0 4px 8px -4px rgb(20 16 10 / 0.05);
   --shadow-xl: 0 24px 48px -12px rgb(20 16 10 / 0.14);
+
+  /* --- Motion durations -------------------------------------------------
+   * Speed is the loudest signal a site sends about what it thinks it is.
+   *
+   * The reference stores were measured rather than guessed. Cartier's live CSS
+   * runs 0.5s on 1084 declarations against 0.2s on 334 - roughly a 3:1 split
+   * between "considered" and "responsive" - and almost everything eases out.
+   * Tailwind's stock default is 150ms, which is the timing of a productivity
+   * tool. That difference is most of why one site feels expensive and the
+   * other feels efficient.
+   *
+   * These are two tiers, not a scale, and the distinction is about WHAT is
+   * moving rather than how important it is:
+   *
+   *   default (240ms)  UI feedback. A link changing colour, a border darkening,
+   *                    a button filling. The pointer is still on the element
+   *                    and the user is waiting for an answer, so this stays
+   *                    brisk - just no longer instant.
+   *
+   *   settle (500ms)   Something the eye follows. A panel opening, an image
+   *                    crossfading, a menu descending. Cartier's dominant
+   *                    value, adopted directly.
+   *
+   *   reveal (700ms)   Entrances. Content arriving on scroll, a gallery
+   *                    changing frame.
+   *
+   *   drift (1400ms)   Ambient motion with no interaction to keep pace with -
+   *                    the slow push on a product image under the cursor. Slow
+   *                    enough that it is felt rather than watched.
+   *
+   * `--default-transition-duration` is a Tailwind v4 override and re-times
+   * every existing `transition-*` utility at once. The named tiers have no
+   * utility namespace in v4, so a component opts into one explicitly:
+   *
+   *     duration-(--duration-settle)
+   *
+   * which is deliberately more conspicuous than `duration-500`. Reaching for
+   * the slow tier should be a decision someone can see in the diff. */
+  --default-transition-duration: 240ms;
+  --duration-settle: 500ms;
+  --duration-reveal: 700ms;
+  --duration-drift: 1400ms;
 
   /* --- Breakpoints ------------------------------------------------------
    * Mobile is a first-class experience, not a reduced desktop (section 50), so

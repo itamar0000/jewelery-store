@@ -36,7 +36,15 @@ import { cn } from './cn';
  * describe, and announcing "placeholder" to a screen-reader user adds nothing.
  * The surrounding card or section supplies the accessible name.
  */
-const RATIOS = {
+/**
+ * The aspect boxes, exported so a real photograph can occupy exactly the same
+ * shape as the placeholder it replaces.
+ *
+ * If these lived only here, `ProductPhoto` would have to restate them, and the
+ * two would drift the first time a ratio changed - producing a grid that jumps
+ * as images load in.
+ */
+export const IMAGE_RATIOS = {
   square: 'aspect-square',
   portrait: 'aspect-[4/5]',
   /** Taller than portrait. Editorial category tiles and campaign panels. */
@@ -49,11 +57,12 @@ const RATIOS = {
   fill: 'h-full w-full',
 } as const;
 
-export type PlaceholderRatio = keyof typeof RATIOS;
+export type PlaceholderRatio = keyof typeof IMAGE_RATIOS;
 
 export function PlaceholderImage({
   ratio = 'square',
   label,
+  marker,
   hideLabel = false,
   className,
 }: {
@@ -61,9 +70,22 @@ export function PlaceholderImage({
   /** What the final asset should show. Shown only where there is room. */
   label?: string;
   /**
-   * Suppresses the caption. Used where the placeholder sits BEHIND text - a
+   * A short all-caps line above the caption, naming WHICH system is missing an
+   * asset - "EDITORIAL IMAGE", "PRODUCT IMAGE". Editorial and product
+   * photography are separate pipelines with separate owners, and a reviewer
+   * looking at a grey box needs to know which one they are waiting on.
+   */
+  marker?: string;
+  /**
+   * Suppresses the CAPTION. Used where the placeholder sits BEHIND text - a
    * hero - because the centred caption and the centred headline land on top of
    * each other and the overlap reads as a rendering bug.
+   *
+   * It does not suppress the `marker`, which moves to a corner instead. A
+   * full-bleed placeholder with nothing on it is the near-invisible
+   * cream-on-cream block this component was rewritten to stop being: reviewed
+   * on a rendered page, an empty warm-grey plane behind a headline reads as a
+   * design choice rather than as a missing photograph.
    */
   hideLabel?: boolean;
   className?: string;
@@ -73,7 +95,7 @@ export function PlaceholderImage({
       aria-hidden="true"
       className={cn(
         'bg-placeholder text-placeholder-foreground relative flex items-center justify-center overflow-hidden',
-        RATIOS[ratio],
+        IMAGE_RATIOS[ratio],
         className,
       )}
     >
@@ -107,9 +129,34 @@ export function PlaceholderImage({
             <circle cx="12" cy="13" r="3.2" stroke="currentColor" strokeWidth="1.4" />
           </svg>
 
+          {marker && (
+            <span className="text-2xs font-semibold tracking-[0.14em] uppercase opacity-70">
+              {marker}
+            </span>
+          )}
+
           {label && (
             <span className="text-2xs hidden leading-snug font-medium sm:block">{label}</span>
           )}
+        </span>
+      )}
+
+      {/*
+       * The corner chip, for the full-bleed cases. `end` is the inline end -
+       * the LEFT of an RTL page - which is the side the hero copy is NOT on,
+       * so the chip never lands under the headline. It sits at the TOP because
+       * the bottom-left of a development page belongs to the Next.js dev
+       * indicator, and a placeholder marker that is permanently half-covered in
+       * the only environment it ever appears in is no marker at all.
+       */}
+      {hideLabel && marker && (
+        /*
+         * Inverted, not tinted. On the plane's own colour the chip disappears
+         * into it - which is the near-invisible placeholder all over again, at
+         * chip size.
+         */
+        <span className="bg-placeholder-foreground text-placeholder text-2xs absolute end-3 top-3 rounded-full px-2.5 py-1 font-semibold tracking-[0.14em] uppercase">
+          {marker}
         </span>
       )}
     </div>

@@ -1,6 +1,8 @@
 import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
+import { EditorialImage } from '@/components/ui/EditorialImage';
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage';
+import type { EditorialAssetId } from '@/lib/content/editorial-assets';
 import { cn } from '@/components/ui/cn';
 
 /**
@@ -28,6 +30,8 @@ export interface EditorialPanelProps {
   action?: { label: string; href: string };
   imageSide?: 'start' | 'end';
   imageLabel?: string;
+  /** Which registry asset sits beside the copy. */
+  assetId?: EditorialAssetId;
   tone?: 'default' | 'muted';
 }
 
@@ -40,6 +44,7 @@ export function EditorialPanel({
   action,
   imageSide = 'start',
   imageLabel,
+  assetId,
   tone = 'default',
 }: EditorialPanelProps) {
   return (
@@ -47,11 +52,23 @@ export function EditorialPanel({
       <Container className="py-section md:py-feature">
         <div className="grid items-center gap-8 md:grid-cols-2 md:gap-12 lg:gap-16">
           <div className={cn(imageSide === 'end' && 'md:order-2')}>
-            <PlaceholderImage
-              ratio="landscape"
-              label={imageLabel ?? title}
-              className="rounded-sm"
-            />
+            {/*
+             * The ratio is on the wrapper: EditorialImage fills its parent, so
+             * the section owns the shape. Portrait rather than landscape here -
+             * a tall frame beside a column of copy reads as a magazine spread,
+             * where a wide one reads as a banner with text bolted on.
+             */}
+            <div className="relative aspect-[4/5] overflow-hidden rounded-sm">
+              {assetId ? (
+                <EditorialImage
+                  id={assetId}
+                  sizes="(max-width: 767px) 100vw, 45vw"
+                  placeholderLabel={imageLabel ?? title}
+                />
+              ) : (
+                <PlaceholderImage ratio="fill" label={imageLabel ?? title} />
+              )}
+            </div>
           </div>
 
           <div>

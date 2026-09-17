@@ -57,6 +57,16 @@ const nextConfig: NextConfig = {
      * re-upload simple (docs/MEDIA_STORAGE_DECISION.md).
      */
     formats: ['image/avif', 'image/webp'],
+
+    /**
+     * Every `quality` value the app actually asks for.
+     *
+     * The optimizer refuses any value not listed here, so an undeclared one is
+     * a runtime warning today and an error from Next 16. 75 is the library
+     * default, used by product imagery; 82 is EditorialImage, which carries
+     * large smooth photographs that band at 75.
+     */
+    qualities: [75, 82],
   },
 
   typescript: {

@@ -1516,7 +1516,7 @@ content type **and the declared length**, so a URL issued for one small JPEG
 cannot be reused for something else or something larger — asserted against a
 real endpoint.
 
-Validation runs *before* signing, because the signature **is** the
+Validation runs _before_ signing, because the signature **is** the
 authorization: checking afterwards would check nothing.
 
 ---

@@ -26,12 +26,16 @@
     "db:validate": "prisma validate",
     "db:seed": "node prisma/seed.ts",
     "search:reindex": "node scripts/reindex-search.ts",
+    "editorial:shots": "node scripts/editorial-shot-list.ts",
     "media:up": "docker compose --profile media up -d --wait minio",
     "media:down": "docker compose --profile media down",
     "media:init": "node scripts/init-media-bucket.ts",
     "db:reset": "prisma migrate reset --force --skip-generate",
     "postinstall": "prisma generate",
-    "verify": "npm run lint && npm run typecheck && npm run test && npm run build"
+    "verify": "npm run lint && npm run typecheck && npm run format:check && npm run test && npm run build",
+    "editorial:generate": "node scripts/generate-editorial.ts",
+    "editorial:prepare": "node scripts/prepare-editorial.ts",
+    "db:fix": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/fix-docker.ps1"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1121.0",

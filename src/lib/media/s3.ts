@@ -11,8 +11,8 @@ import {
   type CreateUploadInput,
   type MediaStorage,
   type UploadTarget,
-} from './provider';
-import { buildStorageKey, isPrivateKey, parseUploadRequest } from './validation';
+} from './provider.ts';
+import { buildStorageKey, isPrivateKey, parseUploadRequest } from './validation.ts';
 
 /**
  * S3-compatible media storage.
@@ -43,7 +43,21 @@ const READ_TTL_SECONDS = 5 * 60;
 export class S3MediaStorage implements MediaStorage {
   private readonly client: S3Client;
 
-  constructor(private readonly config: S3MediaConfig) {
+  /*
+   * Declared as a field and assigned in the body rather than written as a
+   * `private readonly config` parameter property.
+   *
+   * A parameter property is one of the few TypeScript constructs that EMITS
+   * code rather than only describing types, so Node's strip-only type removal
+   * rejects it outright. That matters here because this module is imported by
+   * `scripts/place-product-images.ts`, which runs under bare `node` - the same
+   * reason `src/lib/search` carries `.ts` extensions on its relative imports.
+   * Anything a script reaches has to survive type stripping.
+   */
+  private readonly config: S3MediaConfig;
+
+  constructor(config: S3MediaConfig) {
+    this.config = config;
     this.client = new S3Client({
       endpoint: config.endpoint,
       region: config.region,

@@ -1,4 +1,4 @@
-import { defineConfig, env } from 'prisma/config';
+import { defineConfig } from 'prisma/config';
 
 /**
  * Prisma CLI configuration.
@@ -65,15 +65,35 @@ try {
  * `-pooler.` and ends in `.neon.tech`, it touches nothing but the hostname, and
  * it says so on stdout so the substitution is never invisible in a build log.
  */
-function migrationUrl(): string {
+function migrationUrl(): string | undefined {
   const explicit = process.env.DIRECT_DATABASE_URL;
   if (explicit !== undefined && explicit !== '') return explicit;
 
   const pooled = process.env.DATABASE_URL;
   if (pooled === undefined || pooled === '') {
-    // Let env() below produce Prisma's own "variable not found" error rather
-    // than inventing a worse one here.
-    return env('DATABASE_URL');
+    // NOT an error here, and emphatically not `env('DATABASE_URL')`, which
+    // throws while this module is still being imported. Prisma loads this file
+    // for EVERY CLI command, including `generate` - which compiles the schema
+    // to a client and never opens a connection. Throwing at import time made
+    // `prisma generate` require a database URL it has no use for, so the
+    // `postinstall` hook took down `npm install` in any environment without
+    // one. A Vercel Preview is exactly that environment.
+    //
+    // Returning undefined leaves the datasource unset, so generate succeeds and
+    // the commands that really do connect fail with Prisma's own message about
+    // a missing url - which is the accurate complaint.
+    // Say so in the build log. Prisma's own message - "the datasource.url
+    // property is required in your Prisma config file" - describes the config
+    // rather than the environment, which sends people to edit this file when
+    // the actual fault is a variable missing from the deployment. Names only,
+    // never values: this text goes to build logs (MASTER_SPECIFICATION 48).
+    console.error(
+      '[prisma.config] no database url: DIRECT_DATABASE_URL and DATABASE_URL are both ' +
+        'unset in this environment. Commands that connect (migrate, db push, studio) ' +
+        'cannot run; `generate` is unaffected.',
+    );
+
+    return undefined;
   }
 
   let parsed: URL;
@@ -98,9 +118,9 @@ function migrationUrl(): string {
   return parsed.toString();
 }
 
+const cliUrl = migrationUrl();
+
 export default defineConfig({
   schema: 'prisma/schema.prisma',
-  datasource: {
-    url: migrationUrl(),
-  },
+  ...(cliUrl === undefined ? {} : { datasource: { url: cliUrl } }),
 });
