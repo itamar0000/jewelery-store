@@ -45,3 +45,8 @@ desktop.ini
 
 # Local editor/agent tooling (dev server launch config, session state)
 .claude/
+
+# Generated image drafts awaiting review. Never committed: they are raw model
+# output, and only files promoted through scripts/prepare-editorial.ts belong
+# in public/.
+/.editorial-drafts/

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { MediaValidationError, type ImageContentType, type MediaVisibility } from './provider';
+import { MediaValidationError, type ImageContentType, type MediaVisibility } from './provider.ts';
 
 /**
  * Upload validation and safe key construction.

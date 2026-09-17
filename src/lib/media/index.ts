@@ -1,5 +1,5 @@
-import { MediaNotConfiguredError, type MediaStorage } from './provider';
-import { S3MediaStorage, readS3ConfigFromEnv } from './s3';
+import { MediaNotConfiguredError, type MediaStorage } from './provider.ts';
+import { S3MediaStorage, readS3ConfigFromEnv } from './s3.ts';
 
 /**
  * The media module. Import from `@/lib/media`, never from the files inside.
@@ -70,7 +70,7 @@ export {
   type MediaStorage,
   type MediaVisibility,
   type UploadTarget,
-} from './provider';
+} from './provider.ts';
 
 export {
   ACCEPTED_CONTENT_TYPES,
@@ -84,6 +84,6 @@ export {
   uploadRequestSchema,
   type ImageMetadata,
   type UploadRequest,
-} from './validation';
+} from './validation.ts';
 
-export { S3MediaStorage, readS3ConfigFromEnv, type S3MediaConfig } from './s3';
+export { S3MediaStorage, readS3ConfigFromEnv, type S3MediaConfig } from './s3.ts';
