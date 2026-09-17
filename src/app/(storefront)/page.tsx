@@ -103,7 +103,18 @@ export default async function HomePage() {
          */
         displayLine="Fine Jewelry"
         title="תכשיטי זהב ויהלומים"
-        subtitle="עיצוב וייצור בישראל, עם אפשרות התאמה אישית לכל דגם. טקסט זה זמני ויוחלף עם גיבוש שפת המותג."
+        /*
+         * The second sentence here used to be a note to ourselves - "this text
+         * is temporary and will be replaced once the brand language is
+         * settled". It was the third line a first-time visitor read, and it
+         * reclassified the whole site from "shop" to "unfinished project"
+         * before they reached a single product. Process notes do not belong on
+         * the surface a stranger lands on.
+         *
+         * What is left is the strongest claim the copy already made and buried:
+         * designed and made in Israel, every piece adjustable.
+         */
+        subtitle="עיצוב וייצור בישראל, עם אפשרות התאמה אישית לכל דגם."
         primaryAction={{ label: 'לקטלוג', href: '/rings' }}
         secondaryAction={{ label: 'עיצוב אישי', href: '/custom' }}
         imageLabel="תמונת נושא — טרם צולמה"

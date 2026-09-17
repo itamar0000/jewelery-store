@@ -1,4 +1,4 @@
-import { Cormorant_Garamond, Heebo } from 'next/font/google';
+import { Frank_Ruhl_Libre, Heebo } from 'next/font/google';
 
 /**
  * Font loading.
@@ -17,32 +17,37 @@ import { Cormorant_Garamond, Heebo } from 'next/font/google';
  * which is what this file used to do, sidestepped the problem by having no
  * display typography at all.
  *
- * THE ANSWER USED HERE is the one both Israeli reference stores reached
- * independently: SET LATIN CAMPAIGN LINES IN A DISPLAY SERIF, AND EVERYTHING
- * ELSE IN HEBREW. A short English line over a photograph - "THE PERFECT STACK"
- * - does the expressive work, and the Hebrew underneath does the reading. It
- * is an established convention in Israeli fashion retail rather than an
- * import, so it does not read as a foreign site.
+ * THE ANSWER TRIED FIRST, AND WHY IT FAILED. The original split was the one
+ * both Israeli reference stores use: set short LATIN campaign lines in a
+ * display serif and everything else in Hebrew, letting per-glyph fallback
+ * route each script to the right face. The mechanism is sound and it worked -
+ * but it assumes there IS Latin campaign copy. This storefront has two Latin
+ * words in total, so the display face rendered twice on the entire site and
+ * Heebo set every heading. The brand's typographic voice was configured,
+ * loaded, and never seen.
  *
- * Cartier's own stack is built the same way, with the RTL face sitting in the
- * fallback position behind the Latin one:
+ * THE ANSWER USED NOW: ONE SERIF THAT COVERS BOTH SCRIPTS. Frank Ruhl Libre
+ * carries Hebrew and Latin in a single family, so a heading is set in the
+ * display face whichever script it is written in, and a heading holding both
+ * does not change face mid-line. `--font-display` is a real voice rather than
+ * a slot that only fills for foreign words.
  *
- *     "Fancy Cut", Almarai, Times, serif        <- display
- *     "Brilliant Cut", Almarai, Helvetica       <- UI
+ * WHAT THAT COSTS. The Latin-lead order is gone, and with it the option of a
+ * Latin-only face like Cormorant that has no Hebrew at all. Reintroducing one
+ * means putting it FIRST in `--font-display` so it claims Latin glyphs, with
+ * Frank Ruhl Libre behind it for Hebrew - the same per-glyph mechanism, now
+ * with a Hebrew serif in the fallback position instead of a sans.
  *
- * WHICH IS WHY THE FALLBACK ORDER IN tokens.css MATTERS. `--font-display`
- * lists the Latin face FIRST and the Hebrew face SECOND. Font fallback is
- * per-glyph, so a heading containing both scripts resolves Latin glyphs to
- * Cormorant and Hebrew glyphs to Heebo automatically, with no per-language
- * markup. Reversing that order would silently kill the display face, because
- * Heebo covers Latin too and would win every glyph.
+ * THE ORDER IN tokens.css STILL MATTERS, for the same reason as before: Heebo
+ * covers Latin as well as Hebrew, so it must come AFTER the display face or it
+ * would win every glyph and the serif would silently never render - a failure
+ * indistinguishable from the font not loading.
  *
- * A CAVEAT THAT SHAPES THE COMPONENTS. Cormorant has a much smaller x-height
- * than Heebo, so the two faces do NOT look the same size at the same
- * `font-size`. Mixing them inside one sentence looks like a rendering fault.
- * Display type is therefore given its OWN slot in the components that use it -
- * see the `displayLine` prop on Hero - rather than being blended into Hebrew
- * copy. The token is the mechanism; the slot is the design.
+ * A CAVEAT THAT SHAPED THE COMPONENTS, now largely spent. The old pairing had
+ * badly mismatched x-heights, so display type was given its own slot rather
+ * than blended into Hebrew copy - see the `displayLine` prop on Hero. With one
+ * family across both scripts that constraint no longer applies, though the
+ * slot remains useful as a composition device.
  *
  * SWAPPING EITHER FACE IS A CHANGE TO THIS FILE ONLY. Nothing downstream names
  * a font; everything binds to the CSS variables, which tokens.css maps to
@@ -80,41 +85,51 @@ export const hebrewSans = Heebo({
 });
 
 /**
- * The display face. Latin campaign lines only - hero eyebrows, section
- * openers, the closing banner.
+ * The display face, for every heading in both scripts.
  *
- * Cormorant Garamond is a high-contrast old-style serif with a genuine 300
- * weight, which is the cut that matters: at 300 and set large it reads as
- * restraint, where the same face at 600 reads as a wedding invitation. The
- * brief warns specifically against black-and-gold "luxury" styling
- * (MASTER_SPECIFICATION section 2), and a light serif is how the modern end of
- * this category stays expensive without that.
+ * WHAT WAS WRONG BEFORE, AND WHY IT WAS INVISIBLE. This slot used to hold
+ * Cormorant Garamond, subset to Latin only, on the reasoning that Hebrew would
+ * fall through to Heebo. The mechanism worked exactly as designed - and the
+ * result was that the serif never appeared, because this storefront is in
+ * Hebrew. Two words on the whole site are Latin ("Fine Jewelry"), so the face
+ * chosen to carry the brand's voice rendered twice and Heebo set every real
+ * heading. Heebo is an excellent interface sans and has no display voice at
+ * all, which is the single largest reason the site read as clean but generic.
+ * Nothing was broken; the font simply had no glyphs to claim.
+ *
+ * FRANK RUHL LIBRE CARRIES BOTH. It is the modern revival of Frank-Rühl, the
+ * type most Hebrew books have been set in for a century, so it reads to a
+ * Hebrew eye the way a Garamond reads to a Latin one: as the serif of printed
+ * matter rather than as a decorative choice. Its Latin companion is drawn to
+ * sit with it, which is why one family now serves both scripts instead of
+ * pairing two unrelated serifs across a single heading.
+ *
+ * DROPPING CORMORANT IS A REAL TRADE, not a cleanup. Cormorant at 300 is the
+ * lighter, more fashion-adjacent face, and the "Fine Jewelry" line loses that
+ * flavour. It buys a single display voice across scripts and one less font to
+ * download. Restoring it for Latin alone is a two-line change: add it back
+ * here and put its variable first in `--font-display`.
  *
  * STILL PROVISIONAL, like everything else in the brand layer (TBD.md D3).
- * Credible alternatives, all `next/font/google` one-line swaps:
+ * Alternatives that also cover Hebrew, all one-line swaps:
  *
- *   - `Italiana`  - far more extreme contrast, one weight only. A wordmark
- *                   face; beautiful at 6xl, fragile below 2xl.
- *   - `Tenor_Sans` - if the house should read as a light spaced SANS rather
- *                   than a serif. This is closer to what Malka does.
- *   - `Marcellus` - inscriptional roman. Quieter and more architectural.
- *
- * Latin subset ONLY, and that is not an oversight. This face is never asked to
- * set Hebrew - Heebo picks those glyphs up through the fallback chain - so
- * shipping a Hebrew subset would download glyphs that can never render.
+ *   - `Noto_Serif_Hebrew` - neutral and highly legible; less character.
+ *   - `David_Libre`       - warmer, closer to a humanist book face.
+ *   - `Heebo` at 300      - if the house should read as a light SANS instead.
+ *                           Closer to what Malka does, and a different brief.
  */
-export const latinDisplay = Cormorant_Garamond({
-  subsets: ['latin'],
-  variable: '--font-latin-display',
+export const displaySerif = Frank_Ruhl_Libre({
+  // BOTH subsets, unlike the face this replaces. Hebrew is the point of it.
+  subsets: ['hebrew', 'latin'],
+  variable: '--font-display-serif',
   display: 'swap',
 
-  // Not variable on Google Fonts. 300 is the design weight; 400 exists for the
-  // rare line that needs to hold against a bright photograph.
-  weight: ['300', '400'],
+  // Variable font: the whole 300-900 range in one file, so a later decision to
+  // set headings lighter or heavier costs no extra request.
+  weight: 'variable',
 
-  // DISABLED DELIBERATELY. The metric-adjusted fallback Next synthesises is
-  // tuned to minimise layout shift, but Cormorant's small x-height makes the
-  // adjusted local fallback noticeably wrong, and it lands on the largest text
-  // on the page. A clean swap is less distracting here than a bad match.
-  adjustFontFallback: false,
+  // Left ON here, unlike the previous face. Frank Ruhl Libre's x-height is
+  // close to the local Hebrew fallbacks, so the metric-adjusted fallback Next
+  // synthesises is a good match and cuts the shift on the largest text.
+  adjustFontFallback: true,
 });

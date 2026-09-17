@@ -75,13 +75,41 @@ describe('PRIMARY_NAV', () => {
 });
 
 describe('FOOTER_COLUMNS', () => {
-  it('covers the section 51 columns', () => {
-    expect(FOOTER_COLUMNS.map((column) => column.id)).toEqual([
-      'shop',
-      'services',
-      'about',
-      'legal',
+  /*
+   * Section 51 specifies four columns: shop, services, about and legal. Three
+   * are here; `legal` is not, and `services` and `about` are shorter than the
+   * spec lists.
+   *
+   * This is a DEVIATION UNDER REPAIR, not a reinterpretation of the spec. Every
+   * absent entry - about us, shipping, returns, warranty, terms, privacy,
+   * accessibility - pointed at a route that did not exist, so the footer served
+   * seven 404s to exactly the visitor who was looking for reassurance. Removing
+   * a link is recoverable; a broken one spends trust that is hard to earn back.
+   *
+   * The assertion is written as the current truth rather than the target so it
+   * FAILS the moment a page is added without its link being restored, which is
+   * the mistake worth catching. Restoring `legal` is also a legal requirement
+   * for selling online in Israel, so this deviation has a deadline.
+   */
+  it('covers the section 51 columns that have live routes', () => {
+    expect(FOOTER_COLUMNS.map((column) => column.id)).toEqual(['shop', 'services', 'about']);
+  });
+
+  it('links only to routes that exist', () => {
+    const live = new Set([
+      '/rings',
+      '/earrings',
+      '/necklaces',
+      '/bracelets',
+      '/sets',
+      '/custom',
+      '/faq',
+      '/contact',
     ]);
+
+    for (const href of FOOTER_COLUMNS.flatMap((column) => column.links).map((l) => l.href)) {
+      expect(live.has(href), `${href} has no route`).toBe(true);
+    }
   });
 
   it('does not link to the removed Gifts category', () => {

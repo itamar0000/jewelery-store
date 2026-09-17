@@ -25,6 +25,7 @@ export const env = parseEnv({
   NODE_ENV: process.env.NODE_ENV,
   DATABASE_URL: process.env.DATABASE_URL,
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  SITE_INDEXABLE: process.env.SITE_INDEXABLE,
 });
 
 export { EnvironmentError, envSchema, parseEnv, type Env } from './schema';

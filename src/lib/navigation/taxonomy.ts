@@ -256,30 +256,34 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
     title: 'שירות',
     links: [
       { id: 'f-custom', label: 'עיצוב אישי', href: '/custom' },
-      { id: 'f-shipping', label: 'משלוחים', href: '/shipping' },
-      { id: 'f-returns', label: 'החזרות', href: '/returns' },
-      { id: 'f-warranty', label: 'אחריות', href: '/warranty' },
       { id: 'f-faq', label: 'שאלות ותשובות', href: '/faq' },
     ],
   },
   {
     id: 'about',
     title: 'אודות',
-    links: [
-      { id: 'f-about', label: 'עלינו', href: '/about' },
-      { id: 'f-contact', label: 'צור קשר', href: '/contact' },
-    ],
-  },
-  {
-    id: 'legal',
-    title: 'מידע משפטי',
-    links: [
-      { id: 'f-terms', label: 'תנאי שימוש', href: '/legal/terms' },
-      { id: 'f-privacy', label: 'מדיניות פרטיות', href: '/legal/privacy' },
-      { id: 'f-accessibility', label: 'הצהרת נגישות', href: '/legal/accessibility' },
-    ],
+    links: [{ id: 'f-contact', label: 'צור קשר', href: '/contact' }],
   },
 ];
+
+/*
+ * SEVEN LINKS WERE REMOVED FROM HERE, AND THEY HAVE TO COME BACK.
+ *
+ * `/about`, `/shipping`, `/returns`, `/warranty`, `/legal/terms`,
+ * `/legal/privacy` and `/legal/accessibility` were listed above while none of
+ * those routes existed, so the footer - the exact place a hesitating shopper
+ * goes - offered seven doors that all returned 404. A missing link is a gap; a
+ * link that fails is a statement about the business behind it.
+ *
+ * They are not deleted as an idea. Three of them are a legal requirement for
+ * selling online in Israel: terms of service, a returns policy and an
+ * accessibility statement. Writing them needs facts nobody can invent - the
+ * registered company name and number, the address, the returns window, the
+ * warranty period - so they are removed until those exist rather than filled
+ * with plausible text, which would be worse than their absence.
+ *
+ * Restore each entry in the same commit that adds its route.
+ */
 
 /**
  * Contact channels for the footer.

@@ -1,3 +1,4 @@
+import { SITE_NAME } from '@/lib/config/site';
 import Link from 'next/link';
 
 import { Container } from '@/components/ui/Container';
@@ -64,7 +65,9 @@ export function Footer() {
 
         <div className="border-border text-muted-foreground mt-12 flex flex-col gap-2 border-t pt-6 text-xs md:flex-row md:items-center md:justify-between">
           {/* Brand name is TBD; this is a neutral descriptor, not a wordmark. */}
-          <p>© {year} חנות תכשיטים</p>
+          <p>
+            © {year} {SITE_NAME}
+          </p>
           <p>המחירים כוללים מע״מ.</p>
         </div>
       </Container>

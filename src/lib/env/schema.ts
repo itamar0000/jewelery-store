@@ -45,6 +45,28 @@ export const envSchema = z.object({
   NEXT_PUBLIC_SITE_URL: z
     .url('NEXT_PUBLIC_SITE_URL must be an absolute URL.')
     .default('http://localhost:3000'),
+
+  /**
+   * Whether search engines may index this deployment.
+   *
+   * DEFAULTS TO CLOSED, and that is the whole point of it existing. The
+   * catalog currently carries representative pieces at prices that are not yet
+   * real, and a price is the one thing a shopper is entitled to rely on. Until
+   * they are, the site should be reachable by anyone given the link and absent
+   * from search results - which is a different thing from being private.
+   *
+   * Opening it is then a deliberate act: set SITE_INDEXABLE=true and rebuild.
+   * Defaulting the other way would mean a forgotten variable silently exposes
+   * provisional pricing, and the failure would be invisible until someone
+   * searched for the shop and found it.
+   *
+   * Not `NEXT_PUBLIC_`: it is read when metadata and robots.txt are generated,
+   * both of which run on the server, and it is not a secret either way.
+   */
+  SITE_INDEXABLE: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
 });
 
 export type Env = z.infer<typeof envSchema>;
