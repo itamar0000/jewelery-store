@@ -1,3 +1,5 @@
+import { cache } from 'react';
+
 import type { ProductBadge, ProductCardData, ProductSwatch } from '@/components/product/types';
 import { prisma } from '@/lib/db';
 import { resolveAvailability, type Availability } from '@/lib/inventory/availability';
@@ -83,7 +85,20 @@ export async function getCategories(): Promise<readonly CategorySummary[]> {
  * `notFound()` rather than render an empty page - a category that does not
  * exist must not return 200 to a crawler.
  */
-export async function getCategoryBySlug(slug: string): Promise<CategoryDetail | null> {
+/*
+ * MEMOIZED PER REQUEST, and that is not a micro-optimization.
+ *
+ * Every category page asked for the same category TWICE on every render: once
+ * in `generateMetadata` to build the title and canonical, once in the component
+ * to render it. Next runs both in the same request, so the second call was an
+ * entirely wasted database round trip on every page view.
+ *
+ * React's `cache()` dedupes by argument for the lifetime of ONE request, so the
+ * two call sites share a single query and a concurrent render never races. It
+ * is not a cross-request cache: a category edited between two visits is visible
+ * immediately, which is why this needs no invalidation.
+ */
+export const getCategoryBySlug = cache(async (slug: string): Promise<CategoryDetail | null> => {
   const row = await prisma.category.findFirst({
     where: { slug, isActive: true, archivedAt: null },
     select: {
@@ -125,7 +140,7 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryDetail | 
       href: categoryHref(child.slug, row.slug),
     })),
   };
-}
+});
 
 /**
  * Products in a category, as cards.
@@ -181,14 +196,14 @@ export async function countProductsByCategory(categoryId: string): Promise<numbe
  * (section 5: category, then subcategory). Deliberately not a recursive CTE -
  * that would be a raw query for a tree that is two levels tall.
  */
-export async function descendantCategoryIds(categoryId: string): Promise<string[]> {
+export const descendantCategoryIds = cache(async (categoryId: string): Promise<string[]> => {
   const children = await prisma.category.findMany({
     where: { parentId: categoryId, isActive: true, archivedAt: null },
     select: { id: true },
   });
 
   return [categoryId, ...children.map((child) => child.id)];
-}
+});
 
 // --------------------------------------------------------------- collections
 

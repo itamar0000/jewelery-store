@@ -62,9 +62,37 @@ export function ProductGrid({
         className,
       )}
     >
-      {products.map((product) => (
+      {/*
+       * THE FIRST ROW DOES NOT WAIT.
+       *
+       * Every card used to render its photograph with `loading="lazy"`,
+       * including the ones already on screen. Lighthouse measured the result
+       * on /necklaces: the Largest Contentful Paint element was a product
+       * image, lazily loaded, and LCP landed at 3.4s on mobile.
+       *
+       * A lazy image is invisible to the browser's preload scanner, so it is
+       * not even requested until layout has run and the observer has fired -
+       * which is precisely the wrong treatment for the picture the visitor is
+       * already looking at.
+       *
+       * TWO TIERS, because `priority` is not free. It emits a `<link rel=
+       * preload>`, and preloads compete with one another; marking a whole row
+       * would have the first four images fighting for the same bandwidth and
+       * could leave LCP slower than lazy-loading did.
+       *
+       *   - The first TWO are preloaded. The grid is two columns at the
+       *     narrowest breakpoint, so these two are on screen for every
+       *     visitor, and one of them is the LCP element.
+       *   - The next TWO load eagerly but are NOT preloaded. They complete the
+       *     first row at the md and lg breakpoints, so they should not wait
+       *     for the observer - but they are not the LCP on any viewport that
+       *     shows them, so they must not jump the queue either.
+       *   - Everything from the fifth card on stays lazy, which is correct:
+       *     it is below the fold at every breakpoint.
+       */}
+      {products.map((product, index) => (
         <li key={product.id} className="flex">
-          <ProductCard product={product} />
+          <ProductCard product={product} priority={index < 2} eager={index >= 2 && index < 4} />
         </li>
       ))}
     </ul>

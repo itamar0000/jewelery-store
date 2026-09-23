@@ -1546,3 +1546,54 @@ Every field the media architecture needs already exists, so no migration was
 created. `contentType` and `bytes` columns were considered and rejected: nothing
 reads them, and the content type is already fixed by the key's extension.
 Migration churn for fields with no reader is a cost with no benefit.
+
+---
+
+## D4B.1 — The functions run in `fra1`, beside the database
+
+Measured on production before changing anything. `/robots.txt`, which touches no
+database, warms to **426 ms**. Every database-backed page cost **0.5 s to 3.4 s
+on top of that**, and varied wildly between two consecutive requests to the same
+URL — 0.85 s then 3.8 s for `/necklaces`.
+
+The response header said why. `X-Vercel-Id: fra1::iad1::…` means the request
+arrived at the **Frankfurt** edge, was routed to a function in **Washington
+DC**, and that function then queried a database in **`eu-central-1`, which is
+Frankfurt**. The request crossed the Atlantic to reach the compute, and every
+single query crossed it again to reach the data.
+
+There was no `vercel.json`, so the region was the platform default rather than a
+choice anyone made. A category page issues roughly eleven sequential round
+trips; at a transatlantic ~95 ms each that is about a second of pure flight
+time, before a single row is read. In `fra1` the same round trip is a couple of
+milliseconds.
+
+The variance was the connection handshake — TCP, TLS and auth are several more
+round trips, paid again by every cold function instance.
+
+**Nothing about the queries changed to get this.** The same work, moved next to
+the data it reads. D4B.2 then cut the number of trips.
+
+---
+
+## D4B.2 — Facets are asked concurrently, not one after another
+
+`getCategoryFacets` awaited a query _inside_ a `for` loop over the category's
+facet codes, so a page with six filters paid six sequential round trips to
+answer six questions that have nothing to do with each other. `/rings` has
+exactly six: price, karat, gold colour, diamond shape, carat and ring size.
+
+Each facet is now built by its own function and all of them are awaited
+together, which makes it one wave instead of six. The order of the returned
+facets is unchanged — it still follows the configured order, because the results
+are mapped back in place rather than pushed as they arrive — and a facet that
+has nothing to show still drops out.
+
+This is worth doing **even though D4B.1 made each trip cheap**: the two compound,
+the saving grows with every facet a category adds, and a chain of awaits that
+could be a fan-out is a latency bug wherever the server happens to run.
+
+`getCategoryBySlug` and `descendantCategoryIds` are also memoized per request
+with React's `cache()`. The category page asked for the same category twice on
+every render — once in `generateMetadata`, once in the component — which was one
+entirely wasted round trip per page view.

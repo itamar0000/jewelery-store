@@ -44,7 +44,17 @@ const BADGE_LABELS: Record<ProductBadge, string> = {
   'made-to-order': 'בהזמנה אישית',
 };
 
-export function ProductCard({ product }: { product: ProductCardData }) {
+export function ProductCard({
+  product,
+  priority = false,
+  eager = false,
+}: {
+  product: ProductCardData;
+  /** See ProductPhoto: preload, for the likely LCP image only. */
+  priority?: boolean;
+  /** See ProductPhoto: eager without preload, for the rest of the first row. */
+  eager?: boolean;
+}) {
   const { name, slug, price, compareAtPrice, badges, stockNotice, imageAlt, hoverImageAlt } =
     product;
   /* One grid, four columns at the top breakpoint - see ProductGrid. */
@@ -76,6 +86,8 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           alt={imageAlt ?? name}
           ratio="portrait"
           sizes={SIZES}
+          priority={priority}
+          eager={eager}
           /*
            * THE ZOOM IS NOW A FALLBACK, NOT THE DEFAULT.
            *
