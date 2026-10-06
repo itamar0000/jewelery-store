@@ -9,6 +9,7 @@ import { estimatedPriceLabel } from '@/lib/catalog/price-disclosure';
 import { getProductBySlug } from '@/lib/catalog/queries';
 import { contactAvailable } from '@/lib/contact';
 import { STOCK_LEVELS_ARE_LIVE } from '@/lib/inventory/disclosure';
+import { notFoundMetadata } from '@/lib/seo/not-found';
 
 /**
  * Product page, backed by the database.
@@ -36,7 +37,8 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = await getProductBySlug(slug);
 
-  if (!product) return {};
+  // Missing: say so in the tab too (src/lib/seo/not-found.ts).
+  if (!product) return notFoundMetadata;
 
   // Metadata comes from the database, preferring the explicit SEO fields and
   // falling back to the product's own copy.

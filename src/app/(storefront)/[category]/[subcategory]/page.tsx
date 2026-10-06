@@ -7,6 +7,7 @@ import { CategoryPageShell } from '@/components/category/CategoryPageShell';
 import { CategoryResults, CategoryResultsSkeleton } from '@/components/category/CategoryResults';
 import { descendantCategoryIds, getCategoryBySlug } from '@/lib/catalog/queries';
 import { canonicalFor, parseCatalogSearchParams, type SearchParams } from '@/lib/catalog/filters';
+import { notFoundMetadata } from '@/lib/seo/not-found';
 
 /**
  * Subcategory page - /rings/engagement-rings.
@@ -32,10 +33,12 @@ export async function generateMetadata({
   params: Promise<{ category: string; subcategory: string }>;
   searchParams: Promise<SearchParams>;
 }): Promise<Metadata> {
-  const { subcategory } = await params;
+  const { category: parentSlug, subcategory } = await params;
   const found = await getCategoryBySlug(subcategory);
 
-  if (!found) return {};
+  // The same two 404s the page raises - missing, or under the wrong parent -
+  // named in the tab as well (src/lib/seo/not-found.ts).
+  if (!found || found.ancestors[0]?.slug !== parentSlug) return notFoundMetadata;
 
   return {
     title: found.seoTitle ?? found.nameHe,
