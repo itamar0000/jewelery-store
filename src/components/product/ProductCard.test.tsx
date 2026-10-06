@@ -63,6 +63,20 @@ describe('ProductCard', () => {
       expect(markup).toContain('4,900');
     });
 
+    /*
+     * Whether prices are final is said once per grid, in words - never as a
+     * per-card glyph that reads as a typo and explains itself only in the
+     * footer.
+     */
+    it('carries no estimate glyph of its own', () => {
+      expect(render(BASE)).not.toContain('≈');
+    });
+
+    it('says "החל מ־" when the options change the price, and only then', () => {
+      expect(render({ ...BASE, priceFrom: true })).toContain('החל מ־');
+      expect(render(BASE)).not.toContain('החל מ־');
+    });
+
     it('omits a compare-at price when the product is not discounted', () => {
       expect(render(BASE)).not.toContain('line-through');
     });
@@ -75,49 +89,70 @@ describe('ProductCard', () => {
     });
   });
 
-  describe('badges', () => {
+  describe('badge', () => {
     it('renders none by default', () => {
-      const markup = render(BASE);
-
-      expect(markup).not.toContain('חדש');
-      expect(markup).not.toContain('רב מכר');
+      expect(render(BASE)).not.toContain('חדש');
     });
 
-    it('renders each supplied badge', () => {
-      const markup = render({ ...BASE, badges: ['new', 'best-seller', 'made-to-order'] });
+    it('renders the one badge supplied', () => {
+      expect(render({ ...BASE, badge: 'new' })).toContain('חדש');
+    });
 
-      expect(markup).toContain('חדש');
-      expect(markup).toContain('רב מכר');
-      expect(markup).toContain('בהזמנה אישית');
+    /*
+     * Retired labels must not come back through the card's own copy table.
+     * "בהזמנה אישית" is the norm in this workshop, and "רב מכר" is the band's
+     * claim, made once (src/lib/catalog/best-sellers.ts).
+     */
+    it('has no label for best seller or made to order', () => {
+      const markup = render({ ...BASE, badge: 'new' });
+
+      expect(markup).not.toContain('רב מכר');
+      expect(markup).not.toContain('בהזמנה אישית');
+    });
+  });
+
+  /*
+   * The heart toggled a state nothing kept. It is withheld until saving is
+   * real (src/lib/placeholders.ts, `wishlist`), and it must not drift back in
+   * as an inert control.
+   */
+  describe('wishlist', () => {
+    it('offers no wishlist control while saving does not exist', () => {
+      const markup = render(BASE);
+
+      expect(markup).not.toContain('<button');
+      expect(markup).not.toContain('מועדפים');
+      expect(markup).not.toContain('data-placeholder');
     });
   });
 
   describe('accessibility', () => {
-    it('names the wishlist button after the product, not just "add to wishlist"', () => {
-      // A grid of eight identically-named buttons is unusable by screen reader.
-      expect(render(BASE)).toContain('טבעת סוליטר למועדפים');
-    });
-
-    it('exposes the wishlist button as an unpressed toggle', () => {
-      expect(render(BASE)).toContain('aria-pressed="false"');
-    });
-
-    it('marks the wishlist control as a placeholder', () => {
-      expect(render(BASE)).toContain('data-placeholder="true"');
-    });
-
     it('uses a heading for the product name, so grids are navigable by heading', () => {
       expect(render(BASE)).toContain('<h3');
     });
 
-    it('does not nest the wishlist button inside the product link', () => {
+    it('has exactly one link, named by the product', () => {
       const markup = render(BASE);
-      const linkStart = markup.indexOf('<a ');
-      const linkEnd = markup.indexOf('</a>');
-      const buttonStart = markup.indexOf('<button');
 
-      // Invalid HTML with unpredictable behaviour if it ever regresses.
-      expect(buttonStart === -1 || buttonStart < linkStart || buttonStart > linkEnd).toBe(true);
+      expect(markup.match(/<a /g)).toHaveLength(1);
+      expect(markup).toMatch(/<a [^>]*>טבעת סוליטר<\/a>/);
     });
+  });
+});
+
+/*
+ * The hover drift is motion, so it goes entirely under reduced motion. The
+ * global rule only shortens transitions, which made the photograph SNAP to its
+ * zoom instead of easing into it - a jump where a drift was meant.
+ */
+describe('ProductCard hover drift', () => {
+  it('removes the zoom, rather than snapping to it, under reduced motion', () => {
+    const markup = renderToStaticMarkup(
+      <ProductCard
+        product={{ ...BASE, imageUrl: 'https://media.example.com/public/p1.jpg', imageAlt: 'טבעת' }}
+      />,
+    );
+    expect(markup).toContain('group-hover:scale-[1.04]');
+    expect(markup).toContain('motion-reduce:group-hover:scale-100');
   });
 });

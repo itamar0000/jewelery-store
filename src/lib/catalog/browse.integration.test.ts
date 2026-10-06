@@ -24,7 +24,7 @@ import {
  */
 vi.mock('@/lib/db', () => ({ prisma: testPrisma }));
 
-const { getCatalogPage, getCategoryFacets } = await import('./browse');
+const { getCatalogPage, getCategoryFacets, getFacetCounts } = await import('./browse');
 
 const RING_CONFIG = {
   facets: ['price', 'gold_karat', 'gold_color', 'ring_size', 'diamond_shape', 'carat', 'style'],
@@ -442,5 +442,59 @@ describe('URL state round-trips through the query layer', () => {
 
     expect(result.page).toBe(1);
     expect(result.total).toBe(20);
+  });
+});
+
+/*
+ * The number beside each filter value. It is a promise about the grid that
+ * value opens, so it is tested against that grid rather than against a
+ * hand-computed figure.
+ */
+describe('facet counts', () => {
+  async function counts(params: SearchParams, rankedIds?: readonly string[]) {
+    const { query, facets } = await buildQuery(ringsId, RING_CONFIG, params);
+    return getFacetCounts([ringsId], query, facets, rankedIds);
+  }
+
+  it('counts every value, and leaves price uncounted', async () => {
+    const result = await counts({});
+
+    expect(result.gold_color).toEqual({ WHITE: 10, YELLOW: 10 });
+    expect(result.gold_karat).toEqual({ '18K': 10, '14K': 10 });
+    expect(result.ring_size).toEqual({ '52': 10, '54': 10 });
+    expect(result.price).toBeUndefined();
+  });
+
+  it('counts a value against the OTHER facets - same-facet values are alternatives', async () => {
+    const result = await counts({ goldColor: 'white' });
+
+    // Colour is not narrowed by its own selection...
+    expect(result.gold_color).toEqual({ WHITE: 10, YELLOW: 10 });
+    // ...but every other facet is: white rings here are all 18K and size 54.
+    expect(result.gold_karat).toEqual({ '18K': 10, '14K': 0 });
+    expect(result.ring_size).toEqual({ '52': 0, '54': 10 });
+  });
+
+  it('is the total of the grid the value leads to', async () => {
+    const result = await counts({ minPrice: '10000' });
+
+    expect(result.gold_color!.WHITE).toBe(
+      (await page(ringsId, RING_CONFIG, { minPrice: '10000', goldColor: 'white' })).total,
+    );
+    expect(result.diamond_shape!.Round).toBe(
+      (await page(ringsId, RING_CONFIG, { minPrice: '10000', shape: 'round' })).total,
+    );
+  });
+
+  it('counts only search results when the page is a search', async () => {
+    const ids = (
+      await testPrisma.product.findMany({
+        where: { slug: { in: ['ring-01', 'ring-02', 'ring-03'] } },
+        select: { id: true },
+      })
+    ).map((row) => row.id);
+
+    expect((await counts({}, ids)).gold_color).toEqual({ WHITE: 1, YELLOW: 2 });
+    expect((await counts({}, [])).gold_color).toEqual({ WHITE: 0, YELLOW: 0 });
   });
 });

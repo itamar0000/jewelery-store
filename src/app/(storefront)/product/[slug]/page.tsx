@@ -4,7 +4,11 @@ import { notFound } from 'next/navigation';
 import { Breadcrumbs, type Crumb } from '@/components/category/Breadcrumbs';
 import { ProductDetailView } from '@/components/product/ProductDetailView';
 import { Container } from '@/components/ui/Container';
+import { addToCartAction } from '@/lib/cart/actions';
+import { estimatedPriceLabel } from '@/lib/catalog/price-disclosure';
 import { getProductBySlug } from '@/lib/catalog/queries';
+import { contactAvailable } from '@/lib/contact';
+import { STOCK_LEVELS_ARE_LIVE } from '@/lib/inventory/disclosure';
 
 /**
  * Product page, backed by the database.
@@ -60,7 +64,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <Breadcrumbs trail={trail} />
 
       <div className="mt-8">
-        <ProductDetailView product={product} />
+        {/*
+         * Server-side facts the client view cannot read for itself: whether
+         * prices are still estimates, whether any contact channel exists, and
+         * whether stock levels are real - and the cart's server action, which
+         * the view calls to put the configured piece in the bag.
+         */}
+        <ProductDetailView
+          product={product}
+          priceLabel={estimatedPriceLabel}
+          contactAvailable={contactAvailable}
+          stockLevelsLive={STOCK_LEVELS_ARE_LIVE}
+          addToCart={addToCartAction}
+        />
       </div>
     </Container>
   );

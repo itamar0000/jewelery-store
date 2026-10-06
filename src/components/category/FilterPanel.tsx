@@ -1,18 +1,22 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useId, useState } from 'react';
 
 import { cn } from '@/components/ui/cn';
-import { CloseIcon, FilterIcon, MinusIcon, PlusIcon } from '@/components/ui/icons';
+import { Button } from '@/components/ui/Button';
+import { CheckIcon, CloseIcon, FilterIcon, MinusIcon, PlusIcon } from '@/components/ui/icons';
 import {
   activeFilterCount,
   buildCatalogHref,
   type CatalogQuery,
   type Facet,
+  type FacetCounts,
 } from '@/lib/catalog/filters';
+import { ACTIVE_FILTERS, PRODUCTS, countOf } from '@/lib/i18n/count';
 
+import { CatalogLink, useCatalogNavigation } from './CatalogTransition';
+import { RESULTS_ANCHOR } from './Pagination';
 import { SortControl } from './SortControl';
 
 /**
@@ -33,27 +37,49 @@ import { SortControl } from './SortControl';
  * default, opening downward on desktop and as a side drawer on mobile, so the
  * product grid keeps the full page width. The only local state in this file is
  * whether that panel is open, which is presentation and belongs nowhere near
- * the URL.
+ * the URL - and it now survives a filter change, because the listing no longer
+ * remounts on one (./CatalogTransition.tsx).
+ *
+ * EVERY VALUE SAYS HOW MANY PRODUCTS IT LEADS TO, counted by the database with
+ * the listing's own predicate. A value that would lead to none is still shown -
+ * the catalogue has it, just not with the other choices - but it is not a
+ * link: a filter whose only outcome is an empty grid is a dead end, and the
+ * number says why before anyone taps it.
  */
 export function FilterBar({
   facets,
   query,
   basePath,
   productCount,
+  priceNote = null,
+  counts = {},
 }: {
   facets: readonly Facet[];
   query: CatalogQuery;
   /** Category path without query string, e.g. `/rings`. */
   basePath: string;
   productCount: number;
+  /**
+   * "המחירים משוערים" while prices are placeholders, `null` once they are
+   * final. Said once here, for the whole grid, rather than on every card.
+   */
+  priceNote?: string | null;
+  /** Products each facet value would show, given the other active filters. */
+  counts?: FacetCounts;
 }) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const activeCount = activeFilterCount(query);
+  const pending = useCatalogNavigation()?.pending ?? false;
 
   return (
     <>
-      <div className="border-border flex flex-wrap items-center justify-between gap-3 border-b pb-4">
+      {/* The anchor a new page scrolls to: the top of the results, not the
+          top of the page (Pagination). */}
+      <div
+        id={RESULTS_ANCHOR}
+        className="border-border flex scroll-mt-[calc(var(--header-height)+1rem)] flex-wrap items-center justify-between gap-3 border-b pb-4"
+      >
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -61,7 +87,7 @@ export function FilterBar({
             aria-controls={panelId}
             onClick={() => setOpen((value) => !value)}
             className={cn(
-              'inline-flex h-11 items-center gap-2 rounded-sm border px-4 text-sm transition-colors',
+              'inline-flex h-11 items-center gap-2 border px-4 text-sm transition-colors',
               open || activeCount > 0
                 ? 'border-foreground bg-foreground text-background'
                 : 'border-border-strong hover:bg-muted',
@@ -70,15 +96,20 @@ export function FilterBar({
             <FilterIcon className="size-4" />
             סינון
             {activeCount > 0 && <span aria-hidden="true">({activeCount})</span>}
-            {activeCount > 0 && <span className="sr-only">{activeCount} מסננים פעילים</span>}
+            {activeCount > 0 && (
+              <span className="sr-only">{countOf(activeCount, ACTIVE_FILTERS)}</span>
+            )}
           </button>
 
           {/*
-           * Live, because the count changes on every filter navigation and a
-           * screen-reader user needs to hear the result set change size.
+           * The count is live, because it changes on every filter navigation
+           * and a screen-reader user needs to hear the result set change size.
+           * The price note is not: it does not change, and re-announcing it on
+           * every filter would bury the count.
            */}
-          <p aria-live="polite" className="text-muted-foreground text-sm">
-            {productCount} מוצרים
+          <p className="text-muted-foreground text-sm">
+            <span aria-live="polite">{countOf(productCount, PRODUCTS)}</span>
+            {priceNote && <> · {priceNote}</>}
           </p>
         </div>
 
@@ -87,9 +118,16 @@ export function FilterBar({
 
       {/* Desktop: panel opens downward, above the grid. */}
       <div id={panelId} hidden={!open} className="border-border hidden border-b py-6 lg:block">
+        <MadeToMeasureNote className="mb-4" />
         <div className="grid gap-x-10 gap-y-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {facets.map((facet) => (
-            <FilterGroup key={facet.code} facet={facet} query={query} basePath={basePath} />
+            <FilterGroup
+              key={facet.code}
+              facet={facet}
+              query={query}
+              basePath={basePath}
+              counts={counts[facet.code]}
+            />
           ))}
         </div>
       </div>
@@ -100,7 +138,7 @@ export function FilterBar({
           <div
             aria-hidden="true"
             onClick={() => setOpen(false)}
-            className="bg-foreground/25 fixed inset-0 z-40"
+            className="bg-scrim/35 fixed inset-0 z-40"
           />
 
           <div
@@ -121,7 +159,7 @@ export function FilterBar({
                 type="button"
                 autoFocus
                 onClick={() => setOpen(false)}
-                className="hover:bg-muted inline-flex size-10 items-center justify-center rounded-sm"
+                className="hover:bg-muted inline-flex size-11 items-center justify-center rounded-sm"
               >
                 <CloseIcon className="size-5" />
                 <span className="sr-only">סגירת הסינון</span>
@@ -129,8 +167,15 @@ export function FilterBar({
             </div>
 
             <div className="divide-border flex-1 divide-y overflow-y-auto overscroll-contain px-4">
+              <MadeToMeasureNote className="py-4" />
               {facets.map((facet) => (
-                <FilterGroup key={facet.code} facet={facet} query={query} basePath={basePath} />
+                <FilterGroup
+                  key={facet.code}
+                  facet={facet}
+                  query={query}
+                  basePath={basePath}
+                  counts={counts[facet.code]}
+                />
               ))}
             </div>
 
@@ -155,22 +200,29 @@ export function FilterBar({
              */}
             <div className="border-border flex shrink-0 items-center gap-3 border-t p-4">
               {activeCount > 0 && (
-                <Link
+                <CatalogLink
                   href={buildCatalogHref(basePath, query, { clearAll: true, sort: query.sort })}
-                  scroll={false}
                   onClick={() => setOpen(false)}
-                  className="text-muted-foreground hover:text-foreground shrink-0 text-sm underline underline-offset-4 transition-colors"
+                  className="text-muted-foreground hover:text-foreground inline-flex h-12 shrink-0 items-center text-sm underline underline-offset-4 transition-colors"
                 >
                   נקה סינון
-                </Link>
+                </CatalogLink>
               )}
 
+              {/* Says what is waiting behind the drawer; while a change is still
+                  arriving the figure is the old one, so it dims with the grid. */}
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="bg-foreground text-background hover:bg-foreground/90 inline-flex h-12 flex-1 items-center justify-center rounded-sm text-sm font-medium transition-colors"
+                aria-busy={pending || undefined}
+                className={cn(
+                  'bg-foreground text-background hover:bg-foreground/90 inline-flex h-12 flex-1 items-center justify-center text-sm font-medium transition-[background-color,opacity]',
+                  pending && 'opacity-70',
+                )}
               >
-                הצגת {productCount} מוצרים
+                {productCount === 0
+                  ? 'אין מוצרים מתאימים'
+                  : `הצגת ${countOf(productCount, PRODUCTS)}`}
               </button>
             </div>
           </div>
@@ -180,14 +232,32 @@ export function FilterBar({
   );
 }
 
+/**
+ * Where a shopper looks for a colour or a size filter, the reason there is
+ * none: every model is made to order in any of them (PRODUCT.md), so a filter
+ * could only say which models happen to LIST a value - and it hid most of the
+ * catalogue from someone asking for exactly what the workshop makes on
+ * request. They are chosen on the product page instead.
+ */
+function MadeToMeasureNote({ className }: { className?: string }) {
+  return (
+    <p className={cn('text-soft-foreground text-sm', className)}>
+      אין צורך לסנן לפי גוון זהב, קראט, מידה או אורך: כל דגם אפשר להזמין בכל אחד מהם.
+    </p>
+  );
+}
+
 function FilterGroup({
   facet,
   query,
   basePath,
+  counts,
 }: {
   facet: Facet;
   query: CatalogQuery;
   basePath: string;
+  /** Products per value; absent when the page did not count them. */
+  counts?: Readonly<Record<string, number>>;
 }) {
   // Groups with a selection open by default, so an active filter is never
   // hidden behind a collapsed heading after a reload.
@@ -200,7 +270,13 @@ function FilterGroup({
   const panelId = useId();
 
   return (
-    <fieldset className="py-4">
+    /*
+     * THE TOGGLE OWNS THE ROW. The group used to carry the vertical padding
+     * and the button only the 22px of its text, so a tap a few pixels above
+     * or below "קראט זהב" landed on nothing. The padding moved into the
+     * button; the row draws exactly as before.
+     */
+    <fieldset className="py-1">
       <legend className="sr-only">{facet.labelHe}</legend>
 
       <button
@@ -208,7 +284,7 @@ function FilterGroup({
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
-        className="flex w-full items-center justify-between text-start text-sm font-medium"
+        className="flex min-h-12 w-full items-center justify-between text-start text-sm font-medium"
       >
         {facet.labelHe}
         {open ? (
@@ -219,13 +295,20 @@ function FilterGroup({
       </button>
 
       {open && (
-        <div id={panelId} className="mt-3">
+        <div id={panelId} className="pb-3">
           {facet.code === 'price' ? (
             <PriceFilter facet={facet} query={query} basePath={basePath} />
           ) : (
-            <ul className={cn(facet.code === 'gold_color' ? 'flex flex-wrap gap-3' : 'space-y-2')}>
+            <ul
+              className={cn(
+                facet.code === 'gold_color'
+                  ? 'flex flex-wrap gap-3'
+                  : 'space-y-2 pointer-coarse:space-y-0',
+              )}
+            >
               {facet.values.map((value) => {
                 const active = query.values[facet.code].includes(value.value);
+                const count = counts?.[value.value];
                 const href = buildCatalogHref(
                   basePath,
                   query,
@@ -233,23 +316,51 @@ function FilterGroup({
                   [facet],
                 );
 
+                // Nothing to show with the other choices: stated, not offered.
+                // A chosen value always stays a link, so it can be cleared.
+                if (count === 0 && !active) {
+                  return (
+                    <li key={value.value}>
+                      <span className="text-muted-foreground/70 flex items-center gap-2 text-sm pointer-coarse:min-h-11">
+                        <span
+                          aria-hidden="true"
+                          className="border-border size-4 shrink-0 rounded-sm border"
+                        />
+                        {value.hexColor && (
+                          <span
+                            aria-hidden="true"
+                            style={{ backgroundColor: value.hexColor }}
+                            className="border-border size-4 rounded-full border opacity-50"
+                          />
+                        )}
+                        {value.labelHe}
+                        <span aria-hidden="true" className="text-xs tabular-nums">
+                          0
+                        </span>
+                        <span className="sr-only">, אין מוצרים מתאימים לבחירה הנוכחית</span>
+                      </span>
+                    </li>
+                  );
+                }
+
                 return (
                   <li key={value.value}>
-                    <Link
+                    {/* 44px rows where the pointer is a finger; the list stays
+                        compact under a mouse. */}
+                    <CatalogLink
                       href={href}
-                      scroll={false}
-                      className="group flex items-center gap-2 text-sm"
+                      className="group flex items-center gap-2 text-sm pointer-coarse:min-h-11"
                     >
                       <span
                         aria-hidden="true"
                         className={cn(
-                          'flex size-4 shrink-0 items-center justify-center rounded-xs border',
+                          'flex size-4 shrink-0 items-center justify-center rounded-sm border',
                           active
                             ? 'border-foreground bg-foreground text-background'
                             : 'border-border-strong group-hover:border-foreground',
                         )}
                       >
-                        {active && '✓'}
+                        {active && <CheckIcon className="size-3" strokeWidth={2.5} />}
                       </span>
 
                       {value.hexColor && (
@@ -264,8 +375,20 @@ function FilterGroup({
                         {value.labelHe}
                       </span>
 
-                      <span className="sr-only">{active ? ', הסרת הסינון' : ', הוספה לסינון'}</span>
-                    </Link>
+                      {count !== undefined && (
+                        <span
+                          aria-hidden="true"
+                          className="text-muted-foreground text-xs tabular-nums"
+                        >
+                          {count}
+                        </span>
+                      )}
+
+                      <span className="sr-only">
+                        {count !== undefined && `, ${countOf(count, PRODUCTS)}`}
+                        {active ? ', הסרת הסינון' : ', הוספה לסינון'}
+                      </span>
+                    </CatalogLink>
                   </li>
                 );
               })}
@@ -298,8 +421,7 @@ function PriceFilter({
   basePath: string;
 }) {
   const router = useRouter();
-  const minId = useId();
-  const maxId = useId();
+  const navigation = useCatalogNavigation();
 
   const bounds = facet.priceBounds;
   const floor = bounds ? Math.floor(bounds.minAgorot / 100) : 0;
@@ -307,6 +429,10 @@ function PriceFilter({
 
   return (
     <form
+      // The inputs are uncontrolled, so a range cleared elsewhere (its chip,
+      // "נקה סינון") would linger in them; keying on the range in the URL
+      // resets them to it.
+      key={`${query.minPrice}-${query.maxPrice}`}
       onSubmit={(event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -318,55 +444,62 @@ function PriceFilter({
           return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
         };
 
-        router.push(
-          buildCatalogHref(basePath, query, {
-            minPrice: read('minPrice'),
-            maxPrice: read('maxPrice'),
-          }),
-          { scroll: false },
-        );
+        const href = buildCatalogHref(basePath, query, {
+          minPrice: read('minPrice'),
+          maxPrice: read('maxPrice'),
+        });
+        if (navigation) navigation.navigate(href);
+        else router.push(href, { scroll: false });
       }}
     >
-      <div className="flex items-center gap-2">
-        <label htmlFor={minId} className="sr-only">
-          מחיר מינימלי בשקלים
+      {/*
+       * UNDERLINES, NOT BOXES (DESIGN.md, Inputs): a strong hairline that
+       * goes to ink while the field has focus, the shekel sign drawn in the
+       * field so the bare numbers read as prices. Each field is its own
+       * <label>, so a tap anywhere on its 44px - the shekel sign included -
+       * focuses the number. The field keeps the global focus ring as well.
+       */}
+      <div className="flex items-center gap-3">
+        <label className="border-input focus-within:border-accent flex h-11 flex-1 cursor-text items-center gap-1.5 border-b transition-colors">
+          <span className="sr-only">מחיר מינימלי בשקלים</span>
+          <span aria-hidden="true" className="text-muted-foreground text-sm">
+            ₪
+          </span>
+          <input
+            name="minPrice"
+            type="number"
+            inputMode="numeric"
+            min={0}
+            defaultValue={query.minPrice ?? ''}
+            placeholder={String(floor)}
+            className="h-full w-full bg-transparent text-sm pointer-coarse:text-base"
+          />
         </label>
-        <input
-          id={minId}
-          name="minPrice"
-          type="number"
-          inputMode="numeric"
-          min={0}
-          defaultValue={query.minPrice ?? ''}
-          placeholder={String(floor)}
-          className="border-input focus:border-accent w-full rounded-sm border px-3 py-2 text-sm outline-none"
-        />
 
         <span aria-hidden="true" className="text-muted-foreground">
           –
         </span>
 
-        <label htmlFor={maxId} className="sr-only">
-          מחיר מקסימלי בשקלים
+        <label className="border-input focus-within:border-accent flex h-11 flex-1 cursor-text items-center gap-1.5 border-b transition-colors">
+          <span className="sr-only">מחיר מקסימלי בשקלים</span>
+          <span aria-hidden="true" className="text-muted-foreground text-sm">
+            ₪
+          </span>
+          <input
+            name="maxPrice"
+            type="number"
+            inputMode="numeric"
+            min={0}
+            defaultValue={query.maxPrice ?? ''}
+            placeholder={String(ceiling)}
+            className="h-full w-full bg-transparent text-sm pointer-coarse:text-base"
+          />
         </label>
-        <input
-          id={maxId}
-          name="maxPrice"
-          type="number"
-          inputMode="numeric"
-          min={0}
-          defaultValue={query.maxPrice ?? ''}
-          placeholder={String(ceiling)}
-          className="border-input focus:border-accent w-full rounded-sm border px-3 py-2 text-sm outline-none"
-        />
       </div>
 
-      <button
-        type="submit"
-        className="border-border-strong hover:bg-muted mt-2 h-9 w-full rounded-sm border text-sm"
-      >
+      <Button type="submit" variant="secondary" className="mt-3 w-full">
         עדכון טווח מחירים
-      </button>
+      </Button>
     </form>
   );
 }

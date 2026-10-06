@@ -4,10 +4,16 @@ import { Suspense } from 'react';
 
 import { CategoryResults, CategoryResultsSkeleton } from '@/components/category/CategoryResults';
 import { PageHero } from '@/components/storefront/PageHero';
+import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
 import { parseCatalogSearchParams, type SearchParams } from '@/lib/catalog/filters';
 import { getCategories } from '@/lib/catalog/queries';
 import { postgresSearchProvider } from '@/lib/search';
+import {
+  SEARCH_EXAMPLES,
+  SEARCH_EXAMPLES_HEADING,
+  SEARCH_RETRY_HEADING,
+} from '@/lib/search/examples';
 
 /**
  * Search results.
@@ -59,6 +65,7 @@ export default async function SearchPage({
   return (
     <>
       <PageHero
+        size="compact"
         title={`תוצאות חיפוש`}
         description={`חיפשת: "${term}"`}
         trail={[{ label: 'דף הבית', href: '/' }, { label: 'חיפוש' }]}
@@ -66,10 +73,10 @@ export default async function SearchPage({
       />
 
       <Container className="py-8 md:py-10">
-        <Suspense key={JSON.stringify(rawSearchParams)} fallback={<CategoryResultsSkeleton />}>
+        <Suspense fallback={<CategoryResultsSkeleton />}>
           <CategoryResults
             categoryIds={[]}
-            filterConfig={{ facets: ['price', 'gold_karat', 'gold_color', 'style'] }}
+            filterConfig={{ facets: ['price', 'diamond_shape', 'carat', 'style'] }}
             basePath="/search"
             rawQuery={rawQuery}
             rankedIds={rankedIds}
@@ -86,6 +93,7 @@ function EmptyQuery() {
   return (
     <>
       <PageHero
+        size="compact"
         title="חיפוש"
         description="אפשר לחפש לפי שם דגם, סוג תכשיט, גוון זהב או צורת יהלום."
         trail={[{ label: 'דף הבית', href: '/' }, { label: 'חיפוש' }]}
@@ -93,7 +101,7 @@ function EmptyQuery() {
       />
 
       <Container className="py-12 md:py-16">
-        <Suggestions heading="חיפושים נפוצים" />
+        <Suggestions heading={SEARCH_EXAMPLES_HEADING} />
       </Container>
     </>
   );
@@ -116,22 +124,18 @@ async function NoResults({ term }: { term: string }) {
         אפשר לנסות מונח כללי יותר, לבדוק את האיות, או לעיין בקטגוריות.
       </p>
 
-      <Link
-        href="/search"
-        className="border-border-strong hover:bg-muted mt-6 inline-flex h-11 items-center rounded-sm border px-5 text-sm transition-colors"
-      >
+      <Button href="/search" variant="secondary" className="mt-6">
         ניקוי החיפוש
-      </Link>
+      </Button>
 
       <div className="mt-10">
-        <Suggestions heading="אולי התכוונת" />
+        <Suggestions heading={SEARCH_RETRY_HEADING} />
       </div>
     </div>
   );
 }
 
-/** Suggested terms and real categories, both safe to offer. */
-const SUGGESTED_TERMS = ['טבעת אירוסין', 'צמיד טניס', 'עגילי יהלום', 'שרשרת שם', 'זהב לבן'];
+/** Example terms and real categories, both safe to offer. */
 
 async function Suggestions({ heading }: { heading: string }) {
   // Categories come from the database, so a suggestion never points at a
@@ -140,14 +144,14 @@ async function Suggestions({ heading }: { heading: string }) {
 
   return (
     <div>
-      <h2 className="text-muted-foreground text-2xs font-medium">{heading}</h2>
+      <h2 className="text-muted-foreground text-xs font-medium">{heading}</h2>
 
       <ul className="mt-3 flex flex-wrap justify-center gap-2">
-        {SUGGESTED_TERMS.map((suggestion) => (
+        {SEARCH_EXAMPLES.map((suggestion) => (
           <li key={suggestion}>
             <Link
               href={`/search?q=${encodeURIComponent(suggestion)}`}
-              className="border-border hover:border-border-strong hover:bg-muted inline-flex h-9 items-center rounded-full border px-4 text-sm transition-colors"
+              className="border-border hover:border-border-strong hover:bg-muted touch-target inline-flex h-9 items-center border px-4 text-sm transition-colors"
             >
               {suggestion}
             </Link>
@@ -155,14 +159,14 @@ async function Suggestions({ heading }: { heading: string }) {
         ))}
       </ul>
 
-      <h2 className="text-muted-foreground text-2xs mt-8 font-medium">קטגוריות</h2>
+      <h2 className="text-muted-foreground mt-8 text-xs font-medium">קטגוריות</h2>
 
       <ul className="mt-3 flex flex-wrap justify-center gap-2">
         {categories.map((category) => (
           <li key={category.id}>
             <Link
               href={category.href}
-              className="border-border hover:border-border-strong hover:bg-muted inline-flex h-9 items-center rounded-full border px-4 text-sm transition-colors"
+              className="border-border hover:border-border-strong hover:bg-muted touch-target inline-flex h-9 items-center border px-4 text-sm transition-colors"
             >
               {category.nameHe}
             </Link>

@@ -1,15 +1,14 @@
-import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
-import { PlaceholderPage } from '@/components/layout/PlaceholderPage';
-
-export const metadata: Metadata = { title: 'החשבון שלי' };
-
+/**
+ * Account.
+ *
+ * A 404 UNTIL SIGNING IN EXISTS. Nothing links here: the header and drawer
+ * links were withheld (src/lib/placeholders.ts, `account`). A page whose only
+ * content is "there is no account yet" answers a question no visitor would
+ * ask unless the site had invited them to. Phase 6 builds authentication, and
+ * the page with it.
+ */
 export default function AccountPage() {
-  return (
-    <PlaceholderPage
-      title="החשבון שלי"
-      explanation="עדיין אין הרשמה או התחברות באתר. לא נאספים כאן פרטים אישיים."
-      phase="ייבנה בשלב 6 — הזדהות וחשבון לקוח."
-    />
-  );
+  notFound();
 }

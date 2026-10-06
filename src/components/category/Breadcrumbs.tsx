@@ -30,7 +30,10 @@ export function Breadcrumbs({ trail }: { trail: readonly Crumb[] }) {
           return (
             <li key={crumb.label} className="flex items-center gap-1.5">
               {crumb.href && !last ? (
-                <Link href={crumb.href} className="hover:text-foreground transition-colors">
+                <Link
+                  href={crumb.href}
+                  className="hover:text-foreground touch-target transition-colors"
+                >
                   {crumb.label}
                 </Link>
               ) : (
@@ -39,7 +42,14 @@ export function Breadcrumbs({ trail }: { trail: readonly Crumb[] }) {
                 </span>
               )}
 
-              {!last && <ChevronIcon aria-hidden="true" className="icon-directional size-3" />}
+              {/* Decorative, and transformed - which paints it over the links' 44px
+                  tap areas. It must not swallow the tap meant for them. */}
+              {!last && (
+                <ChevronIcon
+                  aria-hidden="true"
+                  className="icon-directional pointer-events-none size-3"
+                />
+              )}
             </li>
           );
         })}

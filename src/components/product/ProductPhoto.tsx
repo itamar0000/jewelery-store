@@ -37,6 +37,7 @@ export function ProductPhoto({
   ratio,
   sizes,
   priority = false,
+  eager = false,
   className,
   imageClassName,
 }: {
@@ -50,7 +51,21 @@ export function ProductPhoto({
   ratio: PlaceholderRatio;
   /** Widths the browser should choose between. Same contract as `next/image`. */
   sizes: string;
+  /**
+   * Preload this image AND load it eagerly. For the one photograph most likely
+   * to be the Largest Contentful Paint, and nothing else - a preload competes
+   * for bandwidth with every other preload, so marking several is how a page
+   * ends up slower than it started.
+   */
   priority?: boolean;
+  /**
+   * Load eagerly WITHOUT preloading. For above-the-fold images that are not
+   * the LCP candidate: they must not wait for the lazy-load observer, but they
+   * also must not jump the queue ahead of the image that is.
+   *
+   * Ignored when `priority` is set, which already implies eager.
+   */
+  eager?: boolean;
   /** Applied to the aspect box, in both branches. */
   className?: string;
   /** Applied to the <img> only. Hover transforms belong here. */
@@ -68,6 +83,7 @@ export function ProductPhoto({
         fill
         sizes={sizes}
         priority={priority}
+        {...(priority ? {} : { loading: eager ? ('eager' as const) : ('lazy' as const) })}
         className={cn('object-cover', imageClassName)}
       />
     </div>

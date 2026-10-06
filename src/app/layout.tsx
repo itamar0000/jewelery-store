@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 
 import { SITE_DIR, SITE_LANG, SITE_LOCALE, SITE_NAME, SITE_TAGLINE } from '@/lib/config/site';
 import { env } from '@/lib/env';
-import { displaySerif, hebrewSans } from '@/lib/fonts';
+import { houseDisplay, houseSans } from '@/lib/fonts';
 
 import './globals.css';
 
@@ -80,15 +80,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // component owns.
     //
     // BOTH font variables are bound here, and neither sets a font-family by
-    // itself. `hebrewSans.variable` puts --font-hebrew-sans on <html> and
-    // `displaySerif.variable` puts --font-display-serif beside it; the token
+    // itself. `houseSans.variable` puts --font-house-sans on <html> and
+    // `houseDisplay.variable` puts --font-house-display beside it; the token
     // layer composes them into --font-sans and --font-display. Which face
     // actually renders a given glyph is decided by the fallback order in
     // tokens.css, per glyph - see src/lib/fonts.ts.
     <html
       lang={SITE_LANG}
       dir={SITE_DIR}
-      className={`${hebrewSans.variable} ${displaySerif.variable}`}
+      className={`${houseSans.variable} ${houseDisplay.variable}`}
     >
       <body>{children}</body>
     </html>

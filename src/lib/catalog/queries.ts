@@ -1,7 +1,11 @@
+import { cache } from 'react';
+
 import type { ProductBadge, ProductCardData, ProductSwatch } from '@/components/product/types';
 import { prisma } from '@/lib/db';
 import { resolveAvailability, type Availability } from '@/lib/inventory/availability';
+import { STOCK_LEVELS_ARE_LIVE } from '@/lib/inventory/disclosure';
 import { fromAgorot, toAgorot, type Money } from '@/lib/money';
+import { parseFieldOptions } from '@/lib/personalization/field-options';
 
 import { resolveImageUrl, type ResolvedImage } from './images';
 import type {
@@ -49,8 +53,8 @@ export const activeProduct = {
   publishedAt: { not: null },
 } as const;
 
-/** Variants a customer may see. */
-const activeVariant = { isActive: true, archivedAt: null } as const;
+/** Variants a customer may see. Exported for the cart, which applies the same rule. */
+export const activeVariant = { isActive: true, archivedAt: null } as const;
 
 /** Category tree path. A child renders at /parent/child, a root at /root. */
 function categoryHref(slug: string, parentSlug?: string | null): string {
@@ -83,7 +87,20 @@ export async function getCategories(): Promise<readonly CategorySummary[]> {
  * `notFound()` rather than render an empty page - a category that does not
  * exist must not return 200 to a crawler.
  */
-export async function getCategoryBySlug(slug: string): Promise<CategoryDetail | null> {
+/*
+ * MEMOIZED PER REQUEST, and that is not a micro-optimization.
+ *
+ * Every category page asked for the same category TWICE on every render: once
+ * in `generateMetadata` to build the title and canonical, once in the component
+ * to render it. Next runs both in the same request, so the second call was an
+ * entirely wasted database round trip on every page view.
+ *
+ * React's `cache()` dedupes by argument for the lifetime of ONE request, so the
+ * two call sites share a single query and a concurrent render never races. It
+ * is not a cross-request cache: a category edited between two visits is visible
+ * immediately, which is why this needs no invalidation.
+ */
+export const getCategoryBySlug = cache(async (slug: string): Promise<CategoryDetail | null> => {
   const row = await prisma.category.findFirst({
     where: { slug, isActive: true, archivedAt: null },
     select: {
@@ -125,7 +142,7 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryDetail | 
       href: categoryHref(child.slug, row.slug),
     })),
   };
-}
+});
 
 /**
  * Products in a category, as cards.
@@ -156,7 +173,7 @@ export async function getProductsByCategory(
     select: productCardSelect,
   });
 
-  return rows.map(toProductCard);
+  return rows.map((row) => toProductCard(row));
 }
 
 /** How many products a category page will show. Same predicate as the list. */
@@ -181,14 +198,14 @@ export async function countProductsByCategory(categoryId: string): Promise<numbe
  * (section 5: category, then subcategory). Deliberately not a recursive CTE -
  * that would be a raw query for a tree that is two levels tall.
  */
-export async function descendantCategoryIds(categoryId: string): Promise<string[]> {
+export const descendantCategoryIds = cache(async (categoryId: string): Promise<string[]> => {
   const children = await prisma.category.findMany({
     where: { parentId: categoryId, isActive: true, archivedAt: null },
     select: { id: true },
   });
 
   return [categoryId, ...children.map((child) => child.id)];
-}
+});
 
 // --------------------------------------------------------------- collections
 
@@ -330,6 +347,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
           maxLength: true,
           helpTextHe: true,
           priceDeltaAgorot: true,
+          options: true,
         },
       },
 
@@ -416,6 +434,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
       maxLength: field.maxLength,
       helpTextHe: field.helpTextHe,
       priceDelta: field.priceDeltaAgorot !== null ? fromAgorot(field.priceDeltaAgorot) : null,
+      options: parseFieldOptions(field.options),
     })),
 
     collections: row.collections.map((link) => ({
@@ -449,7 +468,7 @@ export async function getProductsByIds(
   return ids
     .map((id) => byId.get(id))
     .filter((row): row is NonNullable<typeof row> => row !== undefined)
-    .map(toProductCard);
+    .map((row) => toProductCard(row));
 }
 
 /**
@@ -641,6 +660,9 @@ type ProductCardRow = {
   collections: { collection: { slug: string } }[];
 };
 
+/** Exported for the unit tests of `toProductCard`, which build rows by hand. */
+export type { ProductCardRow };
+
 /**
  * Product row to card.
  *
@@ -650,43 +672,51 @@ type ProductCardRow = {
  * price the customer cannot actually get. It falls back to the product base
  * price when a product has no variants.
  *
- * BADGES come from real data, not from a content field: collection membership
- * supplies "new"/"best seller", and the resolved availability supplies
- * "made to order". Nothing here is hand-authored merchandising.
+ * BADGE: ONE, AND ONLY WHERE IT TELLS THE SHOPPER SOMETHING. Collection
+ * membership in `new-arrivals` supplies "new". Two others were cut:
+ *   - "made to order" - it is the norm here, not a distinction (PRODUCT.md), so
+ *     badging some cards implied the rest were not. The product page states
+ *     each variant's lead time.
+ *   - "best seller" - the best-sellers band already makes that claim, and it is
+ *     a ranking (src/lib/catalog/best-sellers.ts) that will move to real sales
+ *     data; a second, card-level copy of it would have to move with it.
+ * Stacked, the three read as stickers on the photograph, and "new" beside
+ * "best seller" contradicted itself.
  *
  * STOCK NOTICE is emitted ONLY when `resolveAvailability` reports genuine low
- * stock, which itself requires a configured threshold. This is the caller with
- * real inventory data that `ProductCardData.stockNotice` was designed for
- * (docs/DECISIONS.md D3.4) - the component still invents nothing.
+ * stock, which requires a configured threshold AND stock levels that are real
+ * (`options.stockLevelsLive`, defaulting to src/lib/inventory/disclosure.ts).
+ * Today they are not, so no card carries one.
  */
-export function toProductCard(row: ProductCardRow): ProductCardData {
+export function toProductCard(
+  row: ProductCardRow,
+  options: { stockLevelsLive?: boolean } = {},
+): ProductCardData {
+  const stockLevelsLive = options.stockLevelsLive ?? STOCK_LEVELS_ARE_LIVE;
   const availabilities = row.variants.map((variant) =>
-    toAvailability(variant.inventory, {
-      productThreshold: row.lowStockThreshold,
-      productPrepDays: row.defaultPrepDays,
-      variantPrepDays: variant.prepDays,
-    }),
+    toAvailability(
+      variant.inventory,
+      {
+        productThreshold: row.lowStockThreshold,
+        productPrepDays: row.defaultPrepDays,
+        variantPrepDays: variant.prepDays,
+      },
+      stockLevelsLive,
+    ),
   );
 
   const prices = row.variants.map((variant) => variant.priceAgorot ?? row.basePriceAgorot);
   const minPrice = prices.length > 0 ? Math.min(...prices) : row.basePriceAgorot;
-
-  // A comparison price is only meaningful when it exceeds what is being asked.
-  const compareCandidates = row.variants
-    .map((variant) => variant.compareAtAgorot ?? row.compareAtAgorot)
-    .filter((value): value is number => value !== null && value > minPrice);
+  // More than one distinct price: the card's figure is a floor, and says so.
+  const priceFrom = new Set(prices).size > 1;
 
   const collectionSlugs = new Set(row.collections.map((link) => link.collection.slug));
 
-  const badges: ProductBadge[] = [];
-  if (collectionSlugs.has('new-arrivals')) badges.push('new');
-  if (collectionSlugs.has('best-sellers')) badges.push('best-seller');
-  if (
+  const madeToOrder =
     availabilities.length > 0 &&
-    availabilities.every((availability) => availability.state === 'MADE_TO_ORDER')
-  ) {
-    badges.push('made-to-order');
-  }
+    availabilities.every((availability) => availability.state === 'MADE_TO_ORDER');
+
+  const badge: ProductBadge | undefined = collectionSlugs.has('new-arrivals') ? 'new' : undefined;
 
   // The lowest genuinely-low stock figure across variants, if any.
   const lowStock = availabilities.find((availability) => availability.isLowStock);
@@ -711,6 +741,7 @@ export function toProductCard(row: ProductCardRow): ProductCardData {
     slug: row.slug,
     name: row.nameHe,
     price: fromAgorot(minPrice),
+    ...(priceFrom ? { priceFrom } : {}),
     imageAlt: row.images[0]?.altHe ?? row.nameHe,
     /*
      * `resolveImageUrl` returns null while no storage provider is configured
@@ -732,11 +763,39 @@ export function toProductCard(row: ProductCardRow): ProductCardData {
       ? { hoverImageUrl: resolveImageUrl(row.images[1].storageKey)! }
       : {}),
     ...(swatches.length > 0 ? { swatches } : {}),
-    ...(compareCandidates.length > 0
-      ? { compareAtPrice: fromAgorot(Math.max(...compareCandidates)) }
-      : {}),
-    ...(badges.length > 0 ? { badges } : {}),
-    ...(lowStock ? { stockNotice: `נותרו ${lowStock.available} במלאי` } : {}),
+    ...(badge ? { badge } : {}),
+
+    /*
+     * NO COMPARE-AT PRICE, and this is a truth decision rather than a styling
+     * one. Every price in this catalog is a placeholder (PRODUCT.md). A
+     * struck-through was-price built from two placeholder numbers does not
+     * present a fake price - it presents a fake DISCOUNT, which is a stronger
+     * claim and the one a shopper is most likely to act on. Principle 1 says a
+     * price is the one thing a shopper is entitled to rely on; a saving
+     * invented on top of one is worse than the price itself. The field stays
+     * on `ProductCardData` and the card still renders it, so a caller holding
+     * real pricing loses nothing.
+     */
+
+    /*
+     * SCARCITY, ONLY WHERE SCARCITY IS A REAL THING.
+     *
+     * The first pass at this removed the notice outright, on the grounds that
+     * these pieces are made to order and a unit count is therefore meaningless.
+     * That was too broad, and the integration suite caught it: a DENY-policy
+     * product with genuine stock at its configured threshold SHOULD say so,
+     * which is the behaviour the specification asks for and the test asserts.
+     *
+     * The honest line is narrower. A made-to-order product is manufactured
+     * after the order, so "נותרו 2 במלאי" is not a low number - it is a
+     * category error, and on this catalog it was reading as manufactured
+     * urgency. A stocked product with a real threshold is a different claim
+     * entirely, and it stays - behind `stockLevelsLive`, because a real
+     * threshold over an invented unit count is still an invented count.
+     *
+     * `madeToOrder` means every variant made to order, not merely one.
+     */
+    ...(lowStock && !madeToOrder ? { stockNotice: `נותרו ${lowStock.available} במלאי` } : {}),
   };
 
   return card;
@@ -789,11 +848,27 @@ function toDiamond(row: {
 /**
  * Inventory row to resolved availability.
  *
+ * Exported for the cart and for order creation, which must decide what can be
+ * bought exactly as the product page decides what it says.
+ *
  * A MISSING INVENTORY ROW IS NOT "IN STOCK". It is treated as zero on hand
  * under the schema default policy, so a data gap fails closed - showing an
  * unstocked item as available is the expensive direction to be wrong in.
+ *
+ * WHILE STOCK LEVELS ARE NOT LIVE (`stockLevelsLive` false, the default -
+ * src/lib/inventory/disclosure.ts), the counts on file are seed data, and two
+ * things follow:
+ *   - no threshold is applied, so `isLowStock` is never true and no unit count
+ *     reaches a card or a product page;
+ *   - a MADE-TO-ORDER variant resolves as made to order whatever its count, so
+ *     its page states the configured lead time. Resolved from the invented
+ *     count, one colour of a ring read "במלאי" and the next "מיוצר בהזמנה",
+ *     and the difference meant nothing.
+ * A DENY variant still resolves from its count, so `isPurchasable` keeps its
+ * meaning; the product page is what declines to state that count's result
+ * (see AvailabilityLine in ProductDetailView).
  */
-function toAvailability(
+export function toAvailability(
   inventory: {
     onHand: number;
     reserved: number;
@@ -805,12 +880,18 @@ function toAvailability(
     productPrepDays: number | null;
     variantPrepDays: number | null;
   },
+  stockLevelsLive: boolean = STOCK_LEVELS_ARE_LIVE,
 ): Availability {
+  const policy = inventory?.policy === 'DENY' ? 'DENY' : 'MADE_TO_ORDER';
+  const countsApply = stockLevelsLive || policy === 'DENY';
+
   return resolveAvailability({
-    onHand: inventory?.onHand ?? 0,
-    reserved: inventory?.reserved ?? 0,
-    policy: inventory?.policy === 'DENY' ? 'DENY' : 'MADE_TO_ORDER',
-    lowStockThreshold: inventory?.lowStockThreshold ?? fallbacks.productThreshold,
+    onHand: countsApply ? (inventory?.onHand ?? 0) : 0,
+    reserved: countsApply ? (inventory?.reserved ?? 0) : 0,
+    policy,
+    lowStockThreshold: stockLevelsLive
+      ? (inventory?.lowStockThreshold ?? fallbacks.productThreshold)
+      : null,
     prepDays: fallbacks.variantPrepDays ?? fallbacks.productPrepDays,
   });
 }

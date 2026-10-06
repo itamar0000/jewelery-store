@@ -4,10 +4,9 @@ import Link from 'next/link';
 import { useEffect, useRef, type Dispatch } from 'react';
 
 import { cn } from '@/components/ui/cn';
-import { ChevronIcon, CloseIcon, HeartIcon, SearchIcon, UserIcon } from '@/components/ui/icons';
+import { ChevronIcon, CloseIcon, SearchIcon } from '@/components/ui/icons';
 import type { MenuAction, MenuState } from '@/lib/navigation/menu-state';
-import { PRIMARY_NAV } from '@/lib/navigation/taxonomy';
-import { PLACEHOLDER_ATTR } from '@/lib/placeholders';
+import type { NavItem } from '@/lib/navigation/taxonomy';
 
 /**
  * Mobile navigation drawer.
@@ -31,16 +30,19 @@ import { PLACEHOLDER_ATTR } from '@/lib/placeholders';
  * dependency this phase does not warrant. The drawer covers the viewport and
  * the backdrop closes it, so the failure mode is mild.
  *
- * RTL: the drawer enters from the inline-start edge, which is the LEFT in
- * Hebrew. `start-0` and `-translate-x-full` are logical, so the animation
- * direction follows the document direction with no mirroring code.
+ * RTL: the drawer sits on the inline-start edge, which is the RIGHT in
+ * Hebrew. `start-0` is logical, so the side follows the document direction
+ * with no mirroring code.
  *
  * Body scroll locking lives in Header, because search shares the requirement.
  */
 export function MobileNav({
+  items,
   state,
   dispatch,
 }: {
+  /** The primary items to show - PRIMARY_NAV, less any the Header withholds. */
+  items: readonly NavItem[];
   state: MenuState;
   dispatch: Dispatch<MenuAction>;
 }) {
@@ -59,7 +61,7 @@ export function MobileNav({
       <div
         aria-hidden="true"
         onClick={() => dispatch({ type: 'CLOSE_MOBILE_MENU' })}
-        className="bg-foreground/25 fixed inset-0 z-40 backdrop-blur-[2px]"
+        className="bg-scrim/35 fixed inset-0 z-40 backdrop-blur-[2px]"
       />
 
       <div
@@ -87,8 +89,13 @@ export function MobileNav({
          * The brief asks for a simple and reliable drawer and warns against
          * over-animating, so the trade is easy: no motion, and the failure mode
          * disappears. Section 2 asks for restraint anyway.
+         *
+         * IT STATES ITS OWN FOREGROUND AND FOCUS RING. The drawer is rendered
+         * inside the ink masthead and would otherwise inherit its paper type -
+         * paper on this paper sheet, which once left every item, and the close
+         * button, invisible. See MegaMenu for the same rule.
          */
-        className="bg-card fixed inset-y-0 start-0 z-50 flex w-[min(22rem,88vw)] flex-col shadow-xl"
+        className="bg-card text-card-foreground fixed inset-y-0 start-0 z-50 flex w-[min(22rem,88vw)] flex-col shadow-xl [--focus-ring:var(--color-ring)]"
       >
         <div className="border-border flex h-16 shrink-0 items-center justify-between border-b px-5">
           <span className="text-sm font-medium">תפריט</span>
@@ -96,7 +103,7 @@ export function MobileNav({
             ref={closeRef}
             type="button"
             onClick={() => dispatch({ type: 'CLOSE_MOBILE_MENU' })}
-            className="hover:bg-muted inline-flex size-10 items-center justify-center rounded-sm"
+            className="hover:bg-muted inline-flex size-11 items-center justify-center rounded-sm"
           >
             <CloseIcon className="size-5" />
             <span className="sr-only">סגירת התפריט</span>
@@ -105,7 +112,7 @@ export function MobileNav({
 
         <nav aria-label="ניווט ראשי בנייד" className="flex-1 overflow-y-auto overscroll-contain">
           <ul className="py-2">
-            {PRIMARY_NAV.map((item) => {
+            {items.map((item) => {
               const hasChildren = item.columns !== undefined;
               const expanded = state.mobileExpandedGroup === item.id;
               const panelId = `mobile-group-${item.id}`;
@@ -191,36 +198,22 @@ export function MobileNav({
           </ul>
         </nav>
 
-        {/* Account / wishlist / search, per section 7. All placeholders. */}
-        <div className="border-border grid shrink-0 grid-cols-3 border-t">
+        {/*
+         * Search, from inside the drawer, where the header's own search button
+         * sits under the backdrop. Section 7 also puts account and wishlist
+         * here; they return when they work (src/lib/placeholders.ts). Alone,
+         * search takes the form of the rows above it rather than a one-cell
+         * icon grid.
+         */}
+        <div className="border-border shrink-0 border-t">
           <button
             type="button"
             onClick={() => dispatch({ type: 'OPEN_SEARCH' })}
-            className="hover:bg-muted text-2xs flex flex-col items-center gap-1 py-4"
+            className="hover:bg-muted flex w-full items-center gap-3 px-5 py-4 text-base"
           >
-            <SearchIcon className="size-5" />
+            <SearchIcon className="text-muted-foreground size-5" />
             חיפוש
           </button>
-
-          <Link
-            href="/wishlist"
-            onClick={() => dispatch({ type: 'CLOSE_MOBILE_MENU' })}
-            className="hover:bg-muted text-2xs flex flex-col items-center gap-1 py-4"
-            {...PLACEHOLDER_ATTR}
-          >
-            <HeartIcon className="size-5" />
-            מועדפים
-          </Link>
-
-          <Link
-            href="/account"
-            onClick={() => dispatch({ type: 'CLOSE_MOBILE_MENU' })}
-            className="hover:bg-muted text-2xs flex flex-col items-center gap-1 py-4"
-            {...PLACEHOLDER_ATTR}
-          >
-            <UserIcon className="size-5" />
-            החשבון שלי
-          </Link>
         </div>
       </div>
     </div>

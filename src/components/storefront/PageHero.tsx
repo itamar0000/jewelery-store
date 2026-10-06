@@ -1,83 +1,100 @@
 import { Breadcrumbs, type Crumb } from '@/components/category/Breadcrumbs';
 import { Container } from '@/components/ui/Container';
-import { PlaceholderImage } from '@/components/ui/PlaceholderImage';
+import { cn } from '@/components/ui/cn';
+import { EditorialImage } from '@/components/ui/EditorialImage';
+import type { EditorialAssetId } from '@/lib/content/editorial-assets';
 
 /**
- * The banner every inner page opens with.
+ * The header every inner page opens with.
  *
- * Title and introduction sit CENTRED over an image band, rather than flush to
- * the inline-start edge. That is a deliberate change from the first pass: a
- * short Hebrew title hard against the right margin with a wide empty page
- * beside it reads as unfinished rather than as restraint, and the effect is
- * worse in RTL because the eye starts at the heavy edge.
+ * IT HAS NO PICTURE UNLESS ONE REALLY EXISTS, and that is the change. This
+ * component used to render a tonal `PlaceholderImage` unconditionally, with a
+ * marker reading "Page header placeholder" and the copy laid over a scrim. The
+ * reasoning at the time was sound - the photography was still to come and this
+ * was a frame waiting for it - but the photography never came for these routes,
+ * and the frame shipped. Contact, custom, FAQ, search, not-found and every
+ * collection page opened on a grey rectangle.
  *
- * Centring is applied HERE and not everywhere. Where it is wrong, it stays
- * left alone:
- *   - breadcrumbs stay start-aligned; a centred trail is unreadable;
- *   - the product page title stays start-aligned, because it heads a column of
- *     form controls that are themselves start-aligned;
- *   - footer columns and editorial two-column bands stay start-aligned, where
- *     centring short text inside a narrow column looks accidental.
+ * A grey rectangle is worse than no rectangle. It is not a neutral wait: it
+ * reads as a broken image to anyone who does not know the plan, it pushes the
+ * real content below the fold, and it puts the least interesting object on the
+ * page in the most prominent position. So the default is now typographic - the
+ * title at size on paper, over a rule - which is a finished state rather than a
+ * pending one, and it suits a world whose whole argument is type and space.
  *
- * The image is the same tonal PlaceholderImage used everywhere else - the
- * photography is still TBD, and this is a frame waiting for it, not invented
- * creative. Text sits on a scrim so it stays legible against whatever
- * eventually lands here.
+ * `assetId` IS THE ESCAPE HATCH. A page that genuinely has a photograph passes
+ * one and gets a real image band. That is how the collection pages use the
+ * collection stills. A page with nothing to show simply does not ask.
+ *
+ * ALIGNMENT CHANGED WITH IT. The old header centred its title because a short
+ * Hebrew line hard against the right margin, with a wide empty page beside it,
+ * read as unfinished. At the size the title is set now it reads as intent, and
+ * it matches the home page, where the line also begins at the inline start.
  */
 export function PageHero({
   title,
   description,
   trail,
   imageLabel,
+  assetId,
+  size = 'headline',
 }: {
   title: string;
   description?: string;
   trail?: readonly Crumb[];
   imageLabel?: string;
+  /** Only when a real photograph exists for this page. */
+  assetId?: EditorialAssetId;
+  /**
+   * `headline`, the inner-page title at full size, for a page that is a place
+   * - a collection, the FAQ, custom work. `compact` takes the product page's
+   * smaller h1 for a page that is a sentence - search, the 404 - where a 72px
+   * title over one line of text was the largest thing on the page by far.
+   */
+  size?: 'headline' | 'compact';
 }) {
   return (
-    <section className="relative isolate">
-      <PlaceholderImage
-        ratio="wide"
-        /*
-         * Not an editorial registry slot. The brief's editorial set is the
-         * homepage's nine images; the banner behind a category heading is a
-         * per-category asset that belongs with the category record, not with
-         * the campaign photography, and giving it a registry id would invent a
-         * slot nobody has briefed. The marker says so out loud.
-         */
-        marker="Page header placeholder"
-        label={imageLabel ?? title}
-        hideLabel
-        className="max-h-80 min-h-60 w-full"
-      />
+    <section>
+      {assetId && (
+        <div className="relative aspect-[21/9] max-h-[26rem] w-full overflow-hidden">
+          <EditorialImage
+            id={assetId}
+            sizes="100vw"
+            priority
+            hidePlaceholderLabel
+            placeholderLabel={imageLabel ?? title}
+          />
+        </div>
+      )}
 
-      {/* Vertical scrim: direction-agnostic, unlike the homepage hero, because
-          the content is centred rather than pushed to one side. */}
-      <div
-        aria-hidden="true"
-        className="from-background/90 via-background/55 absolute inset-0 bg-gradient-to-t to-transparent"
-      />
+      <Container className="pt-10 pb-8 md:pt-14 md:pb-10">
+        {trail && (
+          <div className="mb-6">
+            <Breadcrumbs trail={trail} />
+          </div>
+        )}
 
-      <div className="absolute inset-0 flex flex-col justify-center">
-        <Container>
-          {trail && (
-            <div className="mb-4 flex justify-center">
-              <Breadcrumbs trail={trail} />
-            </div>
+        <h1
+          className={cn(
+            'font-display leading-[1.05] font-bold tracking-tight text-balance',
+            size === 'compact' ? 'text-3xl xl:text-4xl' : 'text-3xl md:text-5xl xl:text-6xl',
           )}
+        >
+          {title}
+        </h1>
 
-          <h1 className="font-display text-center text-3xl tracking-tight text-balance md:text-4xl">
-            {title}
-          </h1>
+        {description && (
+          <p className="text-muted-foreground mt-5 max-w-(--container-prose) text-base text-pretty">
+            {description}
+          </p>
+        )}
+      </Container>
 
-          {description && (
-            <p className="text-muted-foreground mx-auto mt-3 max-w-(--container-prose) text-center text-sm text-pretty">
-              {description}
-            </p>
-          )}
-        </Container>
-      </div>
+      {/* The rule closes the header. With no image band and no scrim, this is
+          what separates the page's title from the page's content. */}
+      <Container>
+        <div className="border-border border-t" />
+      </Container>
     </section>
   );
 }

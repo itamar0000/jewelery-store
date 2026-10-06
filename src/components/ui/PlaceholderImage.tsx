@@ -130,13 +130,13 @@ export function PlaceholderImage({
           </svg>
 
           {marker && (
-            <span className="text-2xs font-semibold tracking-[0.14em] uppercase opacity-70">
+            <span className="text-xs font-semibold tracking-[0.14em] uppercase opacity-70">
               {marker}
             </span>
           )}
 
           {label && (
-            <span className="text-2xs hidden leading-snug font-medium sm:block">{label}</span>
+            <span className="hidden text-xs leading-snug font-medium sm:block">{label}</span>
           )}
         </span>
       )}
@@ -155,7 +155,7 @@ export function PlaceholderImage({
          * into it - which is the near-invisible placeholder all over again, at
          * chip size.
          */
-        <span className="bg-placeholder-foreground text-placeholder text-2xs absolute end-3 top-3 rounded-full px-2.5 py-1 font-semibold tracking-[0.14em] uppercase">
+        <span className="bg-placeholder-foreground text-placeholder absolute end-3 top-3 rounded-full px-2.5 py-1 text-xs font-semibold tracking-[0.14em] uppercase">
           {marker}
         </span>
       )}

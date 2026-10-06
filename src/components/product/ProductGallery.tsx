@@ -151,15 +151,20 @@ export function ProductGallery({
        * resizing it, turning a layout bug into a worse one.
        *
        * `svh` rather than `vh` so a mobile browser's collapsing toolbar cannot
-       * make the reserved space wrong. The 11rem covers the sticky offset plus
-       * a margin at the bottom, and 26rem is an upper bound for large screens -
-       * past that the photograph stops being commanding and starts being
-       * merely large.
+       * make the reserved space wrong. The header height plus 3rem covers the
+       * sticky offset and a margin at the bottom.
+       *
+       * THAT IS THE ONLY CAP. There used to be a second, a fixed 26rem "past
+       * which the photograph stops being commanding" - which held the frame at
+       * about 420px inside a column with 650px to give and left a 235px empty
+       * gutter beside the most important picture on the site. The photograph
+       * now takes its column whenever the screen is tall enough to show it
+       * whole, and only a short screen holds it back.
        *
        * `md:` only. Below that the column is not sticky and the frame is not
        * competing with anything for height.
        */}
-      <div className="min-w-0 flex-1 md:max-w-[min(calc(100svh-11rem),26rem)]">
+      <div className="min-w-0 flex-1 md:max-w-[calc(100svh-var(--header-height)-3rem)]">
         <Zoomable>
           <div
             /*
@@ -175,8 +180,8 @@ export function ProductGallery({
               url={active?.url ?? null}
               alt={active?.altHe ?? productName}
               ratio="square"
-              /* Capped at 26rem by the wrapper above, so never larger. */
-              sizes="(min-width: 768px) 26rem, 100vw"
+              /* The column less the rail: about 45vw from md, 34rem at the container's widest. */
+              sizes="(min-width: 1280px) 34rem, (min-width: 768px) 45vw, 100vw"
               priority
             />
           </div>

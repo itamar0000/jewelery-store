@@ -129,6 +129,8 @@ export interface CustomizationFieldView {
   readonly maxLength: number | null;
   readonly helpTextHe: string | null;
   readonly priceDelta: Money | null;
+  /** The choices of a LANGUAGE or SELECT field; null for free text. */
+  readonly options: readonly { readonly value: string; readonly labelHe: string }[] | null;
 }
 
 /** Everything the product page needs, in one object. */

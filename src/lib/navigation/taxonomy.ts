@@ -283,24 +283,8 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
  * with plausible text, which would be worse than their absence.
  *
  * Restore each entry in the same commit that adds its route.
- */
-
-/**
- * Contact channels for the footer.
  *
- * PLACEHOLDER. `href: null` renders the channel as inert text with a "TBD"
- * note rather than a dead link, so nobody mistakes it for a working contact
- * route. Section 52 lists these as outstanding business details.
+ * Contact channels are not listed here. They are configuration, not taxonomy -
+ * see src/lib/contact, which builds them from the CONTACT_* environment
+ * variables and offers none until one is set.
  */
-export interface ContactChannel {
-  readonly id: string;
-  readonly label: string;
-  readonly value: string;
-  readonly href: string | null;
-}
-
-export const FOOTER_CONTACT: readonly ContactChannel[] = [
-  { id: 'whatsapp', label: 'וואטסאפ', value: 'יעודכן', href: null },
-  { id: 'email', label: 'דוא"ל', value: 'יעודכן', href: null },
-  { id: 'phone', label: 'טלפון', value: 'יעודכן', href: null },
-];

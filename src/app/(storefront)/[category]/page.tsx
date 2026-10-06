@@ -81,11 +81,13 @@ export default async function CategoryPage({
       activeSubcategoryId={`${category.slug}-all`}
     >
       {/*
-       * Keyed on the query string so a filter change remounts the boundary and
-       * shows the skeleton again, instead of leaving the previous results on
-       * screen with no indication that anything is loading.
+       * NOT keyed on the query string. A key remounted the listing on every
+       * filter change, which closed the filter drawer mid-selection; a change
+       * now runs as a transition that keeps the results on screen, dimmed and
+       * marked busy, until the next set arrives (CatalogTransition). The
+       * skeleton is for the first load only.
        */}
-      <Suspense key={JSON.stringify(rawSearchParams)} fallback={<CategoryResultsSkeleton />}>
+      <Suspense fallback={<CategoryResultsSkeleton />}>
         <CategoryResults
           categoryIds={await descendantCategoryIds(category.id)}
           filterConfig={category.filterConfig}

@@ -121,7 +121,7 @@ Worth checking by eye:
 - `/` — homepage
 - `/rings` and `/rings?goldColor=white&sort=price-asc` — filters and sort
 - `/search?q=טבעת` — search
-- `/product/demo-aurora-ring` — variant switching
+- `/product/aurora-ring` — variant switching
 - `/product/nope` — a real 404, not a soft one
 
 ---

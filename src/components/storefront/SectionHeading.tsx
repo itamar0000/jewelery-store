@@ -1,7 +1,5 @@
 import Link from 'next/link';
 
-import { ChevronIcon } from '@/components/ui/icons';
-
 /**
  * Heading block shared by every homepage section.
  *
@@ -34,10 +32,13 @@ export function SectionHeading({
 }) {
   return (
     <div className="mb-12 text-center">
-      {/* Steps up on desktop. With the hero headline now running to
-          `--text-6xl`, a section title fixed at `text-2xl` sat too close to
-          body copy to register as a level of its own. */}
-      <h2 id={id} className="font-display text-2xl tracking-tight text-balance md:text-3xl">
+      {/* Steps up on desktop. The hero line runs to `--text-7xl`, so a section
+          title fixed at `text-2xl` sits too close to body copy to register as
+          a level of its own. */}
+      <h2
+        id={id}
+        className="font-display text-accent text-2xl font-bold tracking-tight text-balance md:text-3xl"
+      >
         {title}
       </h2>
 
@@ -48,13 +49,17 @@ export function SectionHeading({
       )}
 
       {href && (
+        /*
+         * THE SAME LINE OF TYPE AS A COLLECTION'S "VIEW" (DESIGN.md, the
+         * Underlined Action Rule). It was a fourth action style - a chevron
+         * link whose hover changed ink to ink, so it had no hover at all. The
+         * rule under it goes from hairline to ink instead.
+         */
         <Link
           href={href}
-          className="hover:text-accent mt-5 inline-flex items-center gap-1 text-sm transition-colors"
+          className="decoration-border-strong hover:decoration-foreground touch-target mt-5 inline-block text-sm font-semibold underline underline-offset-[0.4em] transition-colors"
         >
           {linkLabel}
-          {/* Directional: it points along the reading direction. */}
-          <ChevronIcon className="icon-directional size-4" />
         </Link>
       )}
     </div>

@@ -4,11 +4,12 @@ import type { ReactNode } from 'react';
 
 import { PageHero } from '@/components/storefront/PageHero';
 import { Container } from '@/components/ui/Container';
+import { contactAvailable } from '@/lib/contact';
 import { Bidi } from '@/lib/rtl/bidi';
 
 export const metadata: Metadata = {
   title: 'שאלות ותשובות',
-  description: 'תשובות על יהלומים טבעיים ויהלומי מעבדה, מידות, קראט וגווני זהב, משלוחים והחזרות.',
+  description: 'תשובות על יהלומים טבעיים ויהלומי מעבדה, מידות, קראט, גווני זהב ועיצוב אישי.',
 };
 
 /**
@@ -23,9 +24,12 @@ export const metadata: Metadata = {
  * WHAT IS ANSWERED AND WHAT IS NOT. Questions with a factual, checkable answer
  * - what a lab-grown diamond is, what the karat numbers mean - are answered.
  * Questions whose answer is a business policy nobody has set - shipping price,
- * delivery time, return window, warranty length - are listed with the answer
- * marked as pending, because those are TBD items (L2, L3, L4, B4, B5) and an
- * invented "14 days" would be a false consumer-facing commitment.
+ * delivery time, return window, warranty length - are kept below, marked
+ * `pending`, and NOT RENDERED until the policy exists: TBD items L2, L3, L4,
+ * B4 and B5. An invented "14 days" would be a false consumer-facing
+ * commitment; a published "not decided yet" told every visitor the shop was
+ * not ready to sell. Setting the real answer and dropping `pending` publishes
+ * each one.
  *
  * The prose exercises the section 49 RTL edge case: Latin runs inside Hebrew
  * sentences, wrapped in <Bidi> so trailing punctuation does not drift.
@@ -71,12 +75,7 @@ const FAQS: readonly Faq[] = [
   {
     id: 'lab-vs-mined',
     question: 'איך אפשר להבדיל בין יהלום מעבדה ליהלום כרוי?',
-    answer: (
-      <>
-        לא בעין ולא בבדיקה רגילה. ההבחנה נעשית בציוד מעבדתי ייעודי, ולכן כל אבן מעל משקל מסוים מגיעה
-        עם תעודה שמציינת במפורש את מקורה.
-      </>
-    ),
+    answer: <>לא בעין ולא בבדיקה רגילה. ההבחנה נעשית בציוד מעבדתי ייעודי.</>,
   },
   {
     id: 'karat',
@@ -104,18 +103,57 @@ const FAQS: readonly Faq[] = [
     question: 'איך יודעים מידת טבעת?',
     answer: (
       <>
-        הדרך המדויקת היא מדידה אצל צורף. אפשר גם למדוד טבעת קיימת שמתאימה לאותה אצבע. מומלץ למדוד
-        בסוף היום ולא בקור, כי היקף האצבע משתנה במהלך היום.
+        המידות באתר הן מידות אירופיות: ההיקף הפנימי של הטבעת במילימטרים. הדרך המדויקת היא מדידה אצל
+        צורף. אפשר גם למדוד טבעת קיימת שמתאימה לאותה אצבע: מודדים את הקוטר הפנימי שלה במילימטרים
+        ומכפילים ב-3.14. קוטר של 16.5 מ״מ, למשל, הוא מידה 52. מומלץ למדוד בסוף היום ולא בקור, כי
+        היקף האצבע משתנה במהלך היום.
       </>
     ),
   },
+  /*
+   * NO CERTIFICATE IS PROMISED. This question used to explain "the markings on
+   * the certificate", after another answer promised a certificate for every
+   * stone above a weight - a policy and a threshold the owner has not set. The
+   * grades are explained where a shopper actually meets them: the product
+   * page's diamond details, whose row labels these words match.
+   */
   {
     id: 'clarity',
-    question: 'מה המשמעות של הסימונים בתעודה?',
+    question: 'מה המשמעות של דירוגי היהלום בעמוד המוצר?',
+    /*
+     * IT EXPLAINS NOW. The answer used to list the grades - weight, shape,
+     * colour, clarity, cut - and stop, which told a shopper the words existed
+     * without saying what any of them meant. Each line below is the standard
+     * scale as the grading laboratories define it, in the order of the rows on
+     * the product page; it describes the scale, not any stone in the shop.
+     */
     answer: (
       <>
-        התעודה מציינת משקל בקראט, צורת ליטוש כמו <Bidi>Round</Bidi> או <Bidi>Oval</Bidi>, דירוג
-        ניקיון כמו <Bidi>VS1</Bidi>, דירוג צבע ודירוג ליטוש. יחד הם קובעים את המחיר.
+        הדירוגים נכתבים באותיות לועזיות, כפי שהם מופיעים בתעודות הדירוג, ולכל אחד יש סולם קבוע:
+        <ul className="marker:text-muted-foreground mt-3 list-disc space-y-2 ps-5">
+          <li>
+            <strong className="text-foreground font-medium">משקל</strong> נמדד בקראט: קראט אחד הוא
+            0.2 גרם. זה לא הקראט של הזהב, שמציין את אחוז הזהב בסגסוגת.
+          </li>
+          <li>
+            <strong className="text-foreground font-medium">צבע</strong> מדורג מ-<Bidi>D</Bidi> עד{' '}
+            <Bidi>Z</Bidi>: <Bidi>D</Bidi> עד <Bidi>F</Bidi> חסרי צבע, <Bidi>G</Bidi> עד{' '}
+            <Bidi>J</Bidi> כמעט חסרי צבע, ומשם מופיע גוון צהבהב שמתחזק עם האותיות.
+          </li>
+          <li>
+            <strong className="text-foreground font-medium">ניקיון</strong> מתאר פגמים פנימיים:{' '}
+            <Bidi>VVS</Bidi> הם זעירים מאוד וקשים לאיתור גם בהגדלה, <Bidi>VS</Bidi> זעירים ונראים רק
+            בהגדלה, ו-<Bidi>SI</Bidi> קלים ונראים בהגדלה.
+          </li>
+          <li>
+            <strong className="text-foreground font-medium">ליטוש</strong> מתאר כמה טוב האבן מחזירה
+            אור, מ-<Bidi>Excellent</Bidi> (מצוין) דרך <Bidi>Very Good</Bidi> (טוב מאוד) ומטה.
+          </li>
+          <li>
+            <strong className="text-foreground font-medium">צורה</strong> היא קו המתאר של האבן: עגול
+            (<Bidi>Round</Bidi>), אובלי (<Bidi>Oval</Bidi>), טיפה (<Bidi>Pear</Bidi>) ועוד.
+          </li>
+        </ul>
       </>
     ),
   },
@@ -131,8 +169,13 @@ const FAQS: readonly Faq[] = [
   },
   {
     id: 'shipping',
-    question: 'כמה עולה המשלוח וכמה זמן הוא לוקח?',
-    answer: <>מדיניות המשלוחים טרם נקבעה ותפורסם כאן לפני פתיחת החנות.</>,
+    question: 'כמה עולה המשלוח?',
+    answer: <>המשלוח חינם, בכל הזמנה.</>,
+  },
+  {
+    id: 'delivery-time',
+    question: 'כמה זמן לוקח המשלוח?',
+    answer: <>זמני המשלוח טרם נקבעו ויפורסמו כאן לפני פתיחת החנות.</>,
     pending: true,
   },
   {
@@ -162,29 +205,34 @@ export default function FaqPage() {
       />
 
       <Container className="py-12 md:py-16">
-        <dl className="border-border mx-auto max-w-(--container-narrow) divide-y border-y">
-          {FAQS.map((faq) => (
-            <div key={faq.id} className="py-6">
+        {/* Answers are read at length, so the list takes the reading measure
+            (tokens.css) - about 74 characters a line, not the ~98 the 40rem
+            container held - and the answers are set as body prose. */}
+        <dl className="border-border mx-auto max-w-(--measure-reading) divide-y border-y">
+          {FAQS.filter((faq) => !faq.pending).map((faq) => (
+            // An anchor for the homepage's questions (/faq#<id>), clear of the
+            // sticky header when it is jumped to.
+            <div
+              key={faq.id}
+              id={faq.id}
+              className="scroll-mt-[calc(var(--header-height)+1rem)] py-6"
+            >
               <dt className="text-base font-medium">{faq.question}</dt>
-              <dd className="text-muted-foreground mt-2 text-sm text-pretty">
-                {faq.answer}
-                {faq.pending && (
-                  <span className="text-muted-foreground/70 text-2xs mt-2 block">
-                    טרם נקבע — יעודכן לפני ההשקה.
-                  </span>
-                )}
-              </dd>
+              <dd className="text-soft-foreground mt-2 text-base text-pretty">{faq.answer}</dd>
             </div>
           ))}
         </dl>
 
-        <p className="text-muted-foreground mt-10 text-center text-sm">
-          לא מצאתם תשובה?{' '}
-          <Link href="/contact" className="text-accent underline underline-offset-4">
-            אפשר לפנות אלינו
-          </Link>
-          .
-        </p>
+        {/* Only when there is somewhere to turn: /contact exists only then. */}
+        {contactAvailable && (
+          <p className="text-muted-foreground mt-10 text-center text-sm">
+            לא מצאתם תשובה?{' '}
+            <Link href="/contact" className="text-accent underline underline-offset-4">
+              אפשר לפנות אלינו
+            </Link>
+            .
+          </p>
+        )}
       </Container>
     </>
   );

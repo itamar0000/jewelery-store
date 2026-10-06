@@ -1,0 +1,502 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-30T00:00:00.000Z",
+  "title": "Design System: Jewelry for Less",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Barely Warm Paper",
+        "canonical": "#fafaf8",
+        "tonalRamp": [
+          "#1f1f1c",
+          "#3b3a35",
+          "#57554e",
+          "#767369",
+          "#9a978d",
+          "#c2bfb5",
+          "#e6e4dd",
+          "#fafaf8"
+        ]
+      },
+      "paper-deep": {
+        "role": "neutral",
+        "displayName": "Recessed Paper",
+        "canonical": "#f0efec",
+        "tonalRamp": [
+          "#1d1c19",
+          "#383731",
+          "#54524a",
+          "#726f65",
+          "#969287",
+          "#bdbab0",
+          "#dedcd4",
+          "#f0efec"
+        ]
+      },
+      "ink": {
+        "role": "primary",
+        "displayName": "Ink",
+        "canonical": "#111110",
+        "tonalRamp": [
+          "#111110",
+          "#232220",
+          "#35342f",
+          "#46443f",
+          "#5a5750",
+          "#6e6b64",
+          "#8e8b83",
+          "#b1aea6"
+        ]
+      },
+      "ink-soft": {
+        "role": "primary",
+        "displayName": "Soft Ink",
+        "canonical": "#46443f",
+        "tonalRamp": [
+          "#141312",
+          "#242320",
+          "#35342f",
+          "#46443f",
+          "#5d5a54",
+          "#767269",
+          "#9d998f",
+          "#c9c6bd"
+        ]
+      },
+      "ink-muted": {
+        "role": "primary",
+        "displayName": "Muted Ink",
+        "canonical": "#6e6b64",
+        "tonalRamp": [
+          "#171614",
+          "#2a2926",
+          "#3f3d38",
+          "#56534c",
+          "#6e6b64",
+          "#8f8c84",
+          "#b4b1a8",
+          "#dcd9d2"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#dedcd6",
+        "tonalRamp": [
+          "#1c1b18",
+          "#35342f",
+          "#504e47",
+          "#6d6a62",
+          "#8f8c84",
+          "#b3b0a8",
+          "#dedcd6",
+          "#f3f2ee"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Strong Hairline",
+        "canonical": "#8c8881",
+        "tonalRamp": [
+          "#1a1917",
+          "#31302c",
+          "#4a4842",
+          "#66635b",
+          "#878479",
+          "#a3a098",
+          "#8c8881",
+          "#dedcd6"
+        ]
+      },
+      "stamp-hover": {
+        "role": "primary",
+        "displayName": "Ink Hover",
+        "canonical": "#2b2a27",
+        "tonalRamp": [
+          "#111110",
+          "#1d1c1a",
+          "#2b2a27",
+          "#3c3a36",
+          "#4f4d47",
+          "#67645c",
+          "#8b887f",
+          "#b5b2aa"
+        ]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Desaturated Danger",
+        "canonical": "#8c2f22",
+        "tonalRamp": [
+          "#210b08",
+          "#3a130e",
+          "#521c14",
+          "#6b241a",
+          "#8c2f22",
+          "#a84a3a",
+          "#c9776b",
+          "#e7b8b1"
+        ]
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "Desaturated Success",
+        "canonical": "#2a5c46",
+        "tonalRamp": [
+          "#0a1710",
+          "#12271c",
+          "#1b3b2b",
+          "#234c38",
+          "#2a5c46",
+          "#437a60",
+          "#7aa895",
+          "#bcd5c9"
+        ]
+      },
+      "warning": {
+        "role": "tertiary",
+        "displayName": "Desaturated Warning",
+        "canonical": "#7a5c1f",
+        "tonalRamp": [
+          "#1d1607",
+          "#33260c",
+          "#4a3712",
+          "#614918",
+          "#7a5c1f",
+          "#9d7a34",
+          "#c1a878",
+          "#e3d5b8"
+        ]
+      },
+      "placeholder": {
+        "role": "neutral",
+        "displayName": "Development Placeholder (temporary)",
+        "canonical": "#dcd9d2",
+        "tonalRamp": [
+          "#1b1a17",
+          "#33312c",
+          "#4c4a43",
+          "#56534c",
+          "#807d74",
+          "#a8a59c",
+          "#dcd9d2",
+          "#f2f0ea"
+        ]
+      },
+      "placeholder-ink": {
+        "role": "neutral",
+        "displayName": "Placeholder Ink (temporary)",
+        "canonical": "#56534c",
+        "tonalRamp": [
+          "#161513",
+          "#282622",
+          "#3b3933",
+          "#56534c",
+          "#726f66",
+          "#96938a",
+          "#bfbcb3",
+          "#e4e2db"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The home page's one line, set beneath the hero photograph. Steps 3rem / 4.5rem / 5.75rem; a 7.5rem step exists in the scale above anything currently shipped."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The single h1 on an inner page, set typographically over a hairline rule."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section headings and collection names, in the display face."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Prose meant to be read, at the 30em reading measure (about 74 Hebrew characters a line)."
+      },
+      "body-small": {
+        "displayName": "Body Small",
+        "purpose": "The working size of the UI: product names, prices, navigation, filters, footer."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Badges and the smallest metadata. Sentence case, never uppercase, never positively tracked."
+      }
+    },
+    "shadows": [
+      {
+        "name": "xs",
+        "value": "0 1px 2px 0 rgb(6 20 34 / 0.05)",
+        "purpose": "Faintest separation. Effectively unused on a pale ground."
+      },
+      {
+        "name": "sm",
+        "value": "0 1px 3px 0 rgb(6 20 34 / 0.06), 0 1px 2px -1px rgb(6 20 34 / 0.05)",
+        "purpose": "Faint separation. Effectively unused."
+      },
+      {
+        "name": "md",
+        "value": "0 4px 12px -2px rgb(6 20 34 / 0.08), 0 2px 4px -2px rgb(6 20 34 / 0.05)",
+        "purpose": "The sticky masthead once the page has scrolled past 8px."
+      },
+      {
+        "name": "lg",
+        "value": "0 12px 28px -6px rgb(6 20 34 / 0.1), 0 4px 8px -4px rgb(6 20 34 / 0.06)",
+        "purpose": "Drawers and overlays that genuinely float above the sheet."
+      },
+      {
+        "name": "xl",
+        "value": "0 24px 48px -12px rgb(6 20 34 / 0.13)",
+        "purpose": "Dialogs. The deepest lift in the system."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-settle",
+        "value": "cubic-bezier(0.4, 0.9, 0.3, 1)",
+        "purpose": "The house curve, installed as Tailwind's default timing function so every existing transition inherits it. Asymmetric on purpose: leaves fast, arrives slowly."
+      },
+      {
+        "name": "ease-exit",
+        "value": "cubic-bezier(0.45, 0, 0.9, 0.35)",
+        "purpose": "Departures only: a closing drawer, a dismissed overlay. Only arrivals earn the long tail."
+      },
+      {
+        "name": "duration-default",
+        "value": "240ms",
+        "purpose": "UI feedback with the pointer still on the element: a link changing value, a border darkening, a button filling."
+      },
+      {
+        "name": "duration-settle",
+        "value": "500ms",
+        "purpose": "Something the eye follows: a panel opening, an image crossfading, a menu descending."
+      },
+      {
+        "name": "duration-reveal",
+        "value": "700ms",
+        "purpose": "Entrances: copy arriving on first paint, a gallery changing frame."
+      },
+      {
+        "name": "duration-drift",
+        "value": "1400ms",
+        "purpose": "Ambient motion with no interaction to keep pace with: the slow push on a product image under the cursor."
+      },
+      {
+        "name": "animate-rise-in",
+        "value": "rise-in 700ms cubic-bezier(0.4, 0.9, 0.3, 1) both",
+        "purpose": "Copy fading up 0.75rem on first paint. `both` is load-bearing: without it a staggered element paints at its end state for the length of its own delay."
+      },
+      {
+        "name": "animate-frame-in",
+        "value": "frame-in 700ms cubic-bezier(0.4, 0.9, 0.3, 1) both",
+        "purpose": "A new gallery frame fading up from a 1.2% over-scale, so the swap settles rather than substitutes."
+      },
+      {
+        "name": "animate-hero-settle",
+        "value": "hero-settle 2000ms ease-out both",
+        "purpose": "The hero photograph releasing from a 4% over-scale over two seconds. The one purely atmospheric movement on the site."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "40rem"
+      },
+      {
+        "name": "md",
+        "value": "48rem"
+      },
+      {
+        "name": "lg",
+        "value": "64rem"
+      },
+      {
+        "name": "xl",
+        "value": "80rem"
+      },
+      {
+        "name": "2xl",
+        "value": "96rem"
+      }
+    ],
+    "containers": [
+      {
+        "name": "prose",
+        "value": "40rem"
+      },
+      {
+        "name": "narrow",
+        "value": "48rem"
+      },
+      {
+        "name": "content",
+        "value": "72rem"
+      },
+      {
+        "name": "wide",
+        "value": "90rem"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one high-emphasis action in a view: a block of ink with paper-coloured type and a paper hairline set inside it.",
+      "html": "<button class=\"ds-btn-primary\">לקטלוג המלא</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 2.75rem; padding: 0 1.5rem; border: none; border-radius: 0; background: var(--color-stamp, #111110); color: var(--color-stamp-foreground, #fafaf8); box-shadow: inset 0 0 0 1px rgb(250 250 248 / 0.25); font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background-color 240ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-btn-primary:hover { background: var(--color-stamp-hover, #2b2a27); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-ring, #111110); outline-offset: 2px; } .ds-btn-primary:active { background: #111110; }"
+    },
+    {
+      "name": "Secondary Action",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "The default action: a ruled field on whatever ground it sits on. The foreground is inherited, never named, so it survives an inverted surface.",
+      "html": "<button class=\"ds-btn-secondary\">לפרטים ולפנייה</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 2.75rem; padding: 0 1.5rem; border: 1px solid var(--color-border-field, #8c8881); border-radius: 0; background: transparent; color: inherit; font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: border-color 240ms cubic-bezier(0.4, 0.9, 0.3, 1), background-color 240ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-btn-secondary:hover { border-color: var(--color-accent, #111110); background: var(--color-muted, #f0efec); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--color-ring, #111110); outline-offset: 2px; }"
+    },
+    {
+      "name": "Underlined Action",
+      "kind": "button",
+      "refersTo": "button-link",
+      "description": "The editorial action: the hero's call to the catalogue and a collection's 'view'. A rule, not a button, so it does not pull the eye off the photograph.",
+      "html": "<a class=\"ds-action-rule\" href=\"#\">לקטלוג המלא</a>",
+      "css": ".ds-action-rule { display: inline-block; color: var(--color-foreground, #111110); font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 1rem; font-weight: 600; text-decoration: underline; text-decoration-color: var(--color-border-strong, #8c8881); text-underline-offset: 0.45em; transition: text-decoration-color 500ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-action-rule:hover { text-decoration-color: var(--color-foreground, #111110); } .ds-action-rule:focus-visible { outline: 2px solid var(--color-ring, #111110); outline-offset: 4px; }"
+    },
+    {
+      "name": "Over-Image Badge",
+      "kind": "chip",
+      "refersTo": "badge-neutral",
+      "description": "Product state, set over a photograph in paper at 85%. At most one per card, and only 'new' qualifies today: stacked badges, or two badge colours, read as stickers on the photograph.",
+      "html": "<span class=\"ds-badge-on-image\">חדש</span>",
+      "css": ".ds-badge-on-image { display: inline-flex; align-items: center; padding: 0.125rem 0.5rem; border: 1px solid transparent; border-radius: 0.125rem; background: rgb(250 250 248 / 0.85); backdrop-filter: blur(4px); color: var(--color-card-foreground, #111110); font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 0.75rem; line-height: 1.45; font-weight: 500; letter-spacing: -0.01em; }"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "Every field in the system is an underline, not a box: one strong hairline that darkens to ink on focus.",
+      "html": "<div class=\"ds-field\"><svg class=\"ds-field-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"7\"></circle><path d=\"m20 20-3.5-3.5\"></path></svg><input class=\"ds-field-input\" type=\"search\" placeholder=\"חיפוש בקטלוג\" dir=\"rtl\" /></div>",
+      "css": ".ds-field { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--color-border-strong, #8c8881); transition: border-color 240ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-field:focus-within { border-color: var(--color-accent, #111110); } .ds-field-icon { width: 1.25rem; height: 1.25rem; flex-shrink: 0; color: var(--color-muted-foreground, #6e6b64); } .ds-field-input { flex: 1; min-width: 0; border: none; background: transparent; color: var(--color-foreground, #111110); font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 1rem; line-height: 1.7; } .ds-field-input:focus { outline: none; } .ds-field-input::placeholder { color: var(--color-muted-foreground, #6e6b64); }"
+    },
+    {
+      "name": "Masthead",
+      "kind": "nav",
+      "refersTo": "masthead",
+      "description": "The one inversion in the system: an ink bar across a very light page. Everything drawn on it states its light value explicitly, because accent resolves to ink.",
+      "html": "<header class=\"ds-masthead\"><a class=\"ds-masthead-mark\" href=\"#\"><bdi>Jewelry for Less</bdi></a><nav class=\"ds-masthead-nav\"><a href=\"#\">טבעות</a><a href=\"#\">עגילים</a><a href=\"#\">שרשראות</a></nav></header>",
+      "css": ".ds-masthead { display: flex; align-items: center; gap: 1.5rem; height: 4rem; padding: 0 1.5rem; background: var(--color-foreground, #111110); color: var(--color-background, #fafaf8); direction: rtl; } .ds-masthead-mark { display: inline-block; padding: 0.25rem 0.75rem; border: 1px solid rgb(250 250 248 / 0.5); color: var(--color-background, #fafaf8); font-family: var(--font-display, 'Miriam Libre', sans-serif); font-size: 1.125rem; font-weight: 700; line-height: 1; letter-spacing: -0.02em; white-space: nowrap; text-decoration: none; transition: border-color 500ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-masthead-mark:hover { border-color: var(--color-background, #fafaf8); } .ds-masthead-nav { display: flex; align-items: center; gap: 0.75rem; } .ds-masthead-nav a { color: rgb(250 250 248 / 0.65); font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 0.875rem; text-decoration: none; white-space: nowrap; transition: color 150ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-masthead-nav a:hover { color: var(--color-background, #fafaf8); } .ds-masthead-nav a:focus-visible { outline: 2px solid var(--color-background, #fafaf8); outline-offset: 2px; }"
+    },
+    {
+      "name": "Product Card",
+      "kind": "card",
+      "refersTo": "button-link",
+      "description": "Not a card: no background, no border, no shadow, no radius. A photograph flush on the paper, then the name and the approximate price on the open sheet.",
+      "html": "<article class=\"ds-product\"><div class=\"ds-product-frame\"><div class=\"ds-product-img\"></div></div><h3 class=\"ds-product-name\"><a href=\"#\">טבעת זהב 14K משובצת יהלום</a></h3><p class=\"ds-product-price\"><span aria-hidden=\"true\">≈ </span><bdi>₪4,200</bdi></p></article>",
+      "css": ".ds-product { display: flex; flex-direction: column; width: 16rem; direction: rtl; } .ds-product-frame { position: relative; overflow: hidden; aspect-ratio: 4 / 5; } .ds-product-img { width: 100%; height: 100%; background: var(--color-placeholder, #dcd9d2); transition: transform 1400ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-product:hover .ds-product-img { transform: scale(1.04); } .ds-product-name { margin: 1rem 0 0; font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 0.875rem; font-weight: 400; line-height: 1.4; } .ds-product-name a { color: inherit; text-decoration: none; text-decoration-color: var(--color-border-strong, #8c8881); text-underline-offset: 0.35em; } .ds-product-name a:hover { text-decoration: underline; } .ds-product-price { margin: 0.375rem 0 0; font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 0.875rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--color-foreground, #111110); }"
+    },
+    {
+      "name": "Ruled Caption",
+      "kind": "custom",
+      "refersTo": "title",
+      "description": "The signature pattern of the system: a photograph's name sits on a hairline rule beneath the image, never over it. Used by categories, collections and page headers.",
+      "html": "<a class=\"ds-ruled\" href=\"#\"><div class=\"ds-ruled-img\"></div><div class=\"ds-ruled-caption\"><h3>אוסף כלה</h3><span class=\"ds-ruled-action\">לצפייה</span></div></a>",
+      "css": ".ds-ruled { display: block; width: 22rem; text-decoration: none; color: inherit; direction: rtl; } .ds-ruled-img { aspect-ratio: 3 / 2; width: 100%; background: var(--color-placeholder, #dcd9d2); overflow: hidden; transition: transform 1400ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-ruled:hover .ds-ruled-img { transform: scale(1.03); } .ds-ruled-caption { display: flex; align-items: baseline; gap: 1.5rem; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--color-border, #dedcd6); } .ds-ruled-caption h3 { margin: 0; font-family: var(--font-display, 'Miriam Libre', sans-serif); font-size: 1.75rem; font-weight: 700; line-height: 1.3; letter-spacing: -0.02em; } .ds-ruled-action { margin-inline-start: auto; font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 0.875rem; font-weight: 600; text-decoration: underline; text-decoration-color: var(--color-border-strong, #8c8881); text-underline-offset: 0.4em; transition: text-decoration-color 500ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-ruled:hover .ds-ruled-action { text-decoration-color: var(--color-foreground, #111110); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Only Colour Is the Jewellery",
+    "overview": "The site is paper and ink, and nothing else. There is no accent hue, no field colour, no stamp colour, and — deliberately — no gold token anywhere in the palette. Every warm note on every page comes out of a photograph, which is the whole point: gold reads as gold because it is the only gold there is. This is a position, not a restriction, and it is the load-bearing decision of the system.\n\nBecause the palette spends nothing, the distinction is carried by four things that are not colours: type at scale, photography that runs edge to edge, hairline rules, and the amount of paper left empty. That is what keeps a near-white page from collapsing back into \"cream plus a serif\" — the generic light shop this site wore once already. The paper (#fafaf8) is a hair off neutral, warm enough that gold photography does not go cold on it, and well short of ivory stationery. Nothing is boxed, shadowed or framed: photographs sit directly on the sheet, and the only things that ever separate two pieces of content are a hairline and empty space.\n\nTwo earlier worlds were rejected by the owner and must not be revived. The first was a saturated trade blue owning the viewport — \"does not read as a jewellery house\". The second went pale but kept a blue ink and a red stamp, and landed as the same generic light shop it was meant to replace; the paper label with its red button was \"hideous\". Both are gone from the code. The product's name makes a price claim (\"for less\"), and the design answer to a value name is restraint rather than discount signalling: no burst, no sticker, no shout.",
+    "keyCharacteristics": [
+      "Paper and ink only; every warm tone on the page is photographic",
+      "Type at scale as the primary expressive device (display to 5.75rem)",
+      "Photography full-bleed and flush — never boxed, never scrimmed, never labelled over",
+      "Hairlines carry the entire structure; no panels, no fills",
+      "One inversion: an ink masthead across a very light page",
+      "Emphasis is a darker value, never a hue",
+      "Hebrew-first RTL, with both faces carrying Hebrew and Latin"
+    ],
+    "rules": [
+      {
+        "name": "The Only Colour Is the Jewellery Rule",
+        "body": "No hue enters the interface. If a new surface seems to need a colour, it needs a photograph, a larger size, or more empty paper instead. A gold, brass or champagne token is specifically excluded: gold appears only as photographed metal.",
+        "section": "colors"
+      },
+      {
+        "name": "The Darker, Not Different Rule",
+        "body": "Every emphasis state — hover, active nav item, link, primary action — is a change in value, never in hue. `accent` resolves to ink by design.",
+        "section": "colors"
+      },
+      {
+        "name": "The State Your Value Rule",
+        "body": "Because `accent` resolves to ink, anything drawn on the ink masthead must name its light value explicitly (paper-coloured type at full or 65% strength). Inheriting or reaching for `accent` there ships ink on ink, which has already happened once.",
+        "section": "colors"
+      },
+      {
+        "name": "The Display-First Fallback Rule",
+        "body": "The display face must stay ahead of Assistant in `--font-display` and the order cannot be reversed. Font fallback is per glyph: Assistant covers Latin as well as Hebrew, so listing it first wins every character and the display face silently never renders — a failure that looks exactly like the font failing to load.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Positive Tracking Rule",
+        "body": "Hebrew is never letter-spaced positively; it breaks glyph joins and legibility. The tracking scale runs tight-to-normal only (-0.02em, -0.01em, 0). There is no uppercase, wide-tracked type anywhere in the system.",
+        "section": "typography"
+      },
+      {
+        "name": "The Two Weights Rule",
+        "body": "Miriam Libre ships 400 and 700 and nothing between. Hierarchy comes from size and from the difference between the struck display face and the written body face — not from weight steps. A layout that needs a third weight has an undecided hierarchy.",
+        "section": "typography"
+      },
+      {
+        "name": "The Isolated Wordmark Rule",
+        "body": "\"Jewelry for Less\" is Latin on a Hebrew page and is wrapped in `<bdi>` in both the masthead and the footer, so the bidi algorithm cannot reorder it. Any Latin name, price or copyright line mixed into an RTL line gets the same treatment.",
+        "section": "typography"
+      },
+      {
+        "name": "The First Viewport Rule",
+        "body": "The home page opens on one photograph, full bleed, with nothing laid over it, and the display line begins where the image ends. Every height is measured from the real sticky header (`--header-height`). From 64rem the first screen holds the photograph, the line and its action together: the photograph takes whatever height the line leaves, down to about 620px of screen. Under 50rem of height (`short:`) the rhythm tightens and the display steps down one size. Below 64rem the photograph fills the screen but for 7rem, and the top of the line breaks the fold. The photograph switches crops by orientation, not width.",
+        "section": "layout"
+      },
+      {
+        "name": "The Shadow Means Floating Rule",
+        "body": "A shadow is never an interactive affordance and never a hierarchy device. A shadow under a product image is how a gallery turns into a template.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Underlined Action Rule",
+        "body": "The highest-value actions on the editorial surfaces — the hero's call to the catalogue, a collection's \"view\" — are an underlined line of type, not a filled block. A filled block next to a photograph pulls the eye off the thing it is meant to serve.",
+        "section": "components"
+      },
+      {
+        "name": "The No Scrim Rule",
+        "body": "A photograph is never darkened, tinted or overlaid to make type legible on it. The type goes on the paper beneath.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do let every warm tone on a page come out of a photograph. Paper (#fafaf8) and ink (#111110) are the only materials the interface itself owns.",
+      "Do express emphasis as a darker value — `accent` resolves to ink and is meant to.",
+      "Do state the light value explicitly (paper, or paper at 65%) on anything drawn on the ink masthead.",
+      "Do run photography edge to edge and flush on the paper, with its label on a hairline rule beneath it.",
+      "Do reach for size and empty paper when a surface needs more presence. The scale goes to 7.5rem for exactly this reason.",
+      "Do keep the display face ahead of Assistant in `--font-display`.",
+      "Do wrap Latin names, prices and mixed-script lines in `<bdi>`.",
+      "Do pick a named rhythm tier (tight / section / feature / finale) by the band's role, so the page reads as a composition rather than a list.",
+      "Do use logical properties for every inset, margin and border side."
+    ],
+    "donts": [
+      "Don't introduce an accent hue, a field colour, or a gold/champagne token. There is no gold in the palette on purpose.",
+      "Don't box, frame, tint or shadow a photograph, and don't lay type or a scrim over one.",
+      "Don't add a shadow to convey interactivity or hierarchy; a shadow means the element genuinely floats (drawer, dialog, scrolled masthead).",
+      "Don't letter-space Hebrew positively, and don't set uppercase wide-tracked type — neither the language nor the scale supports it.",
+      "Don't put a filled button beside a hero or collection photograph where an underlined line of type does the job.",
+      "Don't reintroduce a high-contrast display serif over the light ground; that pairing is the shape this redesign exists to escape.",
+      "Don't ship a grey placeholder rectangle as a page header or band. A typographic header is a finished state; a stand-in is not.",
+      "Don't name a raw `--ref-*` value or a literal hex in a component. Components consume the semantic layer only, so the palette stays a single-file change.",
+      "Don't give an action a rounded corner. Radius is for the few surfaces that earn one (badge, drawer control, editorial image), never for a button."
+    ]
+  }
+}

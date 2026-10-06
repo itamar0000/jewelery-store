@@ -6,7 +6,7 @@ import { useRef, type Dispatch } from 'react';
 import { ChevronIcon } from '@/components/ui/icons';
 import { cn } from '@/components/ui/cn';
 import type { MenuAction, MenuState } from '@/lib/navigation/menu-state';
-import { PRIMARY_NAV } from '@/lib/navigation/taxonomy';
+import type { NavItem } from '@/lib/navigation/taxonomy';
 
 import { MegaMenu } from './MegaMenu';
 
@@ -49,9 +49,12 @@ import { MegaMenu } from './MegaMenu';
  * panel and no `aria-expanded`.
  */
 export function DesktopNav({
+  items,
   state,
   dispatch,
 }: {
+  /** The primary items to show - PRIMARY_NAV, less any the Header withholds. */
+  items: readonly NavItem[];
   state: MenuState;
   dispatch: Dispatch<MenuAction>;
 }) {
@@ -85,7 +88,7 @@ export function DesktopNav({
        * hit area.
        */}
       <ul className="flex items-center justify-center gap-1 xl:gap-3">
-        {PRIMARY_NAV.map((item) => {
+        {items.map((item) => {
           const hasMenu = item.columns !== undefined;
           const isOpen = state.openMegaMenu === item.id;
           const panelId = `megamenu-${item.id}`;
@@ -96,7 +99,7 @@ export function DesktopNav({
               <li key={item.id}>
                 <Link
                   href={item.href}
-                  className="hover:text-accent inline-flex h-12 items-center px-3 text-sm whitespace-nowrap transition-colors duration-150"
+                  className="text-background/65 hover:text-background inline-flex h-12 items-center px-3 text-sm whitespace-nowrap transition-colors duration-150"
                 >
                   {item.label}
                 </Link>
@@ -126,15 +129,20 @@ export function DesktopNav({
                 }}
                 className={cn(
                   // The open state is marked by a hairline under the label as
-                  // well as by colour. Colour alone had to fight the accent
-                  // used elsewhere in the row, and a rule that appears exactly
-                  // under the open item is the clearer tie between the trigger
-                  // and the panel it just opened.
+                  // well as by colour, because a rule directly under the open
+                  // item is the clearest tie between a trigger and the panel it
+                  // just opened.
+                  //
+                  // EVERY VALUE HERE IS THE PAPER COLOUR, not `accent`. The bar
+                  // went to ink, and `accent` resolves to ink too - so the rule
+                  // and the open label were both ink on ink, present in the
+                  // source and invisible on the screen. Anything drawn on this
+                  // bar states the light value explicitly.
                   'relative inline-flex h-12 items-center gap-1.5 px-3 text-sm whitespace-nowrap transition-colors duration-150',
-                  'after:bg-accent after:absolute after:inset-x-3 after:bottom-0 after:h-px after:origin-center after:transition-transform after:duration-200',
+                  'after:bg-background after:absolute after:inset-x-3 after:bottom-0 after:h-px after:origin-center after:transition-transform after:duration-200',
                   isOpen
-                    ? 'text-accent after:scale-x-100'
-                    : 'hover:text-accent after:scale-x-0 hover:after:scale-x-100',
+                    ? 'text-background after:scale-x-100'
+                    : 'text-background/65 hover:text-background after:scale-x-0 hover:after:scale-x-100',
                 )}
               >
                 {item.label}

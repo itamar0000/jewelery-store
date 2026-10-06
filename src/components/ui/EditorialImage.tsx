@@ -45,8 +45,15 @@ export interface EditorialImageProps {
   readonly placeholderLabel?: string;
   /** Suppresses the placeholder caption where text sits over the image. */
   readonly hidePlaceholderLabel?: boolean;
+  /**
+   * What decides between the phone crop and the desktop crop, for an asset
+   * that has both. See ART_DIRECTION.
+   */
+  readonly artDirection?: ArtDirection;
   readonly className?: string;
 }
+
+export type ArtDirection = 'width' | 'orientation';
 
 /**
  * Above the library default of 75.
@@ -59,15 +66,25 @@ export interface EditorialImageProps {
 const QUALITY = 82;
 
 /**
- * The breakpoint the phone crop is swapped at.
+ * When the phone crop is used, and the focal-point rule that goes with it.
  *
- * `48rem` is `--breakpoint-md` from src/styles/tokens.css, which is also what
- * Tailwind's `md:` compiles to. The two MUST agree: this query picks the file
- * and `.editorial-focal` in globals.css picks the matching focal point, so a
- * mismatch would crop the desktop photograph to the phone's focal point in the
- * sliver between them.
+ * Each pair MUST agree: the query picks the file and the class picks the
+ * matching focal point (globals.css), so a mismatch would crop one photograph
+ * to the other's focal point in the sliver between them.
+ *
+ * `width` - below `--breakpoint-md` (48rem), which is what `md:` compiles to.
+ * Right for a box whose shape is fixed by the section, like the bridal banner.
+ *
+ * `orientation` - in a portrait viewport. Right for a box that follows the
+ * viewport's own shape, which is the hero: a portrait tablet gives it a tall
+ * box, and switching by width served it the 21:9 desktop file - cropped to the
+ * empty wall beside the model and stretched 2.6x. Orientation gives every
+ * portrait screen the portrait photograph and every landscape one the wide.
  */
-const MOBILE_QUERY = '(width < 48rem)';
+const ART_DIRECTION: Readonly<Record<ArtDirection, { media: string; focalClass: string }>> = {
+  width: { media: '(width < 48rem)', focalClass: 'editorial-focal' },
+  orientation: { media: '(orientation: portrait)', focalClass: 'editorial-focal-orientation' },
+};
 
 export function EditorialImage({
   id,
@@ -75,8 +92,10 @@ export function EditorialImage({
   priority = false,
   placeholderLabel,
   hidePlaceholderLabel = false,
+  artDirection = 'width',
   className,
 }: EditorialImageProps) {
+  const { media, focalClass } = ART_DIRECTION[artDirection];
   const resolved = resolveEditorialAsset(id);
 
   if (!resolved.available) {
@@ -123,7 +142,7 @@ export function EditorialImage({
      * elements toggled by `md:hidden` it downloads exactly ONE of them.
      */
     <picture>
-      {mobile && <source media={MOBILE_QUERY} srcSet={mobile.srcSet} sizes={sizes} />}
+      {mobile && <source media={media} srcSet={mobile.srcSet} sizes={sizes} />}
       <img
         alt={alt}
         {...desktop}
@@ -138,7 +157,7 @@ export function EditorialImage({
         fetchPriority={priority ? 'high' : undefined}
         loading={priority ? 'eager' : 'lazy'}
         style={{ ...desktop.style, objectFit: 'cover', ...focal }}
-        className={cn('editorial-focal', className)}
+        className={cn(focalClass, className)}
       />
     </picture>
   );

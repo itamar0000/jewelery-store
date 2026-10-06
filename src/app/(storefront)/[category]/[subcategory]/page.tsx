@@ -95,7 +95,7 @@ export default async function SubcategoryPage({
       ]}
       activeSubcategoryId={category.id}
     >
-      <Suspense key={JSON.stringify(rawSearchParams)} fallback={<CategoryResultsSkeleton />}>
+      <Suspense fallback={<CategoryResultsSkeleton />}>
         <CategoryResults
           categoryIds={await descendantCategoryIds(category.id)}
           filterConfig={category.filterConfig}

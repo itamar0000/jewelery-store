@@ -103,4 +103,69 @@ describe('parseEnv', () => {
       expect(() => parseEnv({ ...VALID, SITE_INDEXABLE: value })).toThrow();
     }
   });
+
+  /*
+   * Same reasoning as indexing: the safe direction is "these are estimates", so
+   * that is the default, and only an exact "true" says otherwise.
+   */
+  it('treats prices as estimates unless told otherwise', () => {
+    expect(parseEnv(VALID).PRICES_FINAL).toBe(false);
+    expect(parseEnv({ ...VALID, PRICES_FINAL: 'true' }).PRICES_FINAL).toBe(true);
+    for (const value of ['TRUE', '1', 'yes', '']) {
+      expect(() => parseEnv({ ...VALID, PRICES_FINAL: value })).toThrow();
+    }
+  });
+
+  describe('contact channels', () => {
+    it('configures none by default - nothing is invented', () => {
+      const env = parseEnv(VALID);
+
+      expect(env.CONTACT_WHATSAPP).toBeUndefined();
+      expect(env.CONTACT_PHONE).toBeUndefined();
+      expect(env.CONTACT_EMAIL).toBeUndefined();
+    });
+
+    it('treats an empty value as not configured', () => {
+      expect(parseEnv({ ...VALID, CONTACT_WHATSAPP: '  ' }).CONTACT_WHATSAPP).toBeUndefined();
+    });
+
+    it('accepts real-looking values', () => {
+      const env = parseEnv({
+        ...VALID,
+        CONTACT_WHATSAPP: '+972 50-123-4567',
+        CONTACT_PHONE: '03-1234567',
+        CONTACT_EMAIL: 'hello@example.com',
+      });
+
+      expect(env.CONTACT_WHATSAPP).toBe('+972 50-123-4567');
+      expect(env.CONTACT_PHONE).toBe('03-1234567');
+      expect(env.CONTACT_EMAIL).toBe('hello@example.com');
+    });
+
+    it('rejects values that cannot be a channel', () => {
+      expect(() => parseEnv({ ...VALID, CONTACT_WHATSAPP: 'call us' })).toThrow(/CONTACT_WHATSAPP/);
+      expect(() => parseEnv({ ...VALID, CONTACT_WHATSAPP: '1234' })).toThrow(/CONTACT_WHATSAPP/);
+      expect(() => parseEnv({ ...VALID, CONTACT_PHONE: 'TBD' })).toThrow(/CONTACT_PHONE/);
+      expect(() => parseEnv({ ...VALID, CONTACT_EMAIL: 'not-an-email' })).toThrow(/CONTACT_EMAIL/);
+    });
+  });
+
+  describe('VAT_RATE_BPS', () => {
+    it('has no default - the rate is the owner’s fact, never assumed', () => {
+      expect(parseEnv({ ...VALID }).VAT_RATE_BPS).toBeUndefined();
+      expect(parseEnv({ ...VALID, VAT_RATE_BPS: '  ' }).VAT_RATE_BPS).toBeUndefined();
+    });
+
+    it('reads a rate in basis points', () => {
+      expect(parseEnv({ ...VALID, VAT_RATE_BPS: '1800' }).VAT_RATE_BPS).toBe(1800);
+      expect(parseEnv({ ...VALID, VAT_RATE_BPS: '0' }).VAT_RATE_BPS).toBe(0);
+    });
+
+    it('rejects a percentage, a fraction or an impossible rate', () => {
+      expect(() => parseEnv({ ...VALID, VAT_RATE_BPS: '18%' })).toThrow(/VAT_RATE_BPS/);
+      expect(() => parseEnv({ ...VALID, VAT_RATE_BPS: '0.18' })).toThrow(/VAT_RATE_BPS/);
+      expect(() => parseEnv({ ...VALID, VAT_RATE_BPS: '-1' })).toThrow(/VAT_RATE_BPS/);
+      expect(() => parseEnv({ ...VALID, VAT_RATE_BPS: '10001' })).toThrow(/VAT_RATE_BPS/);
+    });
+  });
 });

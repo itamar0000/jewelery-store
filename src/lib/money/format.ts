@@ -59,6 +59,13 @@ function formatter(fractionDigits: number): Intl.NumberFormat {
 }
 
 /**
+ * Precedes a price that is the lowest of several - a product whose karat or
+ * colour changes what it costs. The maqaf joins it to the figure, as Hebrew
+ * writes "החל מ־1,290 ₪".
+ */
+export const PRICE_FROM = 'החל מ־';
+
+/**
  * The customer-facing price string, localised for Hebrew/Israel.
  *
  * Never use this for machine-readable output - `<input value>`, schema.org

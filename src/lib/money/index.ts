@@ -30,4 +30,4 @@ export {
   type Percent,
 } from './money';
 
-export { formatPrice, type AgorotDisplay, type FormatPriceOptions } from './format';
+export { PRICE_FROM, formatPrice, type AgorotDisplay, type FormatPriceOptions } from './format';

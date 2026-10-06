@@ -1,37 +1,37 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
 import { PageHero } from '@/components/storefront/PageHero';
 import { Container } from '@/components/ui/Container';
-import { FOOTER_CONTACT } from '@/lib/navigation/taxonomy';
-import { PLACEHOLDER_ATTR } from '@/lib/placeholders';
+import { cn } from '@/components/ui/cn';
+import { contactAvailable, contactChannels } from '@/lib/contact';
 
 export const metadata: Metadata = {
   title: 'צור קשר',
   description: 'דרכי יצירת קשר עם החנות.',
 };
 
+/** One column per channel, so one or two channels do not leave empty cells. */
+const COLUMNS = ['', 'sm:grid-cols-2', 'sm:grid-cols-3'] as const;
+
 /**
  * Contact page.
  *
- * TWO THINGS ARE DELIBERATELY MISSING, and both would be easy to fake.
+ * IT EXISTS ONLY WHEN A CHANNEL DOES. The channels are configuration
+ * (src/lib/contact, from the CONTACT_* environment variables) and nothing here
+ * supplies one. With none configured the page is a 404 and nothing on the site
+ * links to it: it used to list three channels reading "יעודכן" above a form
+ * that "has not been built yet", which told a visitor who wanted to reach the
+ * shop that they could not.
  *
- * 1. NO CONTACT DETAILS ARE INVENTED. The phone number, email address and
- *    WhatsApp channel are outstanding business details (section 52, TBD.md), so
- *    each channel renders its label with "יעודכן" and no `href`. A plausible
- *    placeholder number is worse than an empty slot: it looks finished, so
- *    nobody fixes it, and a customer eventually dials it.
- *
- * 2. NO CONTACT FORM. A form here would collect a name, a phone number and a
- *    message, and then discard them - there is no inbox, no persistence and no
- *    notification behind it. A contact form that silently drops enquiries is
- *    worse than no form, because the customer believes they have been in touch.
- *    The same reasoning governs the custom-request form on /custom.
- *
- * The channels are read from the same FOOTER_CONTACT constant the footer uses,
- * so when the real details land they appear in both places from one edit.
+ * NO CONTACT FORM, still. A form here would collect a name, a phone number and
+ * a message with no inbox behind it - worse than no form, because the customer
+ * believes they have been in touch. The same reasoning governs /custom.
  */
 export default function ContactPage() {
+  if (!contactAvailable) notFound();
+
   return (
     <>
       <PageHero
@@ -44,45 +44,32 @@ export default function ContactPage() {
       <Container className="py-12 md:py-16">
         <div className="mx-auto max-w-(--container-narrow)">
           <section aria-labelledby="channels-heading">
-            <h2 id="channels-heading" className="text-center text-xl tracking-tight">
+            <h2
+              id="channels-heading"
+              className="font-display text-center text-2xl font-bold tracking-tight md:text-3xl"
+            >
               דרכי יצירת קשר
             </h2>
 
-            <ul className="mt-8 grid gap-4 sm:grid-cols-3" {...PLACEHOLDER_ATTR}>
-              {FOOTER_CONTACT.map((channel) => (
-                <li
-                  key={channel.id}
-                  className="border-border bg-card rounded-sm border p-6 text-center"
-                >
+            <ul className={cn('mt-8 grid gap-4', COLUMNS[Math.min(contactChannels.length, 3) - 1])}>
+              {contactChannels.map((channel) => (
+                // Under a hairline, not in a box - the shape of the custom
+                // page's steps, and of everything else on the site.
+                <li key={channel.id} className="border-border border-t pt-5 text-center">
                   <span className="block text-sm font-medium">{channel.label}</span>
-                  <span className="text-muted-foreground/70 mt-1 block text-sm">
-                    {channel.value}
-                  </span>
+                  <a
+                    href={channel.href}
+                    className="text-accent mt-1 inline-block text-sm underline underline-offset-4"
+                  >
+                    <bdi>{channel.display}</bdi>
+                  </a>
                 </li>
               ))}
             </ul>
-
-            <p className="text-muted-foreground/70 text-2xs mt-4 text-center">
-              פרטי הקשר טרם נקבעו ויעודכנו לפני ההשקה.
-            </p>
-          </section>
-
-          <section
-            aria-labelledby="form-heading"
-            className="border-border mt-12 rounded-sm border border-dashed p-8 text-center"
-            {...PLACEHOLDER_ATTR}
-          >
-            <h2 id="form-heading" className="text-base font-medium">
-              טופס פנייה
-            </h2>
-            <p className="text-muted-foreground mt-3 text-sm text-pretty">
-              הטופס עדיין לא נבנה, ולכן לא נאספים כאן פרטים אישיים. הוא ייבנה יחד עם מערכת הפניות,
-              כדי שכל פנייה אכן תגיע ליעד ולא תיעלם.
-            </p>
           </section>
 
           <section aria-labelledby="elsewhere-heading" className="mt-12 text-center">
-            <h2 id="elsewhere-heading" className="text-muted-foreground text-2xs font-medium">
+            <h2 id="elsewhere-heading" className="text-muted-foreground text-xs font-medium">
               אולי תמצאו תשובה כבר עכשיו
             </h2>
 

@@ -23,11 +23,22 @@ export interface ProductCardData {
   readonly name: string;
   readonly price: Money;
   /**
+   * True when the product's options change its price, so `price` is the lowest
+   * of several and the card says "החל מ־". Without it a shopper choosing 18K on
+   * the product page meets a higher price than the card showed.
+   */
+  readonly priceFrom?: boolean;
+  /**
    * Original price, when the product is genuinely discounted. Rendered struck
    * through beside the current price. Omit when there is no real comparison.
    */
   readonly compareAtPrice?: Money;
-  readonly badges?: readonly ProductBadge[];
+  /**
+   * At most ONE label, which is why this is not an array. Stacked badges on a
+   * photograph read as stickers, and two of them could contradict each other
+   * ("new" beside "best seller"). See ProductBadge for what qualifies.
+   */
+  readonly badge?: ProductBadge;
   /**
    * Scarcity message, supplied only from real inventory. Absent means the card
    * says nothing about stock, which is the default and the safe state.
@@ -94,9 +105,12 @@ export interface ProductSwatch {
 }
 
 /**
- * Merchandising labels.
+ * The one merchandising label a card can carry.
  *
- * `made-to-order` is a lead-time statement rather than a promotion, which is
- * why it is toned differently on the card.
+ * Only facts that distinguish a product from the rest of the grid qualify.
+ * "made to order" did not - it is the norm in this workshop, and the product
+ * page states each variant's lead time. "best seller" did not either - the
+ * best-sellers band makes that claim once, from one ranking
+ * (src/lib/catalog/best-sellers.ts), instead of on every card.
  */
-export type ProductBadge = 'new' | 'best-seller' | 'made-to-order';
+export type ProductBadge = 'new';

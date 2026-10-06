@@ -165,9 +165,26 @@ describe('EditorialImage', () => {
 
       const markup = render(<EditorialImage id="hero" sizes="100vw" />);
 
-      expect(markup).toContain('--editorial-focal-desktop:35% 40%');
-      expect(markup).toContain('--editorial-focal-mobile:50% 32%');
+      expect(markup).toContain('--editorial-focal-desktop:70% 55%');
+      expect(markup).toContain('--editorial-focal-mobile:50% 40%');
       expect(markup).toContain('class="editorial-focal');
+    });
+
+    /*
+     * The hero's box follows the viewport's shape, so a portrait tablet must
+     * get the portrait photograph. Switched by width it got the 21:9 file,
+     * cropped to bare wall and stretched 2.6x. The <source> and the focal-point
+     * class have to switch on the same condition, or one photograph is cropped
+     * to the other's focal point.
+     */
+    it('switches crops by orientation when told to, source and focal point together', () => {
+      deliver('hero', { mobile: true });
+
+      const markup = render(<EditorialImage id="hero" sizes="100vw" artDirection="orientation" />);
+
+      expect(markup).toContain('<source media="(orientation: portrait)"');
+      expect(markup).toContain('class="editorial-focal-orientation');
+      expect(markup).not.toContain('48rem');
     });
 
     describe('loading', () => {

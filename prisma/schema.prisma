@@ -784,6 +784,13 @@ model Order {
   /// format can change without touching stored data.
   orderNumber Int @unique @default(dbgenerated("nextval('order_number_seq')"))
 
+  /// A guest's way back to their own order, without an account (D4D.8).
+  /// SHA-256 of a random token the shopper's browser holds; the token itself is
+  /// never stored, so a database read cannot be replayed as access. The payment
+  /// return and a confirmation email's "view your order" link carry the same
+  /// token. Null for orders created any other way.
+  accessTokenHash String? @unique
+
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
 

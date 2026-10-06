@@ -7,31 +7,31 @@ import { PrismaClient } from '../src/generated/prisma/client.ts';
 /**
  * Development seed.
  *
- * EVERY PRODUCT THIS CREATES IS FICTIONAL. Names, prices, diamond
- * specifications, certificate numbers and stock levels are invented to exercise
- * the schema. None of it reflects real inventory, real pricing, or a real brand
- * - the brand itself is still TBD (MASTER_SPECIFICATION section 2, section 57).
+ * THE PRODUCTS ARE REPRESENTATIVE, NOT FICTIONAL. The owner has confirmed that
+ * every model here can be manufactured (PRODUCT.md, "Products are
+ * representative"), so the catalogue may present them as things the workshop
+ * makes. They therefore carry no customer-visible demo markers: no "not a real
+ * product" notice, no `demo-` slugs (a slug is a URL people share) and no
+ * `DEMO-` SKUs (the SKU is printed on the product page).
  *
- * Every seeded PRODUCT is marked three ways so it cannot be mistaken for real
- * business data:
- *   - SKUs are prefixed `DEMO-`
- *   - slugs are prefixed `demo-`
- *   - the short description opens with a Hebrew demo-data notice
- *
- * CATEGORIES AND COLLECTIONS ARE NOT MARKED, deliberately, and this is the one
- * place the rule bends. A category slug IS its route: the storefront links to
- * `/rings`, so the row must be `rings` and not `demo-rings` or every category
- * page 404s. "טבעות" is also not fabricated business data - it is the real
- * taxonomy from specification section 5. The fabrication lives in the products,
- * and that is where the markers are.
+ * WHAT IS STILL INVENTED, and how the storefront stays honest about it:
+ *   - PRICES are placeholders. The storefront labels them as estimates until
+ *     prices are final, and the site stays out of search (SITE_INDEXABLE).
+ *   - STOCK LEVELS are invented. The storefront must not turn them into
+ *     scarcity claims while they are not real inventory.
+ *   - NO DIAMOND CERTIFICATES are seeded. A certificate number names a real
+ *     document; an invented one is a false claim, not sample data.
  *
  * NO CUSTOMERS AND NO ORDERS ARE CREATED. Fake orders would pollute revenue
- * reporting and could be mistaken for real trade.
+ * reporting and could be mistaken for real trade. The one coupon is marked as a
+ * development coupon in its own description.
+ *
+ * THIS SEED DELETES THE CATALOGUE BEFORE INSERTING IT, which also unlinks any
+ * product photography placed afterwards with scripts/place-product-images.ts.
+ * Do not re-run it against a database whose photographs you want to keep.
  *
  * Run with: npm run db:seed
  */
-
-const DEMO_NOTICE = 'נתוני הדגמה בלבד — לא מוצר אמיתי.';
 
 if (process.env.NODE_ENV === 'production') {
   throw new Error('The development seed must never run against production.');
@@ -147,7 +147,7 @@ async function createKaratOption(
       productId,
       code: 'gold_karat',
       type: 'GOLD_KARAT',
-      nameHe: 'קראט',
+      nameHe: 'קראט זהב',
       isVariantAxis: true,
       position,
       values: {
@@ -346,11 +346,14 @@ async function main(): Promise<void> {
     });
   }
 
-  const RING_FACETS = ['price', 'gold_karat', 'gold_color', 'diamond_shape', 'carat', 'ring_size'];
-  const EARRING_FACETS = ['price', 'gold_karat', 'gold_color', 'diamond_shape', 'style'];
-  const NECKLACE_FACETS = ['price', 'gold_karat', 'gold_color', 'length', 'pendant_type'];
-  const BRACELET_FACETS = ['price', 'gold_karat', 'gold_color', 'length', 'style'];
-  const SET_FACETS = ['price', 'gold_karat', 'gold_color', 'style'];
+  // What a piece IS, never what the workshop can make it in: karat, gold colour,
+  // size and length are made to order for every model, so they are chosen on
+  // the product page rather than filtered by (docs/DECISIONS.md D4D.11).
+  const RING_FACETS = ['price', 'diamond_shape', 'carat'];
+  const EARRING_FACETS = ['price', 'diamond_shape', 'style'];
+  const NECKLACE_FACETS = ['price', 'pendant_type'];
+  const BRACELET_FACETS = ['price', 'style'];
+  const SET_FACETS = ['price', 'style'];
 
   const rings = await createCategory({
     slug: 'rings',
@@ -674,10 +677,10 @@ async function main(): Promise<void> {
   // ==========================================================================
   const aurora = await prisma.product.create({
     data: {
-      slug: 'demo-aurora-ring',
+      slug: 'aurora-ring',
       nameHe: 'טבעת אורורה סוליטר',
-      shortDescriptionHe: `${DEMO_NOTICE} טבעת סוליטר עם יהלום מעבדה.`,
-      descriptionHe: `${DEMO_NOTICE}\n\nטבעת סוליטר בעיצוב נקי, משובצת יהלום מעבדה יחיד. הזרועות מלוטשות ביד והשיבוץ מוגבה, כך שהאבן מקבלת מקסימום אור. ניתן להזמין בכל אחד משלושת גווני הזהב, ב-14 או 18 קראט.`,
+      shortDescriptionHe: `טבעת סוליטר עם יהלום מעבדה.`,
+      descriptionHe: `טבעת סוליטר בעיצוב נקי, משובצת יהלום מעבדה יחיד. הזרועות מלוטשות ביד והשיבוץ מוגבה, כך שהאבן מקבלת מקסימום אור. ניתן להזמין בכל אחד משלושת גווני הזהב, ב-14 או 18 קראט.`,
       primaryCategoryId: engagementRings.id,
       productType: 'RING',
       basePriceAgorot: 489_000,
@@ -708,14 +711,6 @@ async function main(): Promise<void> {
           clarity: 'VS1',
           cut: 'Excellent',
           shape: 'Round',
-          notesHe: DEMO_NOTICE,
-          certificate: {
-            create: {
-              issuer: 'DEMO-LAB',
-              number: 'DEMO-000001',
-              issuedAt: new Date('2026-01-15'),
-            },
-          },
         },
       },
     },
@@ -753,7 +748,7 @@ async function main(): Promise<void> {
 
       await createVariant({
         productId: aurora.id,
-        sku: `DEMO-AURORA-${karat.value}-${color.value}`,
+        sku: `AURORA-${karat.value}-${color.value}`,
         priceAgorot: is18k ? 589_000 : 489_000,
         optionValueIds: [karat.id, color.id],
         onHand,
@@ -785,10 +780,10 @@ async function main(): Promise<void> {
   // ==========================================================================
   const wedding = await prisma.product.create({
     data: {
-      slug: 'demo-wedding-band',
+      slug: 'wedding-band',
       nameHe: 'טבעת נישואין קלאסית',
-      shortDescriptionHe: `${DEMO_NOTICE} טבעת נישואין חלקה בזהב.`,
-      descriptionHe: `${DEMO_NOTICE}\n\nטבעת נישואין חלקה ברוחב 3 מ״מ, בגימור מט או מבריק. מלאי מוגבל: כשנגמר, הדגם אינו זמין להזמנה עד ייצור הסדרה הבאה.`,
+      shortDescriptionHe: `טבעת נישואין חלקה בזהב.`,
+      descriptionHe: `טבעת נישואין חלקה ברוחב 3 מ״מ, בגימור מט או מבריק.`,
       primaryCategoryId: weddingRings.id,
       productType: 'RING',
       basePriceAgorot: 179_000,
@@ -824,7 +819,7 @@ async function main(): Promise<void> {
   for (const [index, color] of weddingColor.values.entries()) {
     await createVariant({
       productId: wedding.id,
-      sku: `DEMO-WEDDING-${color.value}`,
+      sku: `WEDDING-${color.value}`,
       priceAgorot: 179_000,
       optionValueIds: [color.id],
       onHand: weddingStock[color.value] ?? 0,
@@ -841,10 +836,10 @@ async function main(): Promise<void> {
   // ==========================================================================
   const eternity = await prisma.product.create({
     data: {
-      slug: 'demo-eternity-ring',
+      slug: 'eternity-ring',
       nameHe: 'טבעת איטרניטי',
-      shortDescriptionHe: `${DEMO_NOTICE} טבעת משובצת יהלומי מעבדה בהיקף מלא.`,
-      descriptionHe: `${DEMO_NOTICE}\n\nטבעת איטרניטי משובצת יהלומי מעבדה לאורך כל ההיקף. מיוצרת לפי מידה, ולכן זמן ההכנה ארוך מעט יותר.`,
+      shortDescriptionHe: `טבעת משובצת יהלומי מעבדה בהיקף מלא.`,
+      descriptionHe: `טבעת איטרניטי משובצת יהלומי מעבדה לאורך כל ההיקף. מיוצרת לפי מידה, ולכן זמן ההכנה ארוך מעט יותר.`,
       primaryCategoryId: diamondRings.id,
       productType: 'RING',
       basePriceAgorot: 629_000,
@@ -875,7 +870,7 @@ async function main(): Promise<void> {
   for (const [index, color] of eternityColor.values.entries()) {
     const variant = await createVariant({
       productId: eternity.id,
-      sku: `DEMO-ETERNITY-${color.value}`,
+      sku: `ETERNITY-${color.value}`,
       priceAgorot: 629_000,
       compareAtAgorot: 749_000,
       optionValueIds: [color.id],
@@ -903,7 +898,6 @@ async function main(): Promise<void> {
         clarity: 'VVS2',
         cut: 'Excellent',
         shape: 'Round',
-        notesHe: DEMO_NOTICE,
       },
     });
   }
@@ -914,10 +908,10 @@ async function main(): Promise<void> {
   // ==========================================================================
   const studs = await prisma.product.create({
     data: {
-      slug: 'demo-stud-earrings',
+      slug: 'stud-earrings',
       nameHe: 'עגילי יהלום צמודים',
-      shortDescriptionHe: `${DEMO_NOTICE} עגילים צמודים עם יהלומים טבעיים.`,
-      descriptionHe: `${DEMO_NOTICE}\n\nזוג עגילים צמודים, יהלום טבעי בכל עגיל, עם סגר בורגי.`,
+      shortDescriptionHe: `עגילים צמודים עם יהלומים טבעיים.`,
+      descriptionHe: `זוג עגילים צמודים, יהלום טבעי בכל עגיל, עם סגר בורגי.`,
       primaryCategoryId: studEarrings.id,
       productType: 'EARRINGS',
       basePriceAgorot: 215_000,
@@ -937,7 +931,6 @@ async function main(): Promise<void> {
           clarity: 'VS2',
           cut: 'Very Good',
           shape: 'Round',
-          notesHe: DEMO_NOTICE,
         },
       },
     },
@@ -959,7 +952,7 @@ async function main(): Promise<void> {
 
       await createVariant({
         productId: studs.id,
-        sku: `DEMO-STUD-${karat.value}-${color.value}`,
+        sku: `STUD-${karat.value}-${color.value}`,
         priceAgorot: is18k ? 259_000 : 215_000,
         optionValueIds: [karat.id, color.id],
         onHand: is18k ? 2 : 7,
@@ -983,10 +976,10 @@ async function main(): Promise<void> {
   // ==========================================================================
   const hoops = await prisma.product.create({
     data: {
-      slug: 'demo-hoop-earrings',
+      slug: 'hoop-earrings',
       nameHe: 'עגילי חישוק זהב',
-      shortDescriptionHe: `${DEMO_NOTICE} חישוקי זהב קלאסיים.`,
-      descriptionHe: `${DEMO_NOTICE}\n\nחישוקי זהב בקוטר 20 מ״מ, חלולים וקלים למשקל.`,
+      shortDescriptionHe: `חישוקי זהב קלאסיים.`,
+      descriptionHe: `חישוקי זהב בקוטר 20 מ״מ, חלולים וקלים למשקל.`,
       primaryCategoryId: hoopEarrings.id,
       productType: 'EARRINGS',
       basePriceAgorot: 129_000,
@@ -1011,7 +1004,7 @@ async function main(): Promise<void> {
   for (const [index, color] of hoopColor.values.entries()) {
     await createVariant({
       productId: hoops.id,
-      sku: `DEMO-HOOP-${color.value}`,
+      sku: `HOOP-${color.value}`,
       priceAgorot: 129_000,
       compareAtAgorot: 155_000,
       optionValueIds: [color.id],
@@ -1028,10 +1021,10 @@ async function main(): Promise<void> {
   // ==========================================================================
   const nameNecklace = await prisma.product.create({
     data: {
-      slug: 'demo-name-necklace',
+      slug: 'name-necklace',
       nameHe: 'שרשרת שם בעיצוב אישי',
-      shortDescriptionHe: `${DEMO_NOTICE} שרשרת שם בחריטה.`,
-      descriptionHe: `${DEMO_NOTICE}\n\nשרשרת זהב עם שם בחריטה, מיוצרת בהזמנה לפי הטקסט שנבחר. ניתן לבחור אורך שרשרת וגוון זהב.`,
+      shortDescriptionHe: `שרשרת שם בחריטה.`,
+      descriptionHe: `שרשרת זהב עם שם בחריטה, מיוצרת בהזמנה לפי הטקסט שנבחר. ניתן לבחור אורך שרשרת וגוון זהב.`,
       primaryCategoryId: nameNecklaces.id,
       productType: 'NECKLACE',
       basePriceAgorot: 129_000,
@@ -1105,7 +1098,7 @@ async function main(): Promise<void> {
   for (const [index, color] of nameColor.values.entries()) {
     await createVariant({
       productId: nameNecklace.id,
-      sku: `DEMO-NAME-${color.value}`,
+      sku: `NAME-${color.value}`,
       priceAgorot: 129_000,
       optionValueIds: [color.id],
       // Pure made-to-order: zero stock, still purchasable (section 14).
@@ -1122,10 +1115,10 @@ async function main(): Promise<void> {
   // ==========================================================================
   const pendant = await prisma.product.create({
     data: {
-      slug: 'demo-diamond-pendant',
+      slug: 'diamond-pendant',
       nameHe: 'שרשרת תליון יהלום',
-      shortDescriptionHe: `${DEMO_NOTICE} תליון יהלום מעבדה עדין.`,
-      descriptionHe: `${DEMO_NOTICE}\n\nתליון עדין עם יהלום מעבדה יחיד, על שרשרת זהב דקה.`,
+      shortDescriptionHe: `תליון יהלום מעבדה עדין.`,
+      descriptionHe: `תליון עדין עם יהלום מעבדה יחיד, על שרשרת זהב דקה.`,
       primaryCategoryId: diamondNecklaces.id,
       productType: 'NECKLACE',
       basePriceAgorot: 174_000,
@@ -1144,7 +1137,6 @@ async function main(): Promise<void> {
           clarity: 'VS1',
           cut: 'Excellent',
           shape: 'Oval',
-          notesHe: DEMO_NOTICE,
         },
       },
     },
@@ -1169,7 +1161,7 @@ async function main(): Promise<void> {
   for (const [index, color] of pendantColor.values.entries()) {
     await createVariant({
       productId: pendant.id,
-      sku: `DEMO-PENDANT-${color.value}`,
+      sku: `PENDANT-${color.value}`,
       priceAgorot: 174_000,
       optionValueIds: [color.id],
       onHand: 4,
@@ -1186,10 +1178,10 @@ async function main(): Promise<void> {
   // ==========================================================================
   const tennis = await prisma.product.create({
     data: {
-      slug: 'demo-tennis-bracelet',
+      slug: 'tennis-bracelet',
       nameHe: 'צמיד טניס יהלומים',
-      shortDescriptionHe: `${DEMO_NOTICE} צמיד טניס משובץ לכל האורך.`,
-      descriptionHe: `${DEMO_NOTICE}\n\nצמיד טניס משובץ יהלומים טבעיים לכל אורכו, עם סגר בטחון כפול. מיוצר לפי אורך היד.`,
+      shortDescriptionHe: `צמיד טניס משובץ לכל האורך.`,
+      descriptionHe: `צמיד טניס משובץ יהלומים טבעיים לכל אורכו, עם סגר בטחון כפול. מיוצר לפי אורך היד.`,
       primaryCategoryId: tennisBracelets.id,
       productType: 'BRACELET',
       basePriceAgorot: 725_000,
@@ -1216,14 +1208,6 @@ async function main(): Promise<void> {
           clarity: 'VS1',
           cut: 'Excellent',
           shape: 'Round',
-          notesHe: DEMO_NOTICE,
-          certificate: {
-            create: {
-              issuer: 'DEMO-LAB',
-              number: 'DEMO-000002',
-              issuedAt: new Date('2026-02-02'),
-            },
-          },
         },
       },
     },
@@ -1256,7 +1240,7 @@ async function main(): Promise<void> {
 
       await createVariant({
         productId: tennis.id,
-        sku: `DEMO-TENNIS-${karat.value}-${color.value}`,
+        sku: `TENNIS-${karat.value}-${color.value}`,
         priceAgorot: is18k ? 845_000 : 725_000,
         compareAtAgorot: is18k ? 960_000 : 840_000,
         optionValueIds: [karat.id, color.id],
@@ -1281,10 +1265,10 @@ async function main(): Promise<void> {
   // ==========================================================================
   const nova = await prisma.product.create({
     data: {
-      slug: 'demo-nova-bracelet',
+      slug: 'nova-bracelet',
       nameHe: 'צמיד נובה עדין',
-      shortDescriptionHe: `${DEMO_NOTICE} צמיד זהב עדין, במלאי.`,
-      descriptionHe: `${DEMO_NOTICE}\n\nצמיד זהב עדין לשימוש יומיומי, עם שרשרת דקה וסגר קפיצי.`,
+      shortDescriptionHe: `צמיד זהב עדין.`,
+      descriptionHe: `צמיד זהב עדין לשימוש יומיומי, עם שרשרת דקה וסגר קפיצי.`,
       primaryCategoryId: delicateBracelets.id,
       productType: 'BRACELET',
       basePriceAgorot: 219_000,
@@ -1307,7 +1291,7 @@ async function main(): Promise<void> {
   for (const [index, color] of novaColor.values.entries()) {
     await createVariant({
       productId: nova.id,
-      sku: `DEMO-NOVA-${color.value}`,
+      sku: `NOVA-${color.value}`,
       priceAgorot: 219_000,
       optionValueIds: [color.id],
       onHand: novaStock[color.value] ?? 0,
@@ -1323,10 +1307,10 @@ async function main(): Promise<void> {
   // ==========================================================================
   const bridalSet = await prisma.product.create({
     data: {
-      slug: 'demo-bridal-set',
+      slug: 'bridal-set',
       nameHe: 'סט כלה טבעת ועגילים',
-      shortDescriptionHe: `${DEMO_NOTICE} סט תואם לטבעת ולעגילים.`,
-      descriptionHe: `${DEMO_NOTICE}\n\nסט תואם הכולל טבעת אירוסין וזוג עגילים צמודים באותו גוון זהב ובאותו ליטוש. מיוצר בהזמנה.`,
+      shortDescriptionHe: `סט תואם לטבעת ולעגילים.`,
+      descriptionHe: `סט תואם הכולל טבעת אירוסין וזוג עגילים צמודים באותו גוון זהב ובאותו ליטוש. מיוצר בהזמנה.`,
       primaryCategoryId: bridalSets.id,
       productType: 'SET',
       basePriceAgorot: 1_140_000,
@@ -1346,7 +1330,6 @@ async function main(): Promise<void> {
           clarity: 'VS1',
           cut: 'Excellent',
           shape: 'Round',
-          notesHe: DEMO_NOTICE,
         },
       },
     },
@@ -1360,7 +1343,7 @@ async function main(): Promise<void> {
   for (const [index, color] of bridalColor.values.entries()) {
     await createVariant({
       productId: bridalSet.id,
-      sku: `DEMO-BRIDALSET-${color.value}`,
+      sku: `BRIDALSET-${color.value}`,
       priceAgorot: 1_140_000,
       optionValueIds: [color.id],
       onHand: 0,
@@ -1380,8 +1363,8 @@ async function main(): Promise<void> {
   // relevance cannot be judged against ten products. With ten, every query
   // either matches almost everything or nothing, and ranking is unobservable.
   //
-  // Still explicitly demo data: `demo-` slugs, `DEMO-` SKUs, and the notice on
-  // every short description. No customers, no orders, no reviews.
+  // Representative models with placeholder prices and invented stock levels,
+  // like the ten above. No customers, no orders, no reviews.
   // ==========================================================================
   interface GeneratedSpec {
     readonly slug: string;
@@ -1405,7 +1388,7 @@ async function main(): Promise<void> {
   const generated: readonly GeneratedSpec[] = [
     // --- rings -------------------------------------------------------------
     {
-      slug: 'demo-halo-ring',
+      slug: 'halo-ring',
       nameHe: 'טבעת הילה יהלומים',
       categoryId: engagementRings.id,
       extraCategoryId: rings.id,
@@ -1423,7 +1406,7 @@ async function main(): Promise<void> {
       descriptionHe: 'טבעת אירוסין עם הילת יהלומים סביב האבן המרכזית.',
     },
     {
-      slug: 'demo-pear-solitaire',
+      slug: 'pear-solitaire',
       nameHe: 'טבעת סוליטר טיפה',
       categoryId: engagementRings.id,
       extraCategoryId: rings.id,
@@ -1441,7 +1424,7 @@ async function main(): Promise<void> {
       descriptionHe: 'טבעת אירוסין עם יהלום בליטוש טיפה.',
     },
     {
-      slug: 'demo-emerald-cut-ring',
+      slug: 'emerald-cut-ring',
       nameHe: 'טבעת יהלום אמרלד',
       categoryId: diamondRings.id,
       extraCategoryId: rings.id,
@@ -1458,7 +1441,7 @@ async function main(): Promise<void> {
       descriptionHe: 'טבעת עם יהלום בליטוש אמרלד מלבני.',
     },
     {
-      slug: 'demo-princess-ring',
+      slug: 'princess-ring',
       nameHe: 'טבעת יהלום פרינסס',
       categoryId: diamondRings.id,
       extraCategoryId: rings.id,
@@ -1475,7 +1458,7 @@ async function main(): Promise<void> {
       descriptionHe: 'טבעת עם יהלום בליטוש פרינסס מרובע.',
     },
     {
-      slug: 'demo-three-stone-ring',
+      slug: 'three-stone-ring',
       nameHe: 'טבעת שלוש אבנים',
       categoryId: engagementRings.id,
       extraCategoryId: rings.id,
@@ -1493,7 +1476,7 @@ async function main(): Promise<void> {
       descriptionHe: 'טבעת אירוסין עם שלוש אבנים בשורה.',
     },
     {
-      slug: 'demo-signet-ring',
+      slug: 'signet-ring',
       nameHe: 'טבעת חותם זהב',
       categoryId: goldRings.id,
       extraCategoryId: rings.id,
@@ -1508,7 +1491,7 @@ async function main(): Promise<void> {
       descriptionHe: 'טבעת חותם קלאסית בזהב מלא, ניתנת לחריטה.',
     },
     {
-      slug: 'demo-stacking-ring',
+      slug: 'stacking-ring',
       nameHe: 'טבעת דקה לשכבות',
       categoryId: goldRings.id,
       extraCategoryId: rings.id,
@@ -1523,7 +1506,7 @@ async function main(): Promise<void> {
       descriptionHe: 'טבעת דקה לשילוב בשכבות עם טבעות נוספות.',
     },
     {
-      slug: 'demo-twist-ring',
+      slug: 'twist-ring',
       nameHe: 'טבעת מפותלת',
       categoryId: goldRings.id,
       extraCategoryId: rings.id,
@@ -1538,7 +1521,7 @@ async function main(): Promise<void> {
       descriptionHe: 'טבעת בעיצוב מפותל, לשימוש יומיומי.',
     },
     {
-      slug: 'demo-pave-band',
+      slug: 'pave-band',
       nameHe: 'טבעת פאווה יהלומים',
       categoryId: diamondRings.id,
       extraCategoryId: rings.id,
@@ -1555,7 +1538,7 @@ async function main(): Promise<void> {
       descriptionHe: 'טבעת משובצת יהלומים קטנים לאורך חצי ההיקף.',
     },
     {
-      slug: 'demo-wide-band-ring',
+      slug: 'wide-band-ring',
       nameHe: 'טבעת רחבה זהב',
       categoryId: goldRings.id,
       extraCategoryId: rings.id,
@@ -1570,7 +1553,7 @@ async function main(): Promise<void> {
       descriptionHe: 'טבעת רחבה בגימור מט.',
     },
     {
-      slug: 'demo-colored-diamond-ring',
+      slug: 'colored-diamond-ring',
       nameHe: 'טבעת יהלום צבעוני',
       categoryId: coloredDiamondRings.id,
       extraCategoryId: rings.id,
@@ -1587,7 +1570,7 @@ async function main(): Promise<void> {
       descriptionHe: 'טבעת עם יהלום מעבדה בגוון צבעוני.',
     },
     {
-      slug: 'demo-milgrain-band',
+      slug: 'milgrain-band',
       nameHe: 'טבעת נישואין מעוטרת',
       categoryId: weddingRings.id,
       extraCategoryId: rings.id,
@@ -1603,7 +1586,7 @@ async function main(): Promise<void> {
       descriptionHe: 'טבעת נישואין עם עיטור עדין בשוליים.',
     },
     {
-      slug: 'demo-comfort-band',
+      slug: 'comfort-band',
       nameHe: 'טבעת נישואין רחבה',
       categoryId: weddingRings.id,
       extraCategoryId: rings.id,
@@ -1621,7 +1604,7 @@ async function main(): Promise<void> {
 
     // --- earrings ----------------------------------------------------------
     {
-      slug: 'demo-drop-earrings',
+      slug: 'drop-earrings',
       nameHe: 'עגילים תלויים יהלום',
       categoryId: dropEarrings.id,
       extraCategoryId: earrings.id,
@@ -1637,7 +1620,7 @@ async function main(): Promise<void> {
       descriptionHe: 'עגילים תלויים עם יהלום מעבדה.',
     },
     {
-      slug: 'demo-huggie-earrings',
+      slug: 'huggie-earrings',
       nameHe: 'עגילי האגי זהב',
       categoryId: hoopEarrings.id,
       extraCategoryId: earrings.id,
@@ -1651,7 +1634,7 @@ async function main(): Promise<void> {
       descriptionHe: 'חישוקים קטנים וצמודים לאוזן.',
     },
     {
-      slug: 'demo-large-hoops',
+      slug: 'large-hoops',
       nameHe: 'עגילי חישוק גדולים',
       categoryId: hoopEarrings.id,
       extraCategoryId: earrings.id,
@@ -1665,7 +1648,7 @@ async function main(): Promise<void> {
       descriptionHe: 'חישוקי זהב בקוטר גדול, חלולים וקלים.',
     },
     {
-      slug: 'demo-diamond-hoops',
+      slug: 'diamond-hoops',
       nameHe: 'עגילי חישוק יהלומים',
       categoryId: diamondEarrings.id,
       extraCategoryId: earrings.id,
@@ -1681,7 +1664,7 @@ async function main(): Promise<void> {
       descriptionHe: 'חישוקים משובצים יהלומי מעבדה.',
     },
     {
-      slug: 'demo-pearl-studs',
+      slug: 'pearl-studs',
       nameHe: 'עגילי פנינה צמודים',
       categoryId: studEarrings.id,
       extraCategoryId: earrings.id,
@@ -1695,7 +1678,7 @@ async function main(): Promise<void> {
       descriptionHe: 'עגילים צמודים עם פנינה.',
     },
     {
-      slug: 'demo-climber-earrings',
+      slug: 'climber-earrings',
       nameHe: 'עגילי מטפס',
       categoryId: dropEarrings.id,
       extraCategoryId: earrings.id,
@@ -1709,7 +1692,7 @@ async function main(): Promise<void> {
       descriptionHe: 'עגילים בעיצוב מטפס לאורך תנוך האוזן.',
     },
     {
-      slug: 'demo-princess-studs',
+      slug: 'princess-studs',
       nameHe: 'עגילי יהלום פרינסס',
       categoryId: diamondEarrings.id,
       extraCategoryId: earrings.id,
@@ -1725,7 +1708,7 @@ async function main(): Promise<void> {
       descriptionHe: 'עגילים צמודים עם יהלום בליטוש פרינסס.',
     },
     {
-      slug: 'demo-threader-earrings',
+      slug: 'threader-earrings',
       nameHe: 'עגילי שרשור',
       categoryId: dropEarrings.id,
       extraCategoryId: earrings.id,
@@ -1741,7 +1724,7 @@ async function main(): Promise<void> {
 
     // --- necklaces ---------------------------------------------------------
     {
-      slug: 'demo-tennis-necklace',
+      slug: 'tennis-necklace',
       nameHe: 'שרשרת טניס יהלומים',
       categoryId: diamondNecklaces.id,
       extraCategoryId: necklaces.id,
@@ -1758,7 +1741,7 @@ async function main(): Promise<void> {
       descriptionHe: 'שרשרת טניס משובצת יהלומי מעבדה לכל האורך.',
     },
     {
-      slug: 'demo-bar-necklace',
+      slug: 'bar-necklace',
       nameHe: 'שרשרת בר זהב',
       categoryId: goldNecklaces.id,
       extraCategoryId: necklaces.id,
@@ -1773,7 +1756,7 @@ async function main(): Promise<void> {
       descriptionHe: 'שרשרת עם תליון בר אופקי, ניתן לחריטה.',
     },
     {
-      slug: 'demo-heart-pendant',
+      slug: 'heart-pendant',
       nameHe: 'שרשרת תליון לב',
       categoryId: pendantNecklaces.id,
       extraCategoryId: necklaces.id,
@@ -1788,7 +1771,7 @@ async function main(): Promise<void> {
       descriptionHe: 'שרשרת עם תליון לב עדין.',
     },
     {
-      slug: 'demo-initial-necklace',
+      slug: 'initial-necklace',
       nameHe: 'שרשרת אות ראשונה',
       categoryId: nameNecklaces.id,
       extraCategoryId: necklaces.id,
@@ -1804,7 +1787,7 @@ async function main(): Promise<void> {
       descriptionHe: 'שרשרת עם אות ראשונה בחריטה, מיוצרת בהזמנה.',
     },
     {
-      slug: 'demo-layered-necklace',
+      slug: 'layered-necklace',
       nameHe: 'שרשרת שכבות',
       categoryId: goldNecklaces.id,
       extraCategoryId: necklaces.id,
@@ -1819,7 +1802,7 @@ async function main(): Promise<void> {
       descriptionHe: 'שרשרת דו-שכבתית באורכים משולבים.',
     },
     {
-      slug: 'demo-solitaire-pendant',
+      slug: 'solitaire-pendant',
       nameHe: 'תליון סוליטר יהלום',
       categoryId: diamondNecklaces.id,
       extraCategoryId: necklaces.id,
@@ -1836,7 +1819,7 @@ async function main(): Promise<void> {
       descriptionHe: 'תליון עם יהלום מעבדה יחיד.',
     },
     {
-      slug: 'demo-chain-necklace',
+      slug: 'chain-necklace',
       nameHe: 'שרשרת חוליות זהב',
       categoryId: goldNecklaces.id,
       extraCategoryId: necklaces.id,
@@ -1851,7 +1834,7 @@ async function main(): Promise<void> {
       descriptionHe: 'שרשרת חוליות רחבה בזהב.',
     },
     {
-      slug: 'demo-photo-pendant',
+      slug: 'photo-pendant',
       nameHe: 'תליון תמונה',
       categoryId: photoNecklaces.id,
       extraCategoryId: necklaces.id,
@@ -1869,7 +1852,7 @@ async function main(): Promise<void> {
 
     // --- bracelets ---------------------------------------------------------
     {
-      slug: 'demo-bangle-bracelet',
+      slug: 'bangle-bracelet',
       nameHe: 'צמיד באנגל זהב',
       categoryId: goldBracelets.id,
       extraCategoryId: bracelets.id,
@@ -1883,7 +1866,7 @@ async function main(): Promise<void> {
       descriptionHe: 'צמיד נוקשה בעיצוב חלק.',
     },
     {
-      slug: 'demo-chain-bracelet',
+      slug: 'chain-bracelet',
       nameHe: 'צמיד חוליות',
       categoryId: linkBracelets.id,
       extraCategoryId: bracelets.id,
@@ -1898,7 +1881,7 @@ async function main(): Promise<void> {
       descriptionHe: 'צמיד חוליות קלאסי בזהב.',
     },
     {
-      slug: 'demo-diamond-bangle',
+      slug: 'diamond-bangle',
       nameHe: 'צמיד יהלומים נוקשה',
       categoryId: diamondBracelets.id,
       extraCategoryId: bracelets.id,
@@ -1914,7 +1897,7 @@ async function main(): Promise<void> {
       descriptionHe: 'צמיד נוקשה משובץ יהלומי מעבדה.',
     },
     {
-      slug: 'demo-charm-bracelet',
+      slug: 'charm-bracelet',
       nameHe: 'צמיד תליונים',
       categoryId: linkBracelets.id,
       extraCategoryId: bracelets.id,
@@ -1929,7 +1912,7 @@ async function main(): Promise<void> {
       descriptionHe: 'צמיד שאליו ניתן להוסיף תליונים.',
     },
     {
-      slug: 'demo-name-bracelet',
+      slug: 'name-bracelet',
       nameHe: 'צמיד שם בחריטה',
       categoryId: delicateBracelets.id,
       extraCategoryId: bracelets.id,
@@ -1945,7 +1928,7 @@ async function main(): Promise<void> {
       descriptionHe: 'צמיד עדין עם שם בחריטה, מיוצר בהזמנה.',
     },
     {
-      slug: 'demo-rope-bracelet',
+      slug: 'rope-bracelet',
       nameHe: 'צמיד חבל זהב',
       categoryId: goldBracelets.id,
       extraCategoryId: bracelets.id,
@@ -1960,7 +1943,7 @@ async function main(): Promise<void> {
       descriptionHe: 'צמיד בשזירת חבל.',
     },
     {
-      slug: 'demo-slim-tennis',
+      slug: 'slim-tennis',
       nameHe: 'צמיד טניס דק',
       categoryId: tennisBracelets.id,
       extraCategoryId: bracelets.id,
@@ -1979,7 +1962,7 @@ async function main(): Promise<void> {
 
     // --- sets --------------------------------------------------------------
     {
-      slug: 'demo-necklace-earring-set',
+      slug: 'necklace-earring-set',
       nameHe: 'סט שרשרת ועגילים',
       categoryId: necklaceEarringSets.id,
       extraCategoryId: sets.id,
@@ -1995,7 +1978,7 @@ async function main(): Promise<void> {
       descriptionHe: 'סט תואם של שרשרת ועגילים באותו גוון.',
     },
     {
-      slug: 'demo-ring-earring-set',
+      slug: 'ring-earring-set',
       nameHe: 'סט טבעת ועגילים',
       categoryId: ringEarringSets.id,
       extraCategoryId: sets.id,
@@ -2012,7 +1995,7 @@ async function main(): Promise<void> {
       descriptionHe: 'סט תואם של טבעת ועגילים.',
     },
     {
-      slug: 'demo-gift-set-delicate',
+      slug: 'gift-set-delicate',
       nameHe: 'סט מתנה עדין',
       categoryId: giftSets.id,
       extraCategoryId: sets.id,
@@ -2026,7 +2009,7 @@ async function main(): Promise<void> {
       descriptionHe: 'סט מתנה ארוז הכולל שרשרת וצמיד עדינים.',
     },
     {
-      slug: 'demo-bridal-trio',
+      slug: 'bridal-trio',
       nameHe: 'סט כלה שלושה חלקים',
       categoryId: bridalSets.id,
       extraCategoryId: sets.id,
@@ -2050,8 +2033,8 @@ async function main(): Promise<void> {
       data: {
         slug: spec.slug,
         nameHe: spec.nameHe,
-        shortDescriptionHe: `${DEMO_NOTICE} ${spec.descriptionHe}`,
-        descriptionHe: `${DEMO_NOTICE}\n\n${spec.descriptionHe}`,
+        shortDescriptionHe: `${spec.descriptionHe}`,
+        descriptionHe: `${spec.descriptionHe}`,
         primaryCategoryId: spec.categoryId,
         productType: spec.productType,
         basePriceAgorot: spec.priceAgorot,
@@ -2083,7 +2066,6 @@ async function main(): Promise<void> {
                   color: 'G',
                   clarity: 'VS1',
                   cut: 'Excellent',
-                  notesHe: DEMO_NOTICE,
                 },
               },
             }
@@ -2130,8 +2112,10 @@ async function main(): Promise<void> {
 
         await createVariant({
           productId: product.id,
-          sku: `DEMO-${spec.slug.replace('demo-', '').toUpperCase()}-${color.value}${karat ? `-${karat.value}` : ''}`,
-          priceAgorot: is18k ? Math.round(spec.priceAgorot * 1.18) : spec.priceAgorot,
+          sku: `${spec.slug.toUpperCase()}-${color.value}${karat ? `-${karat.value}` : ''}`,
+          priceAgorot: is18k
+            ? Math.round((spec.priceAgorot * 1.18) / 1_000) * 1_000
+            : spec.priceAgorot,
           optionValueIds: valueIds,
           onHand: position === 1 ? spec.onHand : Math.max(0, spec.onHand - 1),
           policy: spec.policy,
@@ -2161,7 +2145,7 @@ async function main(): Promise<void> {
     data: {
       code: 'DEMO10',
       codeNormalized: 'DEMO10',
-      descriptionHe: `${DEMO_NOTICE} 10% הנחה.`,
+      descriptionHe: 'קופון בדיקה לפיתוח בלבד — 10% הנחה.',
       discountType: 'PERCENTAGE',
       discountValue: 1_000, // basis points = 10%
       minOrderAgorot: 100_000,

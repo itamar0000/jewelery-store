@@ -1,17 +1,20 @@
-import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { ProductGrid } from '@/components/product/ProductGrid';
+import { Button } from '@/components/ui/Button';
 import { ProductGridSkeleton, Skeleton } from '@/components/ui/Skeleton';
-import { getCatalogPage, getCategoryFacets } from '@/lib/catalog/browse';
+import { getCatalogPage, getCategoryFacets, getFacetCounts } from '@/lib/catalog/browse';
+import { estimatedPricesNote } from '@/lib/catalog/price-disclosure';
 import {
   buildCatalogHref,
   hasActiveFilters,
   normalizeCatalogQuery,
   type RawCatalogQuery,
 } from '@/lib/catalog/filters';
+import { PRODUCTS, countOf } from '@/lib/i18n/count';
 
 import { ActiveFilters } from './ActiveFilters';
+import { CatalogTransition, PendingResults } from './CatalogTransition';
 import { FilterBar } from './FilterPanel';
 import { Pagination } from './Pagination';
 
@@ -35,6 +38,13 @@ import { Pagination } from './Pagination';
  * required rather than incidental: normalization drops any value that does not
  * exist in this category, so it cannot run until the real values are known.
  * That is what makes `?ringSize=52` inert on a necklace page.
+ *
+ * THE PAGE AND THE COUNTS ARE ASKED TOGETHER. Both depend on the normalized
+ * query and on nothing else, so neither waits for the other.
+ *
+ * ONE TRANSITION FOR THE WHOLE LISTING (./CatalogTransition.tsx): a filter,
+ * sort or page change keeps this tree mounted - so the filter drawer stays open
+ * as the shopper left it - and the results dim while the next set arrives.
  */
 export async function CategoryResults({
   categoryIds,
@@ -62,57 +72,80 @@ export async function CategoryResults({
 }) {
   const facets = await getCategoryFacets(categoryIds, filterConfig);
   const query = normalizeCatalogQuery(rawQuery, facets);
-  const { products, total, page, totalPages, pageSize } = await getCatalogPage(
-    categoryIds,
-    query,
-    rankedIds,
-  );
+  const [{ products, total, page, totalPages, pageSize }, counts] = await Promise.all([
+    getCatalogPage(categoryIds, query, rankedIds),
+    getFacetCounts(categoryIds, query, facets, rankedIds),
+  ]);
 
   const filtered = hasActiveFilters(query);
 
   return (
-    <>
-      <FilterBar facets={facets} query={query} basePath={basePath} productCount={total} />
+    <CatalogTransition>
+      <FilterBar
+        facets={facets}
+        query={query}
+        basePath={basePath}
+        productCount={total}
+        priceNote={estimatedPricesNote}
+        counts={counts}
+      />
 
       <ActiveFilters facets={facets} query={query} basePath={basePath} />
 
-      <div className="mt-8">
-        {products.length === 0 && emptyState !== undefined ? (
-          emptyState
-        ) : (
-          <ProductGrid
-            products={products}
-            emptyTitle={filtered ? 'אין מוצרים שתואמים לסינון.' : 'אין כרגע מוצרים בקטגוריה הזו.'}
-            emptyBody={
-              filtered
-                ? 'אפשר להסיר חלק מהמסננים ולנסות שוב.'
-                : 'הקטלוג מתעדכן. אפשר לעבור לקטגוריה אחרת דרך התפריט.'
-            }
-            emptyAction={
-              filtered ? (
-                // The one-click escape from a zero-result filter. Without it the
-                // only way back is editing the address bar.
-                <Link
-                  href={buildCatalogHref(basePath, query, { clearAll: true, sort: query.sort })}
-                  scroll={false}
-                  className="border-border-strong hover:bg-muted mt-6 inline-flex h-11 items-center rounded-sm border px-5 text-sm transition-colors"
-                >
-                  נקה סינון
-                </Link>
-              ) : undefined
-            }
-          />
+      <PendingResults>
+        <div className="mt-8">
+          {products.length === 0 && emptyState !== undefined ? (
+            emptyState
+          ) : (
+            <ProductGrid
+              products={products}
+              headingLevel={2}
+              emptyTitle={
+                filtered
+                  ? 'אין בקטלוג דגם שמתאים לכל הבחירות האלה.'
+                  : 'אין כרגע מוצרים בקטגוריה הזו.'
+              }
+              emptyBody={
+                filtered
+                  ? 'אפשר להסיר חלק מהמסננים, או להזמין תכשיט בעיצוב אישי: אבן, גוון זהב ומידה לפי בחירה.'
+                  : 'הקטלוג מתעדכן. אפשר לעבור לקטגוריה אחרת דרך התפריט.'
+              }
+              emptyAction={
+                filtered ? (
+                  /*
+                   * Two ways on. Clearing the filters is the one-click escape -
+                   * without it the only way back is the address bar. Custom
+                   * design is the honest answer to "not in the catalogue":
+                   * the workshop makes pieces to order (PRODUCT.md), so an
+                   * empty filter result is not the end of the search.
+                   */
+                  <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+                    <Button
+                      href={buildCatalogHref(basePath, query, { clearAll: true, sort: query.sort })}
+                      scroll={false}
+                      variant="secondary"
+                    >
+                      נקה סינון
+                    </Button>
+                    <Button href="/custom" variant="link">
+                      לעיצוב אישי
+                    </Button>
+                  </div>
+                ) : undefined
+              }
+            />
+          )}
+        </div>
+
+        <Pagination query={query} basePath={basePath} page={page} totalPages={totalPages} />
+
+        {totalPages > 1 && (
+          <p className="text-muted-foreground mt-4 text-center text-xs">
+            עמוד {page} מתוך {totalPages} · {countOf(total, PRODUCTS)} · {pageSize} בעמוד
+          </p>
         )}
-      </div>
-
-      <Pagination query={query} basePath={basePath} page={page} totalPages={totalPages} />
-
-      {totalPages > 1 && (
-        <p className="text-muted-foreground mt-4 text-center text-xs">
-          עמוד {page} מתוך {totalPages} · {total} מוצרים · {pageSize} בעמוד
-        </p>
-      )}
-    </>
+      </PendingResults>
+    </CatalogTransition>
   );
 }
 

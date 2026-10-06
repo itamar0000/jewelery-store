@@ -258,6 +258,12 @@ export interface Facet {
 }
 
 /**
+ * How many products each facet value would show, keyed by facet code and then
+ * by the value's canonical database form (`FacetValue.value`). Price has none.
+ */
+export type FacetCounts = Readonly<Partial<Record<FacetCode, Readonly<Record<string, number>>>>>;
+
+/**
  * Stage 2: drop anything the catalog does not actually contain.
  *
  * This is the security-relevant step. After it, every string that reaches a

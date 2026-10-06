@@ -12,9 +12,12 @@ import {
   facetCodesFromConfig,
   type CatalogQuery,
   type Facet,
+  type FacetCode,
+  type FacetCounts,
   type FacetValue,
   type SortKey,
 } from './filters';
+import { shapeNameHe } from './diamond-terms';
 import { activeProduct, productCardSelect, toProductCard } from './queries';
 
 import type { Prisma } from '@/generated/prisma/client';
@@ -65,156 +68,171 @@ export async function getCategoryFacets(
       : {}),
   };
 
-  const facets: Facet[] = [];
+  /*
+   * ONE WAVE, NOT SIX.
+   *
+   * This used to await a query INSIDE a `for` loop over the codes, so a
+   * category with six filters paid six SEQUENTIAL round trips to answer six
+   * questions that have nothing to do with one another. `/rings` has exactly
+   * six. Each facet is an independent question about the same scope, so they
+   * are all asked at once and assembled afterwards.
+   *
+   * ORDER IS PRESERVED. `Promise.all` resolves in INPUT order regardless of
+   * which query finishes first, so the facets still appear in the order the
+   * category configured rather than in the order the database answered.
+   *
+   * Returning null is what the `continue` statements used to do: a filter
+   * control with no values is a control that cannot be used, so it is dropped
+   * rather than rendered empty.
+   */
+  const built = await Promise.all(codes.map((code) => buildFacet(code, scope)));
 
-  for (const code of codes) {
-    const source = FACET_SOURCE[code];
+  return built.filter((facet): facet is Facet => facet !== null);
+}
 
-    if (source === 'price') {
-      const bounds = await prisma.product.aggregate({
-        where: scope,
-        _min: { minPriceAgorot: true },
-        _max: { maxPriceAgorot: true },
-      });
+/** One facet, or null when the category has nothing to show for it. */
+async function buildFacet(code: FacetCode, scope: Prisma.ProductWhereInput): Promise<Facet | null> {
+  const source = FACET_SOURCE[code];
 
-      const minAgorot = bounds._min.minPriceAgorot;
-      const maxAgorot = bounds._max.maxPriceAgorot;
+  if (source === 'price') {
+    const bounds = await prisma.product.aggregate({
+      where: scope,
+      _min: { minPriceAgorot: true },
+      _max: { maxPriceAgorot: true },
+    });
 
-      // Omit the facet when the category has nothing priced: a range control
-      // with no range is a control that cannot be used.
-      if (minAgorot === null || maxAgorot === null) continue;
+    const minAgorot = bounds._min.minPriceAgorot;
+    const maxAgorot = bounds._max.maxPriceAgorot;
 
-      facets.push({
-        code,
-        param: FACET_PARAM[code],
-        source,
-        labelHe: FACET_LABELS[code],
-        values: [],
-        priceBounds: { minAgorot, maxAgorot },
-      });
-      continue;
-    }
+    // Omit the facet when the category has nothing priced: a range control
+    // with no range is a control that cannot be used.
+    if (minAgorot === null || maxAgorot === null) return null;
 
-    if (source === 'option') {
-      const optionCode = OPTION_CODE[code as keyof typeof OPTION_CODE];
-
-      const values = await prisma.productOptionValue.findMany({
-        where: {
-          isActive: true,
-          option: { code: optionCode, product: scope },
-        },
-        orderBy: [{ position: 'asc' }, { value: 'asc' }],
-        select: { value: true, labelHe: true, hexColor: true },
-        distinct: ['value'],
-      });
-
-      if (values.length === 0) continue;
-
-      facets.push({
-        code,
-        param: FACET_PARAM[code],
-        source,
-        labelHe: FACET_LABELS[code],
-        values: values.map((row): FacetValue => ({
-          value: row.value,
-          token: row.value.toLowerCase(),
-          labelHe: row.labelHe,
-          hexColor: row.hexColor,
-        })),
-      });
-      continue;
-    }
-
-    if (source === 'diamond') {
-      if (code === 'carat') {
-        // Buckets are derived ranges, so they are offered whenever the category
-        // has any stone data at all rather than read from distinct values.
-        const withStones = await prisma.product.count({
-          where: { ...scope, hasDiamonds: true },
-        });
-        if (withStones === 0) continue;
-
-        facets.push({
-          code,
-          param: FACET_PARAM[code],
-          source,
-          labelHe: FACET_LABELS[code],
-          values: CARAT_BUCKETS.map((bucket) => ({
-            value: bucket.id,
-            token: bucket.id,
-            labelHe: bucket.labelHe,
-          })),
-        });
-        continue;
-      }
-
-      // Shapes on a product-level spec, plus shapes on any variant-level
-      // override - schema F6 allows both.
-      const [productShapes, variantShapes] = await Promise.all([
-        prisma.diamondSpec.findMany({
-          where: { shape: { not: null }, product: scope },
-          select: { shape: true },
-          distinct: ['shape'],
-        }),
-        prisma.diamondSpec.findMany({
-          where: { shape: { not: null }, variant: { product: scope } },
-          select: { shape: true },
-          distinct: ['shape'],
-        }),
-      ]);
-
-      const shapes = [
-        ...new Set([...productShapes, ...variantShapes].flatMap((row) => row.shape ?? [])),
-      ].sort();
-
-      if (shapes.length === 0) continue;
-
-      facets.push({
-        code,
-        param: FACET_PARAM[code],
-        source,
-        labelHe: FACET_LABELS[code],
-        // Kept in English: these are the terms printed on the certificate
-        // (specification section 49).
-        values: shapes.map((shape) => ({
-          value: shape,
-          token: shape.toLowerCase(),
-          labelHe: shape,
-        })),
-      });
-      continue;
-    }
-
-    // Attribute facets. `Product.attributes` is a small JSON object and the
-    // catalog is ~100 rows, so the distinct values are collected in memory
-    // rather than with a JSON-path aggregate that Prisma cannot express.
-    const key = ATTRIBUTE_KEY[code as keyof typeof ATTRIBUTE_KEY];
-    const rows = await prisma.product.findMany({ where: scope, select: { attributes: true } });
-
-    const seen = [
-      ...new Set(
-        rows
-          .map((row) => readAttribute(row.attributes, key))
-          .filter((value): value is string => value !== null),
-      ),
-    ].sort();
-
-    if (seen.length === 0) continue;
-
-    facets.push({
+    return {
       code,
       param: FACET_PARAM[code],
       source,
       labelHe: FACET_LABELS[code],
-      values: seen.map((value) => ({
-        value,
-        token: value.toLowerCase(),
-        labelHe: ATTRIBUTE_VALUE_LABELS[value] ?? value,
-      })),
-    });
+      values: [],
+      priceBounds: { minAgorot, maxAgorot },
+    };
   }
 
-  return facets;
+  if (source === 'option') {
+    const optionCode = OPTION_CODE[code as keyof typeof OPTION_CODE];
+
+    const values = await prisma.productOptionValue.findMany({
+      where: {
+        isActive: true,
+        option: { code: optionCode, product: scope },
+      },
+      orderBy: [{ position: 'asc' }, { value: 'asc' }],
+      select: { value: true, labelHe: true, hexColor: true },
+      distinct: ['value'],
+    });
+
+    if (values.length === 0) return null;
+
+    return {
+      code,
+      param: FACET_PARAM[code],
+      source,
+      labelHe: FACET_LABELS[code],
+      values: values.map((row): FacetValue => ({
+        value: row.value,
+        token: row.value.toLowerCase(),
+        labelHe: row.labelHe,
+        hexColor: row.hexColor,
+      })),
+    };
+  }
+
+  if (source === 'diamond') {
+    if (code === 'carat') {
+      // Buckets are derived ranges, so they are offered whenever the category
+      // has any stone data at all rather than read from distinct values.
+      const withStones = await prisma.product.count({
+        where: { ...scope, hasDiamonds: true },
+      });
+      if (withStones === 0) return null;
+
+      return {
+        code,
+        param: FACET_PARAM[code],
+        source,
+        labelHe: FACET_LABELS[code],
+        values: CARAT_BUCKETS.map((bucket) => ({
+          value: bucket.id,
+          token: bucket.id,
+          labelHe: bucket.labelHe,
+        })),
+      };
+    }
+
+    // Shapes on a product-level spec, plus shapes on any variant-level
+    // override - schema F6 allows both.
+    const [productShapes, variantShapes] = await Promise.all([
+      prisma.diamondSpec.findMany({
+        where: { shape: { not: null }, product: scope },
+        select: { shape: true },
+        distinct: ['shape'],
+      }),
+      prisma.diamondSpec.findMany({
+        where: { shape: { not: null }, variant: { product: scope } },
+        select: { shape: true },
+        distinct: ['shape'],
+      }),
+    ]);
+
+    const shapes = [
+      ...new Set([...productShapes, ...variantShapes].flatMap((row) => row.shape ?? [])),
+    ].sort();
+
+    if (shapes.length === 0) return null;
+
+    return {
+      code,
+      param: FACET_PARAM[code],
+      source,
+      labelHe: FACET_LABELS[code],
+      // In Hebrew, as a shopper names them ("טיפה", not "Pear"). The value
+      // and the URL token stay the certificate's term, so links are stable,
+      // and the product page shows that term beside the Hebrew one.
+      values: shapes.map((shape) => ({
+        value: shape,
+        token: shape.toLowerCase(),
+        labelHe: shapeNameHe(shape) ?? shape,
+      })),
+    };
+  }
+
+  // Attribute facets. `Product.attributes` is a small JSON object and the
+  // catalog is ~100 rows, so the distinct values are collected in memory
+  // rather than with a JSON-path aggregate that Prisma cannot express.
+  const key = ATTRIBUTE_KEY[code as keyof typeof ATTRIBUTE_KEY];
+  const rows = await prisma.product.findMany({ where: scope, select: { attributes: true } });
+
+  const seen = [
+    ...new Set(
+      rows
+        .map((row) => readAttribute(row.attributes, key))
+        .filter((value): value is string => value !== null),
+    ),
+  ].sort();
+
+  if (seen.length === 0) return null;
+
+  return {
+    code,
+    param: FACET_PARAM[code],
+    source,
+    labelHe: FACET_LABELS[code],
+    values: seen.map((value) => ({
+      value,
+      token: value.toLowerCase(),
+      labelHe: ATTRIBUTE_VALUE_LABELS[value] ?? value,
+    })),
+  };
 }
 
 function readAttribute(attributes: Prisma.JsonValue | null, key: string): string | null {
@@ -392,6 +410,63 @@ export function buildCatalogOrderBy(sort: SortKey): Prisma.ProductOrderByWithRel
   }
 }
 
+/**
+ * How many products each facet value leads to, given every OTHER active filter.
+ *
+ * COUNTED WITH THE LISTING'S OWN PREDICATE. Each figure is a `count` over
+ * `buildCatalogWhere` - the clause the grid itself is fetched with - so the
+ * number beside a value can never disagree with the grid that value opens. An
+ * in-memory reimplementation of the filter rules would be a second copy, and
+ * the axis rule in particular (one variant must satisfy karat AND colour) is
+ * exactly the kind that drifts.
+ *
+ * WITHIN A FACET, VALUES ARE ALTERNATIVES, so each is counted as that facet's
+ * only selection: the figure beside "זהב לבן" is how many white-gold pieces
+ * match everything else chosen, whether or not another colour is ticked.
+ *
+ * ONE QUERY PER VALUE, ALL AT ONCE. A category offers about twenty values; at
+ * this catalogue's size each count is a handful of index lookups, and they run
+ * concurrently on the pool rather than one after another (see D4B.2).
+ *
+ * Search passes its ranked ids, so a count covers the search results only.
+ */
+export async function getFacetCounts(
+  categoryIds: readonly string[],
+  query: CatalogQuery,
+  facets: readonly Facet[],
+  rankedIds?: readonly string[],
+): Promise<FacetCounts> {
+  if (rankedIds !== undefined && rankedIds.length === 0) {
+    return Object.fromEntries(
+      facets.map((facet) => [
+        facet.code,
+        Object.fromEntries(facet.values.map((value) => [value.value, 0])),
+      ]),
+    );
+  }
+
+  const jobs = facets
+    .filter((facet) => facet.code !== 'price')
+    .flatMap((facet) =>
+      facet.values.map(async (value) => {
+        const where = buildCatalogWhere(categoryIds, {
+          ...query,
+          values: { ...query.values, [facet.code]: [value.value] },
+        });
+        const count = await prisma.product.count({
+          where: rankedIds === undefined ? where : { ...where, id: { in: [...rankedIds] } },
+        });
+        return [facet.code, value.value, count] as const;
+      }),
+    );
+
+  const counts: Partial<Record<FacetCode, Record<string, number>>> = {};
+  for (const [code, value, count] of await Promise.all(jobs)) {
+    (counts[code] ??= {})[value] = count;
+  }
+  return counts;
+}
+
 export interface CatalogPage {
   readonly products: readonly ProductCardData[];
   /** Total matching the ACTIVE FILTERS, not the category total. */
@@ -452,7 +527,7 @@ export async function getCatalogPage(
   });
 
   return {
-    products: rows.map(toProductCard),
+    products: rows.map((row) => toProductCard(row)),
     total,
     page,
     totalPages,
@@ -503,7 +578,13 @@ async function getRankedPage(
       select: productCardSelect,
     });
 
-    return { products: rows.map(toProductCard), total, page, totalPages, pageSize: query.pageSize };
+    return {
+      products: rows.map((row) => toProductCard(row)),
+      total,
+      page,
+      totalPages,
+      pageSize: query.pageSize,
+    };
   }
 
   const surviving = await prisma.product.findMany({ where, select: { id: true } });
@@ -530,7 +611,7 @@ async function getRankedPage(
   const products = pageIds
     .map((id) => byId.get(id))
     .filter((row): row is NonNullable<typeof row> => row !== undefined)
-    .map(toProductCard);
+    .map((row) => toProductCard(row));
 
   return { products, total, page, totalPages, pageSize: query.pageSize };
 }

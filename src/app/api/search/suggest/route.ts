@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 
+import { estimatedPricesNote } from '@/lib/catalog/price-disclosure';
 import { getProductsByIds } from '@/lib/catalog/queries';
-import { formatPrice } from '@/lib/money';
+import { PRICE_FROM, formatPrice } from '@/lib/money';
 import { postgresSearchProvider } from '@/lib/search';
 
 /**
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
 
   if (q.length === 0) {
     return NextResponse.json(
-      { products: [], categories: [] },
+      { products: [], categories: [], priceNote: null },
       { headers: { 'Cache-Control': 'no-store' } },
     );
   }
@@ -45,12 +46,14 @@ export async function GET(request: Request) {
       products: products.map((product) => ({
         slug: product.slug,
         name: product.name,
-        price: formatPrice(product.price),
+        price: `${product.priceFrom ? PRICE_FROM : ''}${formatPrice(product.price)}`,
       })),
       categories: categories.map((category) => ({
         nameHe: category.nameHe,
         href: category.href,
       })),
+      // Once for the list, beside its heading - the same rule as every grid.
+      priceNote: products.length > 0 ? estimatedPricesNote : null,
     },
     { headers: { 'Cache-Control': 'no-store' } },
   );
