@@ -169,11 +169,13 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     //
     // In the master the hair meets the top edge, the eyes sit at ~19% of the
     // height, the chin ~39%, the diamond pendant ~65%, the coin ~72%, the
-    // bracelets ~85%. 32% keeps the eyes, with forehead above them, in every
-    // box up to about 4.2:1, and still holds the pendants at ordinary ratios
-    // and most of the bracelets at 3:1. Losing a bracelet reads as a crop;
-    // losing the eyes reads as a mistake.
-    focalPoint: { x: 70, y: 32 },
+    // bracelets ~85%. Measured in real browser windows (screen height less the
+    // tabs, address bar and taskbar), the band runs from 3:1 on a 2560x1440
+    // monitor to 5.3:1 on a 1366x768 laptop, where it bottoms out at its 256px
+    // minimum. 24% keeps the whole face, forehead included, across that whole
+    // range, and still shows the necklaces and pendants on ordinary desktops.
+    // Losing a bracelet reads as a crop; losing the eyes reads as a mistake.
+    focalPoint: { x: 70, y: 24 },
     // The portrait master is composed around a centred subject, so the window
     // stays centred across; 40% keeps the eyes in frame when a tablet's wider
     // box crops it hardest, with the necklaces, rings and bracelets beneath.

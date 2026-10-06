@@ -165,7 +165,7 @@ describe('EditorialImage', () => {
 
       const markup = render(<EditorialImage id="hero" sizes="100vw" />);
 
-      expect(markup).toContain('--editorial-focal-desktop:70% 32%');
+      expect(markup).toContain('--editorial-focal-desktop:70% 24%');
       expect(markup).toContain('--editorial-focal-mobile:50% 40%');
       expect(markup).toContain('class="editorial-focal');
     });
