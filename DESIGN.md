@@ -308,8 +308,15 @@ the asymmetry lets a column of photographs breathe without the row breaking into
 separate objects. The homepage rail of four is the one variation: two across until
 64rem, then four - never a row of three and an orphan, and from 64rem one row,
 as every category grid already is. The
-collections band is the exception to the grid: wide images at alternating inline
-offsets (8% then 14% at desktop), each with its name on a rule beneath it.
+collections band is one row of landscape stills - two across, or three when
+three collections are shown - each with its name on a rule beneath it.
+
+**The Start Edge Rule.** Every heading begins at the inline start: page titles,
+the hero line, the home page's section headings, the steps on /custom, and the
+notes beneath a grid. The home page's section headings were centred while the
+bands around them began at the start, so the page changed alignment from band
+to band. Centring is kept for one thing - a line set as an object, like the
+engraved-name preview - never for a heading over copy that starts at the edge.
 
 **The First Viewport Rule.** The home page opens on one photograph, full bleed,
 with nothing laid over it, and the display line begins where the image ends.
@@ -391,8 +398,9 @@ system, which is what marks them as provisional rather than designed.
   hairline and going to ink on hover.
 
 **The Underlined Action Rule.** The highest-value actions on the editorial
-surfaces — the hero's call to the catalogue, a collection's "view" — are an
-underlined line of type, not a filled block. A filled block next to a
+surfaces — the hero's call to the catalogue, a collection's "view", every
+editorial panel's action — are an underlined line of type, not a filled block or
+a ruled box. A filled block next to a
 photograph pulls the eye off the thing it is meant to serve. It still has to
 read as the next thing to do: the hero's is semibold at 1.125rem → 1.375rem →
 1.75rem with a 2px rule, so a 5.75rem line above it does not turn it into a
@@ -451,7 +459,14 @@ caption.
   The bag carries its count as a numeral in full paper beside the icon - not a
   disc on its corner - and nothing at all when the bag is empty.
 - **Desktop nav:** A centred row of body-small links on the ink bar, separated
-  from the masthead row by a hairline, always visible from 64rem up.
+  from the masthead row by a hairline, always visible from 64rem up. The
+  masthead row is 4rem and the navigation row 2.75rem - 109px in all, down from
+  129px, about 12% of a 900px screen rather than 14%. The section
+  the visitor is in - its page or any page under it - takes full paper and the
+  same hairline an open menu draws, with `aria-current`; the drawer marks it
+  underlined and semibold. A drawer row that opens a list in place carries a
+  downward chevron, never a sideways one: sideways says "another screen", and in
+  RTL it pointed back.
 - **Mobile:** A hamburger opens a drawer; the drawer and the search overlay are
   the two surfaces allowed to float.
 - **Footer:** Recessed paper at 40%, opened by a hairline, a column per group of
@@ -469,12 +484,43 @@ caption.
   hairlines, the figure at the inline end of each, the total under a 1px ink
   rule at 1.25rem semibold. No cards, no row fills. Free shipping is the word
   "חינם", never "₪0".
+- **Within reach on a phone:** while the product page's own "הוספה לסל" is
+  still below the screen, a paper bar with the price and the same action sits at
+  the bottom, ruled by a hairline; it leaves when the button comes into view and
+  does not return once it is passed. Never on a desktop, where it would sit over
+  the gallery.
+- **Undo, not a dialog:** removing a line from the bag says what went and offers
+  "ביטול", above the lines, surviving even the bag becoming empty.
 - **Outcome line:** Under the one primary action, a polite live region present
   from the first render, so what happened ("נוסף לסל.") is announced where it
   is read.
 - **The payment boundary** carries none of the signs of a finished purchase -
   no check mark, no thanks - while no payment exists. A success state is
-  earned by a paid order and nothing else.
+  earned by a paid order and nothing else. That payment is not live is said in
+  the bag, under the way on to the checkout, before any details are asked.
+
+### Custom request
+
+- **One form, two starts.** From a product page the model sits beside the form
+  - photograph, name, the choices that were on screen - and the form asks only
+    what to change; from /custom it asks what kind of piece. The visitor writes
+    the request in their own words; the change chips are pills over native
+    checkboxes, a shortcut, never a substitute for the words.
+- **One way back is enough:** a phone or an email, said above the two fields.
+- **The receipt** replaces the form: "הבקשה נשמרה", the number, what was saved
+  in the visitor's words, and what happens next. Unlike the payment boundary
+  it is a finished act - a request saved is the whole of what was asked - but
+  it promises no reply time, because none has been decided.
+
+### Engraving
+
+- **The name, set back at size:** the typed name in the display face, ink on
+  paper, centred as an object under the photograph (under the field on a
+  phone), its direction following the chosen language. The caption says it is
+  the lettering, not a rendering of the pendant.
+- **A required surcharge is part of the price:** "₪1,380 כולל החריטה" at the
+  top and "₪90 כלולים במחיר" at the field - never "תוספת" for something that
+  cannot be skipped. Length is counted in the characters a person sees.
 
 ### Editorial Bands (signature)
 
@@ -488,12 +534,14 @@ photograph is never captioned over.
 - **Category discovery:** A five-tile grid (the lead tile spanning two columns
   and two rows) of photographs, each with its name on a hairline rule _beneath_
   the image. No scrim and no label over the picture.
-- **Collections:** Wide images at alternating inline offsets, mapped to
+- **Collections:** One row of landscape stills (two, or three), mapped to
   collections by slug rather than by position, each with its name and
   description on a rule beneath and an underlined "view" at the far end.
 - **Editorial panel:** A half-and-half image-and-text band, the image at 4:5, the
   copy stepping up to body size because it is the one place on the home page
-  meant to be read rather than scanned. Optional recessed-paper ground.
+  meant to be read rather than scanned. Optional recessed-paper ground. Its
+  action is an underlined line, a size larger on the finale. The same 4:5
+  photograph-beside-steps carries /custom, with the workshop at the bench.
 - **Page header:** Typographic by default — title at size on paper, over a rule
   — with an optional photograph band (21:9, capped at 26rem) only for pages that
   genuinely have one. It previously rendered an unconditional grey rectangle on

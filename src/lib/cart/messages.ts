@@ -1,4 +1,5 @@
 import { ITEMS, countOf } from '@/lib/i18n/count';
+import { textFieldIssue, textIssueMessage } from '@/lib/personalization/engraving';
 
 import type { FieldProblem } from './types';
 
@@ -24,6 +25,8 @@ export function personalizationMessage(
   field: { labelHe: string; fieldType: string; maxLength: number | null },
   reason: Reason,
   value: string,
+  /** The engraving language chosen on the same product, if it asks for one. */
+  language: string | null = null,
 ): string {
   const isChoice = field.fieldType === 'LANGUAGE' || field.fieldType === 'SELECT';
 
@@ -33,9 +36,10 @@ export function personalizationMessage(
 
   if (isChoice) return 'האפשרות שנבחרה כבר אינה זמינה. יש לבחור אחרת.';
 
-  if (field.maxLength !== null && value.trim().length > field.maxLength) {
-    return `עד ${field.maxLength} תווים. כרגע ${value.trim().length}.`;
-  }
+  // Length in the characters a person sees, emoji, and letters in the other
+  // language - each named with the way out (src/lib/personalization/engraving.ts).
+  const issue = textFieldIssue(value, { ...field, language });
+  if (issue) return textIssueMessage(issue, value, field.maxLength);
 
   // A pattern the owner configured. Which rule failed is not known here, so
   // the message does not guess at one.

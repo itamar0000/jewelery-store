@@ -82,8 +82,8 @@ export function MegaMenu({ item, labelledBy }: { item: NavItem; labelledBy: stri
         {item.feature && (
           <div className="w-full lg:w-96 lg:shrink-0">
             {/*
-             * A PICTURE ONLY WHEN THERE IS ONE. `image` is unset everywhere
-             * today - the photography is TBD - and this used to draw a grey
+             * A PICTURE ONLY WHEN THERE IS ONE. The engagement feature carries
+             * the bridal collection's still; an entry without one used to draw a grey
              * placeholder block in its place: the largest shape in the panel,
              * captioned with the title printed directly beneath it, saying
              * nothing. The feature is its words until a real asset is set on

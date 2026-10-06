@@ -7,7 +7,6 @@ import { FaqSection } from '@/components/storefront/FaqSection';
 import { Hero } from '@/components/storefront/Hero';
 import { BEST_SELLERS_SLUG, getBestSellers } from '@/lib/catalog/best-sellers';
 import { getCollections } from '@/lib/catalog/queries';
-import { contactAvailable } from '@/lib/contact';
 
 /**
  * The homepage.
@@ -157,11 +156,15 @@ export default async function HomePage() {
 
       <EditorialPanel
         id="diamonds-heading"
-        title="טבעי או מעבדה — הבחירה שלך"
-        body="בקטלוג יש תכשיטים המשובצים ביהלומים טבעיים ותכשיטים המשובצים ביהלומי מעבדה. שני הסוגים זהים בהרכב הכימי, במבנה הגבישי ובתכונות האופטיות; ההבדל הוא במקור ההיווצרות ובמחיר."
+        // LITERAL, NOT A CHOICE THE CATALOGUE CANNOT BACK. This said "natural
+        // or lab - your choice" while all but two pieces were lab-grown; it now
+        // says what the shelves hold and how to ask for the other (D4D.15).
+        title="יהלומי מעבדה, וטבעיים לפי בקשה"
+        body="רוב התכשיטים בקטלוג משובצים ביהלומי מעבדה. יהלום מעבדה זהה ליהלום טבעי בהרכב הכימי, במבנה הגבישי ובתכונות האופטיות; ההבדל הוא במקור ההיווצרות ובמחיר."
         points={[
-          'סוג היהלום מצוין במפורש בעמוד כל מוצר',
+          'סוג היהלום כתוב על כל דגם, ואפשר לסנן לפיו',
           'יהלום מעבדה — מחיר נמוך יותר לאותו גודל ואיכות',
+          'כל דגם אפשר לבקש גם עם יהלום טבעי',
         ]}
         action={{ label: 'לשאלות ותשובות', href: '/faq' }}
         imageSide="start"
@@ -187,9 +190,9 @@ export default async function HomePage() {
         id="custom-heading"
         title="תכשיט שנבנה לפי בקשה"
         body="ניתן להזמין תכשיט בעיצוב אישי, לשנות דגם קיים או להוסיף חריטה ושמות. התהליך מתחיל בפנייה, וממשיך בשרטוט ובאישור לפני הייצור."
-        // "ולפנייה" only when there is a way to make one (src/lib/contact);
-        // without a channel, /custom explains the process and nothing more.
-        action={{ label: contactAvailable ? 'לפרטים ולפנייה' : 'איך זה עובד', href: '/custom' }}
+        // The close leads straight to the request form: requests are saved
+        // with a number whether or not a contact channel exists (D4D.14).
+        action={{ label: 'לשליחת בקשה', href: '/custom/request' }}
         imageSide="end"
         assetId="atelier"
         imageLabel="עבודת צורף"

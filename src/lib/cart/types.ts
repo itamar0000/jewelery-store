@@ -70,7 +70,15 @@ export interface FieldProblem {
 }
 
 export type CartMutationResult =
-  | { readonly ok: true; readonly itemCount: number }
+  | {
+      readonly ok: true;
+      readonly itemCount: number;
+      /**
+       * After a removal: the line as it was, ready to be added back. It goes
+       * through the ordinary add, so it is validated like any other request.
+       */
+      readonly restore?: AddToCartRequest;
+    }
   | {
       readonly ok: false;
       readonly error: 'invalid' | 'unavailable' | 'needs-choices' | 'not-found';

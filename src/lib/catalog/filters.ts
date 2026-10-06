@@ -16,6 +16,7 @@ import { z } from 'zod';
  *   goldColor            yellow, white, rose
  *   ringSize             48, 50, 52, ...
  *   length               40cm, 45cm, ...
+ *   diamond              lab, natural
  *   shape                round, oval, princess, emerald, pear
  *   carat                0-0.5, 0.5-1, 1-2, 2-plus
  *   style                classic, modern, delicate, everyday, personalized
@@ -50,6 +51,7 @@ export const FACET_CODES = [
   'gold_color',
   'ring_size',
   'length',
+  'diamond_type',
   'diamond_shape',
   'carat',
   'style',
@@ -65,6 +67,7 @@ export const FACET_PARAM = {
   gold_color: 'goldColor',
   ring_size: 'ringSize',
   length: 'length',
+  diamond_type: 'diamond',
   diamond_shape: 'shape',
   carat: 'carat',
   style: 'style',
@@ -88,6 +91,7 @@ export const FACET_SOURCE = {
   gold_color: 'option',
   ring_size: 'option',
   length: 'option',
+  diamond_type: 'diamond',
   diamond_shape: 'diamond',
   carat: 'diamond',
   style: 'attribute',
@@ -137,6 +141,20 @@ export const CARAT_BUCKETS = [
 ] as const;
 
 export type CaratBucketId = (typeof CARAT_BUCKETS)[number]['id'];
+
+/**
+ * Where a stone comes from - `DiamondSpec.isLabGrown`, as a shopper asks it.
+ *
+ * The catalogue's copy used to say "natural or lab, your choice" over a ring
+ * category where every stone was lab-grown (critique 2026-10-06, P1). The
+ * filter answers the question with the database instead of the copy: both
+ * values are always offered where there are diamonds, so a category with no
+ * natural stone says so with a count of 0 rather than by omission.
+ */
+export const DIAMOND_TYPES = [
+  { id: 'lab', labelHe: 'יהלום מעבדה', isLabGrown: true },
+  { id: 'natural', labelHe: 'יהלום טבעי', isLabGrown: false },
+] as const;
 
 // ------------------------------------------------------------------ parsing
 
@@ -431,7 +449,7 @@ export const ATTRIBUTE_VALUE_LABELS: Readonly<Record<string, string>> = {
   modern: 'מודרני',
   delicate: 'עדין',
   everyday: 'יומיומי',
-  personalized: 'בעיצוב אישי',
+  personalized: 'אישי',
   name: 'שם',
   solitaire: 'סוליטר',
 };
@@ -443,6 +461,7 @@ export const FACET_LABELS: Record<FacetCode, string> = {
   gold_color: 'גוון זהב',
   ring_size: 'מידת טבעת',
   length: 'אורך',
+  diamond_type: 'סוג יהלום',
   diamond_shape: 'צורת יהלום',
   carat: 'משקל קראט',
   style: 'סגנון',

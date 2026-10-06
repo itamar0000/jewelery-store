@@ -251,10 +251,26 @@ export async function removeItem(
   if (!parsed.success) return { ok: false, error: 'invalid' };
   if (!isWellFormedToken(token)) return { ok: false, error: 'not-found' };
 
+  // Read before deleting, so the bag can offer to put it back (CartLines).
+  const item = await prisma.cartItem.findFirst({
+    where: { id: parsed.data, cart: { token } },
+    select: { variantId: true, quantity: true, selections: true, customization: true },
+  });
+  if (!item) return { ok: false, error: 'not-found' };
+
   const removed = await prisma.cartItem.deleteMany({
     where: { id: parsed.data, cart: { token } },
   });
 
   if (removed.count === 0) return { ok: false, error: 'not-found' };
-  return { ok: true, itemCount: await getCartCount(token) };
+  return {
+    ok: true,
+    itemCount: await getCartCount(token),
+    restore: {
+      variantId: item.variantId,
+      quantity: item.quantity,
+      selections: parseStoredSelections(item.selections),
+      personalization: parseStoredPersonalization(item.customization),
+    },
+  };
 }

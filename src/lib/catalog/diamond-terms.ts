@@ -80,3 +80,14 @@ const CUT: Readonly<Record<string, string>> = {
 export function cutGloss(grade: string): string | null {
   return CUT[grade.trim().toLowerCase().replace(/\s+/g, ' ')] ?? null;
 }
+
+/**
+ * Where the stones come from, in the words every surface uses: the card, the
+ * product subtitle, the diamond table and the filter (D4D.15). Plural when the
+ * piece carries more than one stone.
+ */
+export function diamondOriginLabel(isLabGrown: boolean, stoneCount: number | null = 1): string {
+  const many = stoneCount !== null && stoneCount > 1;
+  if (isLabGrown) return many ? 'יהלומי מעבדה' : 'יהלום מעבדה';
+  return many ? 'יהלומים טבעיים' : 'יהלום טבעי';
+}

@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 
 import { CategoryResults, CategoryResultsSkeleton } from '@/components/category/CategoryResults';
+import { SearchField } from '@/components/search/SearchField';
 import { PageHero } from '@/components/storefront/PageHero';
-import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
 import { parseCatalogSearchParams, type SearchParams } from '@/lib/catalog/filters';
 import { getCategories } from '@/lib/catalog/queries';
@@ -66,23 +66,41 @@ export default async function SearchPage({
     <>
       <PageHero
         size="compact"
-        title={`תוצאות חיפוש`}
-        description={`חיפשת: "${term}"`}
+        title="חיפוש"
         trail={[{ label: 'דף הבית', href: '/' }, { label: 'חיפוש' }]}
         imageLabel="חיפוש"
       />
 
       <Container className="py-8 md:py-10">
-        <Suspense fallback={<CategoryResultsSkeleton />}>
-          <CategoryResults
-            categoryIds={[]}
-            filterConfig={{ facets: ['price', 'diamond_shape', 'carat', 'style'] }}
-            basePath="/search"
-            rawQuery={rawQuery}
-            rankedIds={rankedIds}
-            emptyState={<NoResults term={term} />}
-          />
-        </Suspense>
+        <SearchField term={term} />
+
+        {/*
+         * NOTHING FOUND IS SAID ONCE, without a filter bar over it. The bar
+         * read "סינון" and "0 מוצרים" above the message - controls for a list
+         * that does not exist (critique 2026-10-06). With nothing ranked there
+         * is nothing to filter; the filtered-to-nothing case, where clearing a
+         * filter is the way out, keeps the bar (CategoryResults).
+         */}
+        {rankedIds.length === 0 ? (
+          <div className="mt-10">
+            <NoResults term={term} />
+          </div>
+        ) : (
+          <div className="mt-8">
+            <Suspense fallback={<CategoryResultsSkeleton />}>
+              <CategoryResults
+                categoryIds={[]}
+                filterConfig={{
+                  facets: ['price', 'diamond_type', 'diamond_shape', 'carat', 'style'],
+                }}
+                basePath="/search"
+                rawQuery={rawQuery}
+                rankedIds={rankedIds}
+                emptyState={<NoResults term={term} />}
+              />
+            </Suspense>
+          </div>
+        )}
       </Container>
     </>
   );
@@ -100,8 +118,11 @@ function EmptyQuery() {
         imageLabel="חיפוש"
       />
 
-      <Container className="py-12 md:py-16">
-        <Suggestions heading={SEARCH_EXAMPLES_HEADING} />
+      <Container className="py-8 md:py-10">
+        <SearchField />
+        <div className="mt-10">
+          <Suggestions heading={SEARCH_EXAMPLES_HEADING} />
+        </div>
       </Container>
     </>
   );
@@ -118,17 +139,15 @@ function EmptyQuery() {
  */
 async function NoResults({ term }: { term: string }) {
   return (
-    <div className="border-border rounded-sm border border-dashed px-6 py-16 text-center">
-      <p className="text-base">לא מצאנו תוצאות עבור &quot;{term}&quot;.</p>
+    <div>
+      <p className="text-base">
+        לא מצאנו תוצאות עבור <bdi>&quot;{term}&quot;</bdi>.
+      </p>
       <p className="text-muted-foreground mt-2 text-sm">
         אפשר לנסות מונח כללי יותר, לבדוק את האיות, או לעיין בקטגוריות.
       </p>
 
-      <Button href="/search" variant="secondary" className="mt-6">
-        ניקוי החיפוש
-      </Button>
-
-      <div className="mt-10">
+      <div className="mt-8">
         <Suggestions heading={SEARCH_RETRY_HEADING} />
       </div>
     </div>
@@ -146,7 +165,7 @@ async function Suggestions({ heading }: { heading: string }) {
     <div>
       <h2 className="text-muted-foreground text-xs font-medium">{heading}</h2>
 
-      <ul className="mt-3 flex flex-wrap justify-center gap-2">
+      <ul className="mt-3 flex flex-wrap gap-2">
         {SEARCH_EXAMPLES.map((suggestion) => (
           <li key={suggestion}>
             <Link
@@ -161,7 +180,7 @@ async function Suggestions({ heading }: { heading: string }) {
 
       <h2 className="text-muted-foreground mt-8 text-xs font-medium">קטגוריות</h2>
 
-      <ul className="mt-3 flex flex-wrap justify-center gap-2">
+      <ul className="mt-3 flex flex-wrap gap-2">
         {categories.map((category) => (
           <li key={category.id}>
             <Link

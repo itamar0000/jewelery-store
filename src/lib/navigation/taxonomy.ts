@@ -67,7 +67,9 @@ export interface NavItem {
 function discoveryColumn(categorySlug: string): NavColumn {
   return {
     id: `${categorySlug}-discovery`,
-    title: 'גילוי',
+    // Named for what it holds - two collections. "גילוי" (discovery) read as
+    // a translated label (critique 2026-10-06).
+    title: 'אוספים',
     links: [
       { id: `${categorySlug}-new`, label: 'חדש באתר', href: '/collections/new-arrivals' },
       {
@@ -126,9 +128,13 @@ export const PRIMARY_NAV: readonly NavItem[] = [
     ],
     feature: {
       title: 'אוסף האירוסין',
-      description: 'טבעות אירוסין ביהלומים טבעיים וביהלומי מעבדה, בהתאמה אישית מלאה.',
+      description:
+        'טבעות אירוסין בהתאמה אישית מלאה. סוג היהלום מצוין בכל דגם, ואפשר לבקש כל טבעת גם עם יהלום טבעי.',
       href: '/rings/engagement-rings',
       linkLabel: 'לצפייה באוסף',
+      // The bridal still - an engagement ring and its band on silk - is the
+      // collection's own photograph (src/lib/content/editorial-assets.ts).
+      image: { src: '/images/editorial/collections/bridal.jpg', alt: '' },
     },
   },
   {
@@ -262,7 +268,10 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
   {
     id: 'about',
     title: 'אודות',
-    links: [{ id: 'f-contact', label: 'צור קשר', href: '/contact' }],
+    links: [
+      { id: 'f-contact', label: 'צור קשר', href: '/contact' },
+      { id: 'f-privacy', label: 'מדיניות פרטיות', href: '/legal/privacy' },
+    ],
   },
 ];
 
@@ -270,7 +279,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
  * SEVEN LINKS WERE REMOVED FROM HERE, AND THEY HAVE TO COME BACK.
  *
  * `/about`, `/shipping`, `/returns`, `/warranty`, `/legal/terms`,
- * `/legal/privacy` and `/legal/accessibility` were listed above while none of
+ * `/legal/privacy` (since restored, D4D.19) and `/legal/accessibility` were listed above while none of
  * those routes existed, so the footer - the exact place a hesitating shopper
  * goes - offered seven doors that all returned 404. A missing link is a gap; a
  * link that fails is a statement about the business behind it.

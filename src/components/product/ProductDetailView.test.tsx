@@ -180,7 +180,10 @@ describe('ProductDetailView', () => {
     );
 
     it('is one primary action, enabled, with its outcome line already listening', () => {
-      expect(buyable.match(/הוספה לסל/g)).toHaveLength(1);
+      // One in the page, one in the phone's sticky bar - which renders hidden
+      // and inert until the page's own button is below the screen.
+      expect(buyable.match(/הוספה לסל/g)).toHaveLength(2);
+      expect(buyable).toMatch(/aria-hidden="true" inert=""[^>]*fixed inset-x-0 bottom-0/);
       expect(buyable).not.toContain('disabled=""');
       expect(buyable).toMatch(/<p role="status"[^>]*><\/p>/);
     });
@@ -339,8 +342,9 @@ describe('ProductDetailView', () => {
       expect(personal).not.toContain('data-placeholder');
     });
 
-    it('stops typing at the limit the server enforces, and says how much room is left', () => {
-      expect(personal).toMatch(/<input[^>]*maxLength="12"/);
+    it('counts the room left in characters, without cutting typing at a UTF-16 limit', () => {
+      // A maxLength attribute counts code units and cut pointed names short.
+      expect(personal).not.toMatch(/<input[^>]*maxLength=/);
       expect(personal).toContain('עד 12 תווים.');
       expect(personal).toContain('0/12');
     });
@@ -351,11 +355,18 @@ describe('ProductDetailView', () => {
       expect(personal).toMatch(/שפת החריטה<span[^>]*>\s*יש לבחור<\/span>/);
     });
 
-    it('names a surcharge only when there is one', () => {
-      expect(personal).toContain('תוספת');
-      expect(personal).toContain('90');
+    it('counts a required surcharge in the price, and says it is included', () => {
+      // The name cannot be skipped, so ₪90 is part of the price - never "תוספת".
+      expect(personal).toContain('כולל החריטה');
+      expect(personal).toMatch(/90[^<]*₪<\/bdi> כלולים במחיר/);
+      expect(personal).not.toContain('תוספת');
       // "שפת החריטה" costs nothing extra and says nothing about it.
-      expect(personal).not.toMatch(/שפת החריטה[^<]*תוספת/);
+      expect(personal).not.toMatch(/שפת החריטה[^<]*כלולים/);
+    });
+
+    it('shows the name back as it is typed, before anything is typed too', () => {
+      expect(personal).toContain('כך ייכתב השם.');
+      expect(personal).toContain('השם כאן');
     });
 
     it('marks the optional field rather than the required ones', () => {
@@ -400,9 +411,16 @@ describe('diamond grades', () => {
 });
 
 describe('ring size', () => {
-  it('states the unit and links to how to find a size', () => {
+  it('states the unit and explains how to find a size in place, not a page away', () => {
     expect(markup).toContain('מידה אירופית: היקף פנימי במ״מ.');
-    expect(markup).toContain('href="/faq#ring-size"');
+    expect(markup).not.toContain('href="/faq#ring-size"');
+    expect(markup).toMatch(/<details[^>]*>\s*<summary/);
+    expect(markup).toContain('איך יודעים מידה?');
+  });
+
+  it('works out the inner diameter of each size, so nobody has to', () => {
+    // Size 52 is a 52mm circumference: 52 / pi = 16.6mm across.
+    expect(markup).toMatch(/<td[^>]*>52<\/td><td[^>]*>16\.6 מ״מ<\/td>/);
   });
 });
 
@@ -411,9 +429,10 @@ describe('ring size', () => {
  * model can be altered in karat, gold colour, size and length).
  */
 describe('made your way', () => {
-  it('names the axes this piece has a reason to mention, and links to custom orders', () => {
+  it('names the axes this piece has a reason to mention, and links to a request for this model', () => {
     expect(markup).toContain('רוצים גוון זהב, קראט או מידה אחרים? כל דגם אפשר להזמין גם בהם.');
-    expect(markup).toContain('href="/custom"');
+    // The request starts from this model, made the way it is on screen.
+    expect(markup).toMatch(/href="\/custom\/request\?product=[a-z0-9-]+&amp;/);
   });
 
   it('says length for a chain, and neither for a piece with no size', () => {

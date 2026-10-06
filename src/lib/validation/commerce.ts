@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 import { agorot, basisPoints, email, hebrewText, id, phone, quantity, storageKey } from './common';
+import { CHANGE_AREAS } from '@/lib/custom-requests/form';
+
 import { productTypeSchema } from './product';
 
 /**
@@ -164,23 +166,41 @@ export const couponInputSchema = z
  * A custom request.
  *
  * Contact details are captured directly so an anonymous visitor can submit
- * without an account. Budget is optional (section 19 marks it optional/TBD).
+ * without an account - a phone OR an email, one way back is enough (D4D.14).
+ * Budget is optional (section 19 marks it optional/TBD).
+ *
+ * A request sent from a product page names the model by slug and the choices
+ * on screen by their address parameters (src/lib/catalog/choice-params.ts);
+ * the server resolves both against the catalogue and takes the kind of
+ * jewellery from the model. A request from scratch names the kind itself.
  */
-export const customRequestSchema = z.object({
-  fullName: hebrewText(120),
-  email,
-  phone,
-  jewelryType: productTypeSchema,
-  description: z
-    .string()
-    .trim()
-    .min(10, 'Please describe your idea in a little more detail.')
-    .max(5000),
-  extraDetails: z.string().trim().max(5000).nullish(),
-  budgetAgorot: agorot.nullish(),
-  /** Uploads go direct to storage; only the resulting keys arrive here. */
-  imageKeys: z.array(storageKey).max(10, 'Up to 10 images.').default([]),
-});
+export const customRequestSchema = z
+  .object({
+    fullName: hebrewText(120),
+    email: email.nullish(),
+    phone: phone.nullish(),
+    jewelryType: productTypeSchema.nullish(),
+    productSlug: z.string().trim().min(1).max(120).nullish(),
+    choices: z.record(z.string().max(32), z.string().max(64)).default({}),
+    changeAreas: z.array(z.enum(CHANGE_AREAS)).max(CHANGE_AREAS.length).default([]),
+    description: z
+      .string()
+      .trim()
+      .min(10, 'Please describe your idea in a little more detail.')
+      .max(5000),
+    extraDetails: z.string().trim().max(5000).nullish(),
+    budgetAgorot: agorot.nullish(),
+    /** Uploads go direct to storage; only the resulting keys arrive here. */
+    imageKeys: z.array(storageKey).max(10, 'Up to 10 images.').default([]),
+  })
+  .refine((request) => !!request.phone || !!request.email, {
+    message: 'A phone number or an email address is required.',
+    path: ['phone'],
+  })
+  .refine((request) => !!request.productSlug || !!request.jewelryType, {
+    message: 'Name the kind of jewellery, or the model the request starts from.',
+    path: ['jewelryType'],
+  });
 
 export const customRequestStatusSchema = z.enum([
   'NEW',

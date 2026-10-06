@@ -49,6 +49,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/`, changeFrequency: 'weekly', priority: 1 },
     { url: `${base}/custom`, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${base}/faq`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${base}/legal/privacy`, changeFrequency: 'yearly', priority: 0.2 },
     // Only while a contact channel exists; without one /contact is a 404.
     ...(contactAvailable
       ? [{ url: `${base}/contact`, changeFrequency: 'monthly' as const, priority: 0.5 }]

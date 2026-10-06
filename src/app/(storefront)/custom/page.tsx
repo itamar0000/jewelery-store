@@ -3,83 +3,90 @@ import type { Metadata } from 'next';
 import { PageHero } from '@/components/storefront/PageHero';
 import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
+import { EditorialImage } from '@/components/ui/EditorialImage';
 import { contactAvailable } from '@/lib/contact';
+import { CUSTOM_STEPS } from '@/lib/content/custom-process';
 
 export const metadata: Metadata = {
   title: 'עיצוב אישי',
-  description: 'הזמנת תכשיט בעיצוב אישי.',
+  description: 'הזמנת תכשיט בעיצוב אישי, או דגם מהקטלוג בגוון, בקראט או במידה אחרים.',
 };
 
 /**
- * Custom jewelry landing page.
+ * Custom jewellery: how it works, and where to start.
  *
- * The REQUEST FORM is not built here. MASTER_SPECIFICATION section 17 describes
- * a custom request flow with file upload and a request record; that is a real
- * feature with storage, validation and an admin queue behind it, and a form
- * that collects a customer name, phone and reference photo and then discards
- * them would be worse than no form at all.
+ * STEP ONE IS NOW SOMETHING TO DO. The page used to explain a process whose
+ * first step, "פנייה", had no action while no contact channel existed - the
+ * product pages, the menu and the home page all invited custom work and
+ * arrived here at a wall (critique 2026-10-06, P0). The request form
+ * (/custom/request) saves the request to the database with a number, so the
+ * page ends on it as the one primary action.
  *
- * So this page explains the process. Step one is getting in touch, so when a
- * contact channel exists (src/lib/contact) the page ends on the way to do it;
- * when none does, it ends on the process. It used to end on a dashed box saying
- * the form "has not been built at this stage" - the slot was marked for the
- * team, but a visitor read it as the shop not being ready.
- *
- * The three steps below are process description, not marketing claims - no
- * turnaround time or price is stated, because neither has been decided.
+ * THE WORKSHOP IS SHOWN, not only described: the atelier photograph - hands at
+ * the bench - sits beside the steps at the editorial panel's 4:5, the shape
+ * DESIGN.md gives a picture beside a column of copy. It is the same photograph
+ * that closes the home page, which is the point: that band leads here.
  */
-const STEPS: readonly { id: string; title: string; body: string }[] = [
-  { id: 'brief', title: 'פנייה', body: 'תיאור הרעיון, דגם להשראה או תכשיט קיים לשינוי.' },
-  { id: 'design', title: 'שרטוט ואישור', body: 'הצעת עיצוב והצעת מחיר לאישור לפני תחילת העבודה.' },
-  { id: 'craft', title: 'ייצור', body: 'הכנת התכשיט לאחר אישור, כולל חריטה והתאמות מידה.' },
-];
-
 export default function CustomPage() {
   return (
     <>
       <PageHero
         title="עיצוב אישי"
-        description="ניתן להזמין תכשיט שנבנה מהתחלה, לשנות דגם קיים או להוסיף חריטה ושמות."
+        description="אפשר להזמין תכשיט שנבנה מהתחלה, לשנות דגם קיים או להוסיף חריטה ושמות."
         trail={[{ label: 'דף הבית', href: '/' }, { label: 'עיצוב אישי' }]}
-        imageLabel="עבודת צורף"
       />
 
-      <Container className="py-12 md:py-16">
-        <section aria-labelledby="process-heading">
-          <h2
-            id="process-heading"
-            className="font-display text-center text-2xl font-bold tracking-tight md:text-3xl"
-          >
-            איך זה עובד
-          </h2>
-
-          {/*
-           * Three unframed columns under a hairline, not three bordered cards.
-           *
-           * Section 17 calls custom work a differentiator and the visual brief
-           * asks this page to feel bespoke rather than transactional. A row of
-           * outlined boxes is the shape of a pricing table; a rule with the
-           * step set beneath it is the shape of a process described in a
-           * catalogue, which is what this actually is.
-           */}
-          <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-12">
-            {STEPS.map((step, index) => (
-              <li key={step.id} className="border-border border-t pt-6">
-                <span className="text-accent text-xs font-medium">שלב {index + 1}</span>
-                <h3 className="mt-3 text-base font-medium">{step.title}</h3>
-                <p className="text-muted-foreground mt-2 text-sm text-pretty">{step.body}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        {contactAvailable && (
-          <div className="mt-12 text-center">
-            <Button href="/contact" variant="secondary">
-              יצירת קשר
-            </Button>
+      <Container className="md:py-feature py-12">
+        <section
+          aria-labelledby="process-heading"
+          className="grid items-center gap-10 md:grid-cols-2 md:gap-12 lg:gap-16"
+        >
+          <div className="relative aspect-[4/5] overflow-hidden">
+            <EditorialImage
+              id="atelier"
+              sizes="(max-width: 767px) 100vw, 45vw"
+              placeholderLabel="עבודת צורף"
+            />
           </div>
-        )}
+
+          <div>
+            <h2
+              id="process-heading"
+              className="font-display text-2xl font-bold tracking-tight md:text-3xl"
+            >
+              איך זה עובד
+            </h2>
+
+            {/*
+             * Three steps under hairlines, not three bordered cards: a rule
+             * with the step beneath it is the shape of a process described in
+             * a catalogue, which is what this is.
+             */}
+            <ol className="mt-8 space-y-6">
+              {CUSTOM_STEPS.map((step, index) => (
+                <li key={step.id} className="border-border border-t pt-5">
+                  <h3 className="text-base font-medium">
+                    <span className="text-muted-foreground tabular-nums">{index + 1}. </span>
+                    {step.title}
+                  </h3>
+                  <p className="text-soft-foreground mt-1.5 text-base text-pretty">{step.body}</p>
+                </li>
+              ))}
+            </ol>
+
+            <div className="mt-10 flex flex-wrap gap-3">
+              <Button href="/custom/request" variant="primary" size="lg">
+                לשליחת בקשה
+              </Button>
+              {contactAvailable && (
+                <Button href="/contact" variant="secondary" size="lg">
+                  יצירת קשר
+                </Button>
+              )}
+            </div>
+            <p className="text-muted-foreground mt-4 text-sm">הבקשה לא מחייבת ואין בה תשלום.</p>
+          </div>
+        </section>
       </Container>
     </>
   );

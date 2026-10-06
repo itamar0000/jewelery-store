@@ -1,6 +1,5 @@
 import Link from 'next/link';
 
-import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
 import { EditorialImage } from '@/components/ui/EditorialImage';
 import type { EditorialAssetId } from '@/lib/content/editorial-assets';
@@ -128,19 +127,24 @@ export function EditorialPanel({
               </ul>
             )}
 
-            {action &&
-              (finale ? (
-                <Link
-                  href={action.href}
-                  className="ease-settle decoration-border-strong hover:decoration-foreground touch-target mt-8 inline-block text-lg font-semibold underline decoration-2 underline-offset-[0.4em] transition-colors duration-(--duration-settle) md:text-xl"
-                >
-                  {action.label}
-                </Link>
-              ) : (
-                <Button href={action.href} variant="secondary" className="mt-8">
-                  {action.label}
-                </Button>
-              ))}
+            {/*
+             * ONE ACTION STYLE ON EVERY EDITORIAL BAND: an underlined line of
+             * type (DESIGN.md, the Underlined Action Rule). The non-final
+             * panels used to carry a ruled box, so the diamonds band offered an
+             * outlined button between two bands whose actions were underlines
+             * (critique 2026-10-06; D4D.18). The finale keeps its step up in size.
+             */}
+            {action && (
+              <Link
+                href={action.href}
+                className={cn(
+                  'ease-settle decoration-border-strong hover:decoration-foreground touch-target mt-8 inline-block font-semibold underline decoration-2 underline-offset-[0.4em] transition-colors duration-(--duration-settle)',
+                  finale ? 'text-lg md:text-xl' : 'text-base md:text-lg',
+                )}
+              >
+                {action.label}
+              </Link>
+            )}
           </div>
         </div>
       </Container>

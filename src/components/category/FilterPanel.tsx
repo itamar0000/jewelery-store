@@ -1,7 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 
 import { cn } from '@/components/ui/cn';
 import { Button } from '@/components/ui/Button';
@@ -69,6 +70,21 @@ export function FilterBar({
 }) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
+  const drawerRef = useRef<HTMLDivElement>(null);
+
+  /*
+   * THE DRAWER'S MAIN BUTTON APPLIES A TYPED PRICE. Every other filter
+   * navigates the moment it is tapped, but a price is typed, and the range
+   * used to apply only through its own small button: a shopper who typed
+   * 5,000 and pressed "הצגת 16 מוצרים" saw 16 products, the price silently
+   * discarded (critique 2026-10-06, P1). A range that differs from the
+   * address is submitted first; then the drawer closes on the results.
+   */
+  const closeDrawer = () => {
+    const form = drawerRef.current?.querySelector<HTMLFormElement>('form[data-price-filter]');
+    if (form && priceTyped(form, query)) form.requestSubmit();
+    setOpen(false);
+  };
   const activeCount = activeFilterCount(query);
   const pending = useCatalogNavigation()?.pending ?? false;
 
@@ -142,6 +158,7 @@ export function FilterBar({
           />
 
           <div
+            ref={drawerRef}
             role="dialog"
             aria-modal="true"
             aria-label="סינון מוצרים"
@@ -175,6 +192,7 @@ export function FilterBar({
                   query={query}
                   basePath={basePath}
                   counts={counts[facet.code]}
+                  inDrawer
                 />
               ))}
             </div>
@@ -192,7 +210,8 @@ export function FilterBar({
              * every value navigates the moment it is tapped, so the results
              * behind the drawer are already correct; an Apply button would
              * imply a pending change that does not exist. The primary control
-             * therefore says how many products are waiting and closes.
+             * therefore says how many products are waiting and closes - after
+             * applying a price that was typed and not yet sent (closeDrawer).
              *
              * Reset is a `Link` for the same reason every value is - it is a
              * navigation to the unfiltered URL, so it works with the back
@@ -213,7 +232,7 @@ export function FilterBar({
                   arriving the figure is the old one, so it dims with the grid. */}
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={closeDrawer}
                 aria-busy={pending || undefined}
                 className={cn(
                   'bg-foreground text-background hover:bg-foreground/90 inline-flex h-12 flex-1 items-center justify-center text-sm font-medium transition-[background-color,opacity]',
@@ -247,17 +266,30 @@ function MadeToMeasureNote({ className }: { className?: string }) {
   );
 }
 
+/** Whether the price form holds a range the address does not have yet. */
+function priceTyped(form: HTMLFormElement, query: CatalogQuery): boolean {
+  const data = new FormData(form);
+  const read = (name: string) => {
+    const raw = String(data.get(name) ?? '').trim();
+    return raw === '' ? null : Number.parseInt(raw, 10);
+  };
+  return read('minPrice') !== query.minPrice || read('maxPrice') !== query.maxPrice;
+}
+
 function FilterGroup({
   facet,
   query,
   basePath,
   counts,
+  inDrawer = false,
 }: {
   facet: Facet;
   query: CatalogQuery;
   basePath: string;
   /** Products per value; absent when the page did not count them. */
   counts?: Readonly<Record<string, number>>;
+  /** In the phone drawer, whose main button applies a typed price. */
+  inDrawer?: boolean;
 }) {
   // Groups with a selection open by default, so an active filter is never
   // hidden behind a collapsed heading after a reload.
@@ -297,7 +329,7 @@ function FilterGroup({
       {open && (
         <div id={panelId} className="pb-3">
           {facet.code === 'price' ? (
-            <PriceFilter facet={facet} query={query} basePath={basePath} />
+            <PriceFilter facet={facet} query={query} basePath={basePath} inDrawer={inDrawer} />
           ) : (
             <ul
               className={cn(
@@ -394,6 +426,20 @@ function FilterGroup({
               })}
             </ul>
           )}
+
+          {/* No natural stone here: the 0 says so, and this says what to do
+              about it - any model can be asked for with one (D4D.15). */}
+          {facet.code === 'diamond_type' && counts?.natural === 0 && (
+            <p className="text-soft-foreground mt-3 text-sm">
+              {'יהלום טבעי אפשר לבקש לכל דגם. '}
+              <Link
+                href="/custom/request"
+                className="decoration-border-strong hover:decoration-accent touch-target underline underline-offset-[0.35em]"
+              >
+                לבקשת התאמה
+              </Link>
+            </p>
+          )}
         </div>
       )}
     </fieldset>
@@ -415,10 +461,12 @@ function PriceFilter({
   facet,
   query,
   basePath,
+  inDrawer,
 }: {
   facet: Facet;
   query: CatalogQuery;
   basePath: string;
+  inDrawer: boolean;
 }) {
   const router = useRouter();
   const navigation = useCatalogNavigation();
@@ -429,6 +477,7 @@ function PriceFilter({
 
   return (
     <form
+      data-price-filter
       // The inputs are uncontrolled, so a range cleared elsewhere (its chip,
       // "נקה סינון") would linger in them; keying on the range in the URL
       // resets them to it.
@@ -471,7 +520,7 @@ function PriceFilter({
             inputMode="numeric"
             min={0}
             defaultValue={query.minPrice ?? ''}
-            placeholder={String(floor)}
+            placeholder={floor.toLocaleString('he-IL')}
             className="h-full w-full bg-transparent text-sm pointer-coarse:text-base"
           />
         </label>
@@ -491,15 +540,19 @@ function PriceFilter({
             inputMode="numeric"
             min={0}
             defaultValue={query.maxPrice ?? ''}
-            placeholder={String(ceiling)}
+            placeholder={ceiling.toLocaleString('he-IL')}
             className="h-full w-full bg-transparent text-sm pointer-coarse:text-base"
           />
         </label>
       </div>
 
-      <Button type="submit" variant="secondary" className="mt-3 w-full">
-        עדכון טווח מחירים
-      </Button>
+      {/* In the drawer the main button applies the range, and Enter does too;
+          a second button for the same act would only compete with it. */}
+      {!inDrawer && (
+        <Button type="submit" variant="secondary" className="mt-3 w-full">
+          עדכון טווח מחירים
+        </Button>
+      )}
     </form>
   );
 }

@@ -5,6 +5,7 @@ import {
   ATTRIBUTE_KEY,
   ATTRIBUTE_VALUE_LABELS,
   CARAT_BUCKETS,
+  DIAMOND_TYPES,
   FACET_LABELS,
   FACET_PARAM,
   FACET_SOURCE,
@@ -148,6 +149,27 @@ async function buildFacet(code: FacetCode, scope: Prisma.ProductWhereInput): Pro
   }
 
   if (source === 'diamond') {
+    if (code === 'diamond_type') {
+      // Both kinds, whenever the category has stones at all: a 0 beside
+      // "יהלום טבעי" is the answer a shopper came for, not a gap.
+      const withStones = await prisma.product.count({
+        where: { ...scope, hasDiamonds: true },
+      });
+      if (withStones === 0) return null;
+
+      return {
+        code,
+        param: FACET_PARAM[code],
+        source,
+        labelHe: FACET_LABELS[code],
+        values: DIAMOND_TYPES.map((type) => ({
+          value: type.id,
+          token: type.id,
+          labelHe: type.labelHe,
+        })),
+      };
+    }
+
     if (code === 'carat') {
       // Buckets are derived ranges, so they are offered whenever the category
       // has any stone data at all rather than read from distinct values.
@@ -302,6 +324,20 @@ export function buildCatalogWhere(
         },
       },
     });
+  }
+
+  if (query.values.diamond_type.length > 0) {
+    const kinds = DIAMOND_TYPES.filter((type) => query.values.diamond_type.includes(type.id)).map(
+      (type) => type.isLabGrown,
+    );
+    if (kinds.length > 0) {
+      and.push({
+        OR: kinds.flatMap((isLabGrown) => [
+          { diamondSpec: { isLabGrown } },
+          { variants: { some: { diamondSpec: { isLabGrown } } } },
+        ]),
+      });
+    }
   }
 
   if (query.values.diamond_shape.length > 0) {

@@ -140,7 +140,7 @@ export async function CategoryResults({
         <Pagination query={query} basePath={basePath} page={page} totalPages={totalPages} />
 
         {totalPages > 1 && (
-          <p className="text-muted-foreground mt-4 text-center text-xs">
+          <p className="text-muted-foreground mt-4 text-xs">
             עמוד {page} מתוך {totalPages} · {countOf(total, PRODUCTS)} · {pageSize} בעמוד
           </p>
         )}

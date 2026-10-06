@@ -159,6 +159,14 @@ export function ProductCard({
         </Heading>
 
         {/*
+         * WHERE THE STONE COMES FROM, ON THE CARD. The store sells both kinds
+         * and the price difference between them is the whole story, so a grid
+         * of diamond pieces that did not say which kind each one is asked the
+         * shopper to open every product to find out (D4D.15).
+         */}
+        {product.stone && <p className="text-muted-foreground text-xs">{product.stone}</p>}
+
+        {/*
          * THE PRICE SITS LEVEL WITH THE NAME - same size, same weight.
          *
          * It used to be a step LOUDER than everything else on the card, on the
