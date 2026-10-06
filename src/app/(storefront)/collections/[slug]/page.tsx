@@ -13,6 +13,7 @@ import {
   getCollection,
   getProductsByCollection,
 } from '@/lib/catalog/queries';
+import { notFoundMetadata } from '@/lib/seo/not-found';
 
 /**
  * Collection page - /collections/best-sellers.
@@ -39,7 +40,8 @@ export async function generateMetadata({
   const { slug } = await params;
   const collection = await getCollection(slug);
 
-  if (!collection) return {};
+  // Missing: say so in the tab too (src/lib/seo/not-found.ts).
+  if (!collection) return notFoundMetadata;
 
   return {
     title: collection.nameHe,

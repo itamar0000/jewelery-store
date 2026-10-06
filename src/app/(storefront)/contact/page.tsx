@@ -6,11 +6,13 @@ import { PageHero } from '@/components/storefront/PageHero';
 import { Container } from '@/components/ui/Container';
 import { cn } from '@/components/ui/cn';
 import { contactAvailable, contactChannels } from '@/lib/contact';
+import { notFoundMetadata } from '@/lib/seo/not-found';
 
-export const metadata: Metadata = {
-  title: 'צור קשר',
-  description: 'דרכי יצירת קשר עם החנות.',
-};
+// With no channel configured the page is a 404 (below), and its tab says so
+// rather than "צור קשר" (src/lib/seo/not-found.ts).
+export const metadata: Metadata = contactAvailable
+  ? { title: 'צור קשר', description: 'דרכי יצירת קשר עם החנות.' }
+  : notFoundMetadata;
 
 /** One column per channel, so one or two channels do not leave empty cells. */
 const COLUMNS = ['', 'sm:grid-cols-2', 'sm:grid-cols-3'] as const;

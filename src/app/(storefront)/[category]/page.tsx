@@ -7,6 +7,7 @@ import { CategoryPageShell } from '@/components/category/CategoryPageShell';
 import { CategoryResults, CategoryResultsSkeleton } from '@/components/category/CategoryResults';
 import { descendantCategoryIds, getCategoryBySlug } from '@/lib/catalog/queries';
 import { canonicalFor, parseCatalogSearchParams, type SearchParams } from '@/lib/catalog/filters';
+import { notFoundMetadata } from '@/lib/seo/not-found';
 
 /**
  * Category page, backed by the database.
@@ -34,7 +35,9 @@ export async function generateMetadata({
   const { category } = await params;
   const found = await getCategoryBySlug(category);
 
-  if (!found) return {};
+  // Missing, or a subcategory reached at the top level - both 404 below, and
+  // the tab must say so too (src/lib/seo/not-found.ts).
+  if (!found || found.ancestors.length > 0) return notFoundMetadata;
 
   return {
     title: found.seoTitle ?? found.nameHe,

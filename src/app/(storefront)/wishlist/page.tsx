@@ -1,4 +1,10 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+
+import { notFoundMetadata } from '@/lib/seo/not-found';
+
+/** Always a 404, so the tab says so (src/lib/seo/not-found.ts). */
+export const metadata: Metadata = notFoundMetadata;
 
 /**
  * Wishlist.
