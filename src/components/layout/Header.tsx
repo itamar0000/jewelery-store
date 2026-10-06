@@ -143,7 +143,7 @@ export function Header({
        * than by text-align: they balance each other, so the name sits in the
        * true middle of the container whatever the icons do.
        */}
-      <Container className="flex h-16 items-center gap-4 lg:h-20">
+      <Container className="flex h-16 items-center gap-4 lg:h-16">
         {/*
          * THE HOUSE MARK LEADS THE ROW, at the inline start - the RIGHT of this
          * RTL page - which is where FIRST VIEWPORT places it and where a
@@ -251,11 +251,11 @@ export function Header({
        */}
       <div className="border-border/70 relative hidden border-t lg:block">
         <Container>
-          <DesktopNav items={navItems} state={state} dispatch={dispatch} />
+          <DesktopNav items={navItems} state={state} dispatch={dispatch} pathname={pathname} />
         </Container>
       </div>
 
-      <MobileNav items={navItems} state={state} dispatch={dispatch} />
+      <MobileNav items={navItems} state={state} dispatch={dispatch} pathname={pathname} />
       <SearchOverlay state={state} dispatch={dispatch} />
     </header>
   );

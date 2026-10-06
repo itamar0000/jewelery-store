@@ -40,7 +40,7 @@ export function FeaturedProducts({
 
       {/* Said once for the row, not on each card; gone once prices are final. */}
       {estimatedPricesNote && (
-        <p className="text-muted-foreground mt-10 text-center text-xs">{estimatedPricesNote}</p>
+        <p className="text-muted-foreground mt-10 text-xs">{estimatedPricesNote}</p>
       )}
     </Container>
   );

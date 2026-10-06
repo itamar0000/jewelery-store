@@ -1,14 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useTransition } from 'react';
+import { createContext, use, useState, useTransition, type ReactNode } from 'react';
 
 import { LineFacts } from '@/components/checkout/OrderSummary';
 import { ProductPhoto } from '@/components/product/ProductPhoto';
 import { cn } from '@/components/ui/cn';
 import { MinusIcon, PlusIcon } from '@/components/ui/icons';
 import { MAX_LINE_QUANTITY } from '@/lib/cart/pricing';
-import type { CartLineView, CartMutationResult } from '@/lib/cart/types';
+import type { AddToCartRequest, CartLineView, CartMutationResult } from '@/lib/cart/types';
 import { add, formatPrice } from '@/lib/money';
 
 /**
@@ -23,6 +23,68 @@ import { add, formatPrice } from '@/lib/money';
 
 type Update = (input: { cartItemId: string; quantity: number }) => Promise<CartMutationResult>;
 type Remove = (cartItemId: string) => Promise<CartMutationResult>;
+type Restore = (request: AddToCartRequest) => Promise<CartMutationResult>;
+
+/**
+ * UNDO FOR A REMOVAL (critique 2026-10-06). "הסרה" deleted the line at once,
+ * engraving and all, with no way back short of configuring the piece again.
+ * The removal now leaves a line that says what went and offers "ביטול",
+ * which adds the same configuration back through the ordinary add - so it is
+ * validated like any other, and refused in words if it can no longer be had.
+ *
+ * The notice lives ABOVE the lines, in `CartUndoArea`, which the bag page
+ * renders in the same place whether or not the bag is now empty: removing the
+ * last item swaps the lines for the empty bag, and the way back must survive
+ * that.
+ */
+const RemovedContext = createContext<((name: string, request: AddToCartRequest) => void) | null>(
+  null,
+);
+
+export function CartUndoArea({ restore, children }: { restore: Restore; children: ReactNode }) {
+  const [removed, setRemoved] = useState<{ name: string; request: AddToCartRequest } | null>(null);
+  const [pending, startTransition] = useTransition();
+  const [failed, setFailed] = useState(false);
+
+  function undo() {
+    if (!removed) return;
+    setFailed(false);
+    startTransition(async () => {
+      try {
+        const result = await restore(removed.request);
+        if (result.ok) setRemoved(null);
+        else setFailed(true);
+      } catch {
+        setFailed(true);
+      }
+    });
+  }
+
+  return (
+    <RemovedContext value={(name, request) => setRemoved({ name, request })}>
+      <div role="status" className="text-sm">
+        {removed && (
+          <span className="border-border mt-6 flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b pb-4">
+            <span className="text-soft-foreground">
+              {failed ? 'לא ניתן להחזיר את הפריט לסל כפי שהיה.' : `${removed.name} הוסר מהסל.`}
+            </span>
+            {!failed && (
+              <button
+                type="button"
+                onClick={undo}
+                disabled={pending}
+                className="decoration-border-strong hover:decoration-accent touch-target font-semibold underline underline-offset-[0.35em]"
+              >
+                {pending ? 'מחזירים…' : 'ביטול'}
+              </button>
+            )}
+          </span>
+        )}
+      </div>
+      {children}
+    </RemovedContext>
+  );
+}
 
 const LINE_MESSAGES: Record<Exclude<CartMutationResult, { ok: true }>['error'], string> = {
   unavailable: 'אין כמות נוספת מהפריט הזה.',
@@ -60,6 +122,7 @@ function CartLine({
 }) {
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
+  const announceRemoved = use(RemovedContext);
   const href = `/product/${line.productSlug}`;
 
   function run(action: () => Promise<CartMutationResult>) {
@@ -68,6 +131,7 @@ function CartLine({
       try {
         const result = await action();
         if (!result.ok) setMessage(LINE_MESSAGES[result.error]);
+        else if (result.restore) announceRemoved?.(line.productName, result.restore);
       } catch {
         setMessage('השינוי לא נשמר. אפשר לנסות שוב.');
       }

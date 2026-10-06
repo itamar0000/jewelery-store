@@ -6,6 +6,7 @@ import { ProductDetailView } from '@/components/product/ProductDetailView';
 import { Container } from '@/components/ui/Container';
 import { addToCartAction } from '@/lib/cart/actions';
 import { estimatedPriceLabel } from '@/lib/catalog/price-disclosure';
+import { choicesFromParams } from '@/lib/catalog/choice-params';
 import { getProductBySlug } from '@/lib/catalog/queries';
 import { contactAvailable } from '@/lib/contact';
 import { STOCK_LEVELS_ARE_LIVE } from '@/lib/inventory/disclosure';
@@ -42,17 +43,33 @@ export async function generateMetadata({
 
   // Metadata comes from the database, preferring the explicit SEO fields and
   // falling back to the product's own copy.
+  // THE TAB SAYS WHAT THE HEADING SAYS. The SEO title read "טבעת סוליטר
+  // יהלום מעבדה" over an h1 of "טבעת אורורה סוליטר" - two names for one
+  // page (critique 2026-10-06). The product's name titles the tab; the
+  // owner's SEO title still describes the page where it is shared.
   return {
-    title: product.seoTitle ?? product.nameHe,
+    title: product.nameHe,
+    openGraph: { title: product.seoTitle ?? product.nameHe },
     description: product.seoDescription ?? product.shortDescriptionHe ?? undefined,
+    // One page however it is made: `?karat=18k&color=rose` is a view of it.
+    alternates: { canonical: `/product/${product.slug}` },
   };
 }
 
-export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function ProductPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
 
   if (!product) notFound();
+
+  // The choices in the address, matched against this product's own options.
+  const initialChoices = choicesFromParams(product.options, await searchParams);
 
   const trail: Crumb[] = [
     { label: 'דף הבית', href: '/' },
@@ -78,6 +95,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           contactAvailable={contactAvailable}
           stockLevelsLive={STOCK_LEVELS_ARE_LIVE}
           addToCart={addToCartAction}
+          initialChoices={initialChoices}
         />
       </div>
     </Container>

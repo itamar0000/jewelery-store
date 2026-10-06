@@ -268,7 +268,25 @@ describe('changing and removing', () => {
     const { token } = await add(null, ringLine(ring.yellow.id));
     const lineId = (await getCartView(token)).lines[0]!.id;
 
-    expect(await removeItem(token, lineId)).toEqual({ ok: true, itemCount: 0 });
+    const removed = await removeItem(token, lineId);
+    expect(removed).toMatchObject({ ok: true, itemCount: 0 });
     expect((await getCartView(token)).lines).toHaveLength(0);
+  });
+
+  it('hands back the removed line, which adds back exactly as it was', async () => {
+    const { token } = await add(null, ringLine(ring.yellow.id));
+    const before = (await getCartView(token)).lines[0]!;
+
+    const removed = await removeItem(token, before.id);
+    if (!removed.ok || !removed.restore) throw new Error('no restore');
+    expect(removed.restore.variantId).toBe(ring.yellow.id);
+
+    const { result } = await add(token, removed.restore);
+    expect(result.ok).toBe(true);
+
+    const after = (await getCartView(token)).lines[0]!;
+    expect(after.selections).toEqual(before.selections);
+    expect(after.personalization).toEqual(before.personalization);
+    expect(after.lineTotal).toEqual(before.lineTotal);
   });
 });

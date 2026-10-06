@@ -349,17 +349,17 @@ async function main(): Promise<void> {
   // What a piece IS, never what the workshop can make it in: karat, gold colour,
   // size and length are made to order for every model, so they are chosen on
   // the product page rather than filtered by (docs/DECISIONS.md D4D.11).
-  const RING_FACETS = ['price', 'diamond_shape', 'carat'];
-  const EARRING_FACETS = ['price', 'diamond_shape', 'style'];
-  const NECKLACE_FACETS = ['price', 'pendant_type'];
-  const BRACELET_FACETS = ['price', 'style'];
-  const SET_FACETS = ['price', 'style'];
+  const RING_FACETS = ['price', 'diamond_type', 'diamond_shape', 'carat'];
+  const EARRING_FACETS = ['price', 'diamond_type', 'diamond_shape', 'style'];
+  const NECKLACE_FACETS = ['price', 'diamond_type', 'pendant_type'];
+  const BRACELET_FACETS = ['price', 'diamond_type', 'style'];
+  const SET_FACETS = ['price', 'diamond_type', 'style'];
 
   const rings = await createCategory({
     slug: 'rings',
     nameHe: 'טבעות',
     descriptionHe:
-      'טבעות אירוסין, נישואין וטבעות יומיום, ביהלומים טבעיים וביהלומי מעבדה. ניתן להתאים כל דגם לפי קראט, גוון זהב ומידה.',
+      'טבעות אירוסין, נישואין וטבעות יומיום. סוג היהלום מצוין בכל דגם, ואפשר לבקש כל טבעת גם עם יהלום טבעי. ניתן להתאים כל דגם לפי קראט, גוון זהב ומידה.',
     position: 1,
     facets: RING_FACETS,
   });
@@ -367,7 +367,8 @@ async function main(): Promise<void> {
   const engagementRings = await createCategory({
     slug: 'engagement-rings',
     nameHe: 'טבעות אירוסין',
-    descriptionHe: 'טבעות אירוסין ביהלומים טבעיים וביהלומי מעבדה, בהתאמה אישית מלאה.',
+    descriptionHe:
+      'טבעות אירוסין בהתאמה אישית מלאה. סוג היהלום מצוין בכל דגם, ואפשר לבקש כל טבעת גם עם יהלום טבעי.',
     parentId: rings.id,
     position: 1,
     facets: RING_FACETS,
@@ -376,7 +377,7 @@ async function main(): Promise<void> {
   const diamondRings = await createCategory({
     slug: 'diamond-rings',
     nameHe: 'טבעות יהלומים',
-    descriptionHe: 'טבעות משובצות יהלומים, טבעיים או מיהלומי מעבדה.',
+    descriptionHe: 'טבעות משובצות יהלומים. סוג היהלום, מעבדה או טבעי, מצוין בכל דגם.',
     parentId: rings.id,
     position: 2,
     facets: RING_FACETS,
@@ -666,7 +667,7 @@ async function main(): Promise<void> {
 
   const personalized = await createCollection({
     slug: 'personalized',
-    nameHe: 'עיצוב אישי',
+    nameHe: 'תכשיטים אישיים',
     descriptionHe: 'תכשיטים עם חריטה, שמות והתאמה אישית.',
     position: 4,
   });

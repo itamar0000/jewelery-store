@@ -1,18 +1,29 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/components/ui/cn';
 import { PURCHASE_MESSAGES, selectionMessage } from '@/lib/cart/messages';
 import type { AddToCartRequest, CartMutationResult } from '@/lib/cart/types';
-import { clarityGloss, colorGloss, cutGloss, shapeNameHe } from '@/lib/catalog/diamond-terms';
+import { choicesFromParams, choicesToParams } from '@/lib/catalog/choice-params';
+import {
+  clarityGloss,
+  colorGloss,
+  cutGloss,
+  diamondOriginLabel,
+  shapeNameHe,
+} from '@/lib/catalog/diamond-terms';
 import type { ProductDetail, VariantView } from '@/lib/catalog/types';
 import { add, formatPrice, fromAgorot, toAgorot } from '@/lib/money';
+import { textFieldIssue } from '@/lib/personalization/engraving';
 import { Bidi } from '@/lib/rtl/bidi';
 
+import { NamePreview } from './NamePreview';
 import { ProductGallery } from './ProductGallery';
+import { RingSizeGuide } from './RingSizeGuide';
+import { StickyPurchaseBar } from './StickyPurchaseBar';
 import {
   PROBLEM_TARGET,
   PersonalizationFields,
@@ -58,8 +69,15 @@ export function ProductDetailView({
   contactAvailable = false,
   stockLevelsLive = false,
   addToCart,
+  initialChoices = {},
 }: {
   product: ProductDetail;
+  /**
+   * The choices named in the address (`?karat=18k&color=rose&size=52`), as
+   * option id -> value id, already matched against this product's options by
+   * the route (src/lib/catalog/choice-params.ts).
+   */
+  initialChoices?: Readonly<Record<string, string>>;
   /**
    * "מחיר משוער" while prices are placeholders, `null` once they are final
    * (src/lib/catalog/price-disclosure.ts). This is the page a shopper acts on,
@@ -92,7 +110,7 @@ export function ProductDetailView({
    * combination rather than an impossible one assembled from first-of-each.
    */
   const [axisSelection, setAxisSelection] = useState<Record<string, string>>(() =>
-    initialAxisSelection(product),
+    initialAxisSelection(product, initialChoices),
   );
 
   /**
@@ -107,7 +125,49 @@ export function ProductDetailView({
    * chosen value is named in the legend - but a selection is only ever what
    * the shopper pressed. A required one says so until it is chosen.
    */
-  const [selections, setSelections] = useState<Record<string, string>>({});
+  const [selections, setSelections] = useState<Record<string, string>>(() =>
+    pick(initialChoices, selectionOptions),
+  );
+
+  /*
+   * THE CHOICES LIVE IN THE ADDRESS TOO (critique 2026-10-06, P2).
+   *
+   * They were held only here, so anything that left the page - the size
+   * guide, the bag, a link sent to someone - came back to the first variant:
+   * 18K turned into 14K and the price changed without a word. Every change is
+   * now written to the address with `replaceState` - no navigation, no new
+   * history entry, no request - so Back, a reload and a shared link all
+   * reopen the piece as it was made.
+   *
+   * On arrival the address is read once more in the browser. The route reads
+   * it as well, but a page restored from the router's cache on Back carries
+   * the props of its first visit, before any choice was made.
+   */
+  const changed = useRef(false);
+  /** The purchase action, watched by the phone's sticky bar. */
+  const purchaseRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fromAddress = choicesFromParams(
+      product.options,
+      new URLSearchParams(window.location.search),
+    );
+    if (Object.keys(fromAddress).length === 0) return;
+    setAxisSelection((current) => initialAxisSelection(product, fromAddress, current));
+    setSelections((current) => ({ ...current, ...pick(fromAddress, selectionOptions) }));
+    // Once, on arrival: the address is the starting point, then the page writes it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!changed.current) return;
+    const params = choicesToParams(product.options, { ...axisSelection, ...selections });
+    const query = params.toString();
+    const next = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
+    if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+      window.history.replaceState(null, '', next);
+    }
+  }, [product.options, axisSelection, selections]);
 
   const selectedVariant = useMemo(
     () => findVariant(product.variants, Object.values(axisSelection)),
@@ -138,11 +198,27 @@ export function ProductDetailView({
     setStatus((current) => (current.kind === 'pending' ? current : { kind: 'idle' }));
   };
 
-  // The surcharge for what is filled in, so the price beside the button is
-  // the price the bag will show.
-  const surchargeAgorot = product.customizationFields
-    .filter((field) => (personalization[field.key] ?? '').trim() !== '')
-    .reduce((sum, field) => sum + (field.priceDelta ? toAgorot(field.priceDelta) : 0), 0);
+  /*
+   * A REQUIRED SURCHARGE IS PART OF THE PRICE. The name necklace cannot be
+   * ordered without a name, so "₪1,290, plus ₪90 for the name" stated a price
+   * nobody could pay (critique 2026-10-06, P2). The price shown is the one the
+   * bag will show for the piece as it must be ordered - "כולל החריטה" - and
+   * only an OPTIONAL surcharge, once filled in, is added beside the button.
+   */
+  const surchargeOf = (field: ProductDetail['customizationFields'][number]) =>
+    field.priceDelta ? toAgorot(field.priceDelta) : 0;
+  const requiredSurchargeAgorot = product.customizationFields
+    .filter((field) => field.isRequired)
+    .reduce((sum, field) => sum + surchargeOf(field), 0);
+  const optionalSurchargeAgorot = product.customizationFields
+    .filter((field) => !field.isRequired && (personalization[field.key] ?? '').trim() !== '')
+    .reduce((sum, field) => sum + surchargeOf(field), 0);
+  const shownPrice =
+    requiredSurchargeAgorot > 0 ? add(price, fromAgorot(requiredSurchargeAgorot)) : price;
+  const engravingField = product.customizationFields.find(
+    (field) => field.fieldType === 'TEXT' && field.isRequired,
+  );
+  const languageField = product.customizationFields.find((field) => field.fieldType === 'LANGUAGE');
 
   /**
    * Check, send, report.
@@ -160,12 +236,11 @@ export function ProductDetailView({
     for (const option of selectionOptions) {
       if (option.isRequired && !selections[option.id]) found[option.code] = 'missing';
     }
+    const language = languageField ? (personalization[languageField.key] ?? null) : null;
     for (const field of product.customizationFields) {
       const value = (personalization[field.key] ?? '').trim();
       if (field.isRequired && value === '') found[field.key] = 'missing';
-      else if (field.maxLength !== null && value.length > field.maxLength) {
-        found[field.key] = 'invalid';
-      }
+      else if (textFieldIssue(value, { ...field, language })) found[field.key] = 'invalid';
     }
 
     if (Object.keys(found).length > 0) {
@@ -264,6 +339,16 @@ export function ProductDetailView({
          * thumbnail rail is not on.
          */}
         <ProductGallery images={images} productName={product.nameHe} />
+
+        {/* The name as typed, under the photograph it belongs to. On a phone
+            the photograph is far above the field, so it sits under the field. */}
+        {engravingField && (
+          <NamePreview
+            name={personalization[engravingField.key] ?? ''}
+            language={languageField ? (personalization[languageField.key] ?? null) : null}
+            className="mt-8 hidden md:block"
+          />
+        )}
       </div>
 
       <div className="md:col-span-5">
@@ -277,6 +362,14 @@ export function ProductDetailView({
         <h1 className="font-display text-3xl font-bold tracking-tight text-balance xl:text-4xl">
           {product.nameHe}
         </h1>
+
+        {/* The stone's origin, stated with the name rather than only in the
+            table far below it (D4D.15). Follows the chosen variant. */}
+        {diamond && (
+          <p className="text-muted-foreground mt-2 text-sm">
+            {diamondOriginLabel(diamond.isLabGrown, diamond.stoneCount)}
+          </p>
+        )}
 
         {/*
          * WHAT IS READ HERE IS SET TO BE READ: 16px, in soft ink. The
@@ -296,8 +389,11 @@ export function ProductDetailView({
          */}
         <div className="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <span className={cn('text-2xl tracking-tight', compareAt && 'text-accent')}>
-            {formatPrice(price)}
+            {formatPrice(shownPrice)}
           </span>
+          {requiredSurchargeAgorot > 0 && (
+            <span className="text-soft-foreground text-sm">כולל החריטה</span>
+          )}
           {compareAt && (
             <span className="text-muted-foreground text-sm line-through">
               {formatPrice(compareAt)}
@@ -358,6 +454,7 @@ export function ProductDetailView({
                 {option.values.map((value) => {
                   const active = axisSelection[option.id] === value.id;
                   const select = () => {
+                    changed.current = true;
                     setAxisSelection((current) => ({ ...current, [option.id]: value.id }));
                     touched(option.code);
                   };
@@ -450,6 +547,7 @@ export function ProductDetailView({
                       type="button"
                       aria-pressed={active}
                       onClick={() => {
+                        changed.current = true;
                         setSelections((current) => ({ ...current, [option.id]: value.id }));
                         touched(option.code);
                       }}
@@ -475,15 +573,12 @@ export function ProductDetailView({
                * find one's size is one tap away.
                */}
               {option.code === 'ring_size' && (
-                <p className="text-muted-foreground mt-2.5 text-sm">
-                  {'מידה אירופית: היקף פנימי במ״מ. '}
-                  <Link
-                    href="/faq#ring-size"
-                    className="decoration-border-strong hover:decoration-accent touch-target text-soft-foreground underline underline-offset-[0.35em]"
-                  >
-                    איך יודעים מידה?
-                  </Link>
-                </p>
+                <>
+                  <p className="text-muted-foreground mt-2.5 text-sm">
+                    מידה אירופית: היקף פנימי במ״מ.
+                  </p>
+                  <RingSizeGuide sizes={option.values.map((value) => value.labelHe)} />
+                </>
               )}
 
               {problem && (
@@ -494,8 +589,6 @@ export function ProductDetailView({
             </fieldset>
           );
         })}
-
-        <MadeYourWay options={product.options} />
 
         {/*
          * PERSONALISATION, AS INPUTS. The fields are the product's own
@@ -515,6 +608,14 @@ export function ProductDetailView({
           />
         )}
 
+        {engravingField && (
+          <NamePreview
+            name={personalization[engravingField.key] ?? ''}
+            language={languageField ? (personalization[languageField.key] ?? null) : null}
+            className="mt-6 md:hidden"
+          />
+        )}
+
         {/*
          * THE PURCHASE CONTROL. One primary action, enabled whenever the
          * combination can be ordered. It refuses - in words, at the fields -
@@ -522,21 +623,41 @@ export function ProductDetailView({
          * disabled without saying why.
          */}
         {addToCart && (
-          <PurchaseAction
-            purchasable={selectedVariant?.availability.isPurchasable ?? false}
-            status={status}
-            priceWithPersonalisation={
-              surchargeAgorot > 0 ? add(price, fromAgorot(surchargeAgorot)) : null
+          <div ref={purchaseRef}>
+            <PurchaseAction
+              purchasable={selectedVariant?.availability.isPurchasable ?? false}
+              status={status}
+              priceWithPersonalisation={
+                optionalSurchargeAgorot > 0
+                  ? add(shownPrice, fromAgorot(optionalSurchargeAgorot))
+                  : null
+              }
+              onAdd={handleAdd}
+            />
+          </div>
+        )}
+
+        {addToCart && selectedVariant?.availability.isPurchasable && (
+          <StickyPurchaseBar
+            target={purchaseRef}
+            price={
+              optionalSurchargeAgorot > 0
+                ? add(shownPrice, fromAgorot(optionalSurchargeAgorot))
+                : shownPrice
             }
+            pending={status.kind === 'pending'}
+            added={status.kind === 'added'}
             onAdd={handleAdd}
           />
         )}
 
-        {selectedVariant && (
-          <p className="text-muted-foreground mt-6 text-xs">
-            מק״ט <Bidi>{selectedVariant.sku}</Bidi>
-          </p>
-        )}
+        {/* After the purchase, not before it: the other way to have this
+            model is a second path, and above the button it pushed "הוספה
+            לסל" below the fold at 1440x900 (critique 2026-10-06). */}
+        <MadeYourWay
+          options={product.options}
+          requestHref={requestHref(product, { ...axisSelection, ...selections })}
+        />
 
         {contactAvailable && <ConsultationPrompt />}
 
@@ -713,7 +834,7 @@ function DiamondSpecTable({ diamond }: { diamond: NonNullable<ProductDetail['dia
        * ink at a weight above the rows beneath it, is what sets it apart.
        */}
       <p className="mt-3 text-base font-medium">
-        {diamond.isLabGrown ? 'יהלום מעבדה' : 'יהלום טבעי'}
+        {diamondOriginLabel(diamond.isLabGrown, diamond.stoneCount)}
       </p>
 
       <dl className="divide-border mt-4 divide-y text-base">
@@ -761,7 +882,13 @@ function DiamondSpecTable({ diamond }: { diamond: NonNullable<ProductDetail['dia
  * piece has a reason to mention - size for a ring, length for a chain - and
  * points to how a custom order works. It promises no price and no lead time.
  */
-function MadeYourWay({ options }: { options: ProductDetail['options'] }) {
+function MadeYourWay({
+  options,
+  requestHref,
+}: {
+  options: ProductDetail['options'];
+  requestHref: string;
+}) {
   const codes = new Set(options.map((option) => option.code));
   const axes = [
     'גוון זהב',
@@ -774,13 +901,23 @@ function MadeYourWay({ options }: { options: ProductDetail['options'] }) {
     <p className="text-soft-foreground mt-6 text-sm">
       {`רוצים ${list} אחרים? כל דגם אפשר להזמין גם בהם. `}
       <Link
-        href="/custom"
+        href={requestHref}
         className="decoration-border-strong hover:decoration-accent touch-target underline underline-offset-[0.35em]"
       >
-        איך מזמינים בהתאמה אישית
+        לבקשת התאמה לדגם הזה
       </Link>
     </p>
   );
+}
+
+/**
+ * The custom request for this model, made the way it is on screen: the
+ * request page reads the same parameters the product page writes
+ * (src/lib/catalog/choice-params.ts) and shows the model beside the form.
+ */
+function requestHref(product: ProductDetail, chosen: Record<string, string>): string {
+  const params = choicesToParams(product.options, chosen);
+  return `/custom/request?${new URLSearchParams([['product', product.slug], ...params])}`;
 }
 
 /** A Latin run - a grade, a shape's certificate term - isolated inside Hebrew. */
@@ -788,8 +925,16 @@ function LatinAware({ text }: { text: string }) {
   return /^[\x20-\x7E]+$/.test(text) ? <Bidi>{text}</Bidi> : <>{text}</>;
 }
 
-/** The axis values of the first variant, so the page opens on a real one. */
-function initialAxisSelection(product: ProductDetail): Record<string, string> {
+/**
+ * The axis values to open on: those the address names, when together they
+ * make a real variant, otherwise the first variant's - so the page never opens
+ * on an impossible combination.
+ */
+function initialAxisSelection(
+  product: ProductDetail,
+  requested: Readonly<Record<string, string>> = {},
+  fallback?: Record<string, string>,
+): Record<string, string> {
   const first = product.variants[0];
   if (!first) return {};
 
@@ -801,7 +946,28 @@ function initialAxisSelection(product: ProductDetail): Record<string, string> {
     if (match) selection[option.id] = match.id;
   }
 
-  return selection;
+  const base = fallback ?? selection;
+  const wanted = {
+    ...base,
+    ...pick(
+      requested,
+      product.options.filter((option) => option.isAxis),
+    ),
+  };
+  return findVariant(product.variants, Object.values(wanted)) ? wanted : base;
+}
+
+/** The entries of `choices` that belong to `options`. */
+function pick(
+  choices: Readonly<Record<string, string>>,
+  options: readonly { id: string }[],
+): Record<string, string> {
+  const picked: Record<string, string> = {};
+  for (const option of options) {
+    const value = choices[option.id];
+    if (value) picked[option.id] = value;
+  }
+  return picked;
 }
 
 /**

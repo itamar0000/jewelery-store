@@ -90,7 +90,7 @@
 
   @media (width >= 64rem) {
     :root {
-      --header-height: calc(8rem + 1px);
+      --header-height: calc(6.75rem + 1px);
     }
   }
 

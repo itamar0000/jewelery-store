@@ -2177,3 +2177,178 @@ The critique's minor findings, closed:
 - **Stale comments.** ProductCard still spoke of "the one red in the palette";
   FeatureBanner described copy laid over the photograph (it was rewritten in
   D4D.12).
+
+## D4D.14 — Custom requests are saved, numbered and answered from the database
+
+The critique of 2026-10-06 (27/40) put one issue at P0: every product page,
+the menu and the home page's closing band invited custom work and arrived at
+/custom, whose first step, "פנייה", had no action while no contact channel
+exists. The owner chose to save requests on the site.
+
+- **The flow.** `/custom/request` holds one form with two starts. From a
+  product page (`?product=<slug>` plus the product's own choice parameters,
+  D4D.16) the model is drawn beside the form with the choices that were on
+  screen, and the form asks what to change - chips for gold colour, karat,
+  size or length, stone, engraving, something else - and in words. From
+  /custom it asks what kind of piece. Then a name and a phone OR an email.
+- **What is saved.** A `CustomRequest` with status NEW and its first status
+  event; the model as a real relation (`productId`) and as a snapshot of the
+  catalogue's own wording at that moment (`productSnapshot`), and the change
+  areas as codes (`changeAreas`). The browser never names a label: the slug
+  and choices are resolved against published products, and an unknown value
+  is dropped. Migration `20261006120000_custom_request_from_product` makes
+  `email` and `phone` nullable under a CHECK that one of them is present.
+- **What the visitor is told.** The form becomes its receipt: "הבקשה נשמרה",
+  the request number (from 500001), what was saved in their words, and that a
+  design and price come for approval before any work, with nothing charged.
+  No reply time is promised - none has been decided.
+- **Nobody is notified.** There is no email provider and no admin screen, so
+  requests wait in the database. `npm run requests:list` prints the new ones
+  (`-- --all` for every request); pointed at production's DATABASE_URL, it is
+  how the workshop reads them until notifications exist (owner decision).
+- **Abuse.** A hidden trap field refuses scripted submissions without saving,
+  and requests are capped (D4D.19).
+- **Entry points.** The product page's "made your way" line links to the
+  request for that model as configured; /custom ends on "לשליחת בקשה" beside
+  the workshop photograph; the home page's closing band links to the form.
+- **The collection is renamed.** "עיצוב אישי" named both the custom-design
+  page and the collection of name, initial and photo pieces. The collection is
+  now "תכשיטים אישיים" (migration `20261006130000_...`, seed updated; only the
+  unedited seed name is replaced).
+
+## D4D.15 — The stone's origin is stated, filtered, and the copy no longer offers a choice the shelves lack
+
+All 8 diamond rings are lab-grown; only one pair of studs and one tennis
+bracelet are natural. The copy said "טבעי או מעבדה — הבחירה שלך" and three
+ring categories promised both.
+
+- **A "סוג יהלום" filter** (`diamond_type`, `?diamond=lab,natural`) reads
+  `DiamondSpec.isLabGrown` at product or variant level. Both values are always
+  offered where there are diamonds, so a category with no natural stone shows
+  "יהלום טבעי 0" - with "יהלום טבעי אפשר לבקש לכל דגם" and a link to the request
+  form beneath. Added to every category's filters, second after price
+  (migration `20261006140000_diamond_type_filter`, seed and /search updated).
+- **Origin as text** on every diamond product card and under each product's
+  title, from one helper (`diamondOriginLabel`), plural for several stones.
+- **Literal copy.** The home panel is "יהלומי מעבדה, וטבעיים לפי בקשה"; the FAQ
+  says most stones are lab-grown and a natural one can be requested; the ring
+  category descriptions say the kind is stated on every model and natural can
+  be asked for (migration `20261006150000_diamond_origin_copy`, unedited seed
+  text only). "רוב" is true of the catalogue today (20 of 22); if the mix
+  changes, that one word is the owner's to revisit.
+- "רבי מכר" is unchanged, by the owner's earlier decision.
+
+## D4D.16 — The purchase flow keeps what the shopper did
+
+- **The phone drawer's main button applies a typed price.** It used to only
+  close the drawer, discarding a range typed but not sent. A range that
+  differs from the address is submitted first. The separate "עדכון טווח
+  מחירים" button is gone from the drawer (Enter still applies); the desktop
+  panel keeps it. Price placeholders carry thousands separators.
+- **Choices live in the address**: `/product/aurora-ring?karat=18k&color=rose&size=52`
+  (`src/lib/catalog/choice-params.ts`). Written with `replaceState` on every
+  change - no navigation, no history entry - read by the route for the first
+  render and again in the browser on arrival, because a page restored from the
+  router cache on Back carries its first visit's props. Back, reload and a
+  shared link reopen the piece as it was made. An address naming an impossible
+  combination falls back to the first variant. The canonical stays the bare
+  product path.
+- **The size guide opens in place**: a disclosure under the sizes, with the
+  inner diameter of each size worked out (size / pi), so measuring a ring that
+  fits is a matter of reading a row.
+- **Engraving is checked as it will be cut** (`src/lib/personalization/engraving.ts`,
+  shared by the page and the server): length in graphemes - the characters a
+  person sees - not UTF-16 units, and no `maxLength` attribute to cut a
+  pointed letter in half; emoji refused; letters checked against the chosen
+  language, with digits and punctuation allowed in both. Each refusal names
+  the way out.
+
+## D4D.17 — The name necklace shows the name and the price it is sold at
+
+- **"כך ייכתב השם"**: the typed name in the display face, ink on paper,
+  centred under the photograph (under the field on a phone), right to left or
+  left to right by the chosen language. The caption says it is the lettering,
+  not a rendering of the pendant - the shape of the letters in gold is the one
+  photographed.
+- **A required surcharge is part of the price.** The name cannot be skipped,
+  so the page shows "₪1,380 כולל החריטה" and the field "₪90 כלולים במחיר";
+  cards include required surcharges in their figure too. An optional
+  surcharge, once filled, is still added beside the button. The denormalised
+  `minPriceAgorot` used by price filtering and sorting does not include
+  required surcharges; for the one product that has one, the filter is ₪90
+  generous.
+
+## D4D.18 — Polish: one edge, one action style, the menu says where you are
+
+- **The Start Edge Rule** (DESIGN.md): the home page's section headings, the
+  subcategory chips, the notes under grids and the contact page begin at the
+  inline start, like every page title and the hero line.
+- **Every editorial panel's action is an underline**; the diamonds panel's
+  ruled box was the one outlined action between underlined ones.
+- **The menu marks the current section** (`aria-current`, the open-menu rule in
+  full paper; underlined and semibold in the drawer). The drawer's chevrons
+  point down for a list that opens in place.
+- **No SKU on the product page.** It stays on the order line.
+- **The tab title is the product's name**, as its heading is; the owner's SEO
+  title moves to the shared-link title.
+- **Payment's state is said in the bag**, before any details are asked.
+- DESIGN.md's collections band now describes the row it ships as.
+
+## D4D.19 — The owner's answers: promises confirmed, a privacy policy, a cap on requests
+
+Answered by the owner on 2026-10-06:
+
+- **The promises stand.** Any model can be made with a natural stone on
+  request, and every request is answered with a design and a price. The copy
+  of D4D.14 and D4D.15 says both and stays as written.
+- **Notifications: WhatsApp, later.** Recorded in TBD.md I2. Until then,
+  `npm run requests:list`.
+- **A standard privacy policy** at /legal/privacy, linked from the footer, the
+  checkout's details step and the request form. It is written from what the
+  code does - the fields the two forms ask for, the two essential cookies
+  (cart, 30 days; order, 1 day), the details kept in the tab's sessionStorage,
+  no analytics, no advertising, no marketing list - under the Amendment 13
+  headings: who, what, why, whether it must be given, who receives it, for how
+  long, security, rights. It names the operator as Jewelry for Less - the business's own name, as the
+  owner confirmed - and with no contact channel set it
+  routes privacy requests to the request form. The owner should add the
+  registered details and have it reviewed (TBD.md L5).
+- **Requests are capped**, counted in the database: three a day per phone or
+  email, thirty an hour across the site. Each refusal says when to try again.
+- Ring resizing (the "לא בטוחים במידה?" path) is still the owner's to answer.
+
+## D4D.20 — The remaining critique items: reach, search, the empty bag, undo, a shorter header
+
+The minor findings of the 2026-10-06 critique that needed no business
+decision, closed:
+
+- **"הוספה לסל" within reach on a phone.** It sat about 1,190px down at 375px.
+  A bottom bar with the price and the same handler shows while the page's
+  button is still below the screen and leaves when it arrives
+  (`StickyPurchaseBar`); a missing size is still pointed at, at the field.
+  On desktop the "made your way" line moved below the button, which lifts it
+  about 60px toward the 900px fold.
+- **Search has a field.** /search showed what was searched for and no way to
+  change it; the term now sits in an underlined GET form. A search that ranks
+  nothing shows its message without a filter bar and "0 מוצרים" above it; the
+  message is no longer a dashed box, and its suggestions start at the edge.
+- **The empty bag opens the shop**: the five category photographs, and the
+  custom request for anything not in the catalogue.
+- **Checkout survives a reload on its step.** The step is kept in the tab's
+  sessionStorage with the fields, and restored only when every step before it
+  still validates. The phone message no longer says "digits only" over a
+  field that accepts dashes.
+- **Undo after removing from the bag.** The removal returns the line's
+  configuration; "ביטול" adds it back through the ordinary add, so it is
+  validated again. The notice sits above the lines and survives the bag
+  becoming empty.
+- **The menu.** The "גילוי" column is "אוספים", for the two collections it
+  holds; the engagement feature carries the bridal collection's still.
+- **A shorter header.** Masthead 5rem to 4rem, navigation row 3rem to 2.75rem
+  (still a 44px target): 129px to 109px on desktop. `--header-height` follows,
+  held by header-height.test.ts.
+
+Still open from the critique, each waiting on something other than design:
+ring resizing ("לא בטוחים במידה?", owner), shipping and returns answers
+(owner), the bridal photograph's studio styling (photography), painted colour
+swatches (photographs of the metals), and thumbnails in instant search.

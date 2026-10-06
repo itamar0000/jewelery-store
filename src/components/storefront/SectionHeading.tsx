@@ -8,12 +8,13 @@ import Link from 'next/link';
  * their own heading drift within a release, and the drift is what makes a
  * storefront look unconsidered.
  *
- * CENTRED, and the "see all" link sits BELOW rather than opposite. The first
- * pass put the title at the inline-start edge with the link pushed to the far
- * end of the same row. In RTL that reads badly: the title is jammed against the
- * heavy right margin while the link floats alone at the left, and the eye has
- * to cross the full page width to connect two parts of one heading. Stacking
- * them centred keeps the pair together and gives the section a real top edge.
+ * AT THE INLINE START, with the "see all" link BELOW rather than opposite. The
+ * first pass put the link at the far end of the title's row, and the eye had to
+ * cross the page to connect two parts of one heading; stacking keeps the pair
+ * together. It was then centred - while every page title, the hero line and the
+ * category band's heading begin at the inline start - so the home page changed
+ * alignment from band to band (critique 2026-10-06). It now starts where every
+ * other heading on the site starts (D4D.18).
  *
  * Renders `<h2>`, correct beneath the single `<h1>` a page carries.
  */
@@ -31,7 +32,7 @@ export function SectionHeading({
   linkLabel?: string;
 }) {
   return (
-    <div className="mb-12 text-center">
+    <div className="mb-12">
       {/* Steps up on desktop. The hero line runs to `--text-7xl`, so a section
           title fixed at `text-2xl` sits too close to body copy to register as
           a level of its own. */}
@@ -43,7 +44,7 @@ export function SectionHeading({
       </h2>
 
       {description && (
-        <p className="text-muted-foreground mx-auto mt-4 max-w-(--container-prose) text-sm text-pretty">
+        <p className="text-muted-foreground mt-4 max-w-(--container-prose) text-sm text-pretty">
           {description}
         </p>
       )}

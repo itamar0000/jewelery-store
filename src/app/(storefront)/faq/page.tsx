@@ -57,8 +57,12 @@ const FAQS: readonly Faq[] = [
     question: 'היהלומים בחנות טבעיים או יהלומי מעבדה?',
     answer: (
       <>
-        גם וגם. בקטלוג יש תכשיטים המשובצים ביהלומים טבעיים ותכשיטים המשובצים ביהלומי מעבדה. סוג האבן
-        מצוין במפורש בעמוד כל מוצר, תחת פרטי היהלום.
+        רוב התכשיטים בקטלוג משובצים ביהלומי מעבדה, ומעטים ביהלומים טבעיים. סוג היהלום כתוב על כל
+        דגם, וגם בעמוד המוצר, ואפשר לסנן לפיו. כל דגם אפשר לבקש גם עם יהלום טבעי, דרך{' '}
+        <Link href="/custom/request" className="text-accent underline underline-offset-4">
+          בקשת התאמה
+        </Link>
+        .
       </>
     ),
   },
@@ -225,7 +229,7 @@ export default function FaqPage() {
 
         {/* Only when there is somewhere to turn: /contact exists only then. */}
         {contactAvailable && (
-          <p className="text-muted-foreground mt-10 text-center text-sm">
+          <p className="text-muted-foreground mt-10 text-sm">
             לא מצאתם תשובה?{' '}
             <Link href="/contact" className="text-accent underline underline-offset-4">
               אפשר לפנות אלינו

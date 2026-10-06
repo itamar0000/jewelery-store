@@ -7,6 +7,7 @@ import { cn } from '@/components/ui/cn';
 import { ChevronIcon, CloseIcon, SearchIcon } from '@/components/ui/icons';
 import type { MenuAction, MenuState } from '@/lib/navigation/menu-state';
 import type { NavItem } from '@/lib/navigation/taxonomy';
+import { ariaCurrent } from '@/lib/navigation/current';
 
 /**
  * Mobile navigation drawer.
@@ -40,11 +41,14 @@ export function MobileNav({
   items,
   state,
   dispatch,
+  pathname = null,
 }: {
   /** The primary items to show - PRIMARY_NAV, less any the Header withholds. */
   items: readonly NavItem[];
   state: MenuState;
   dispatch: Dispatch<MenuAction>;
+  /** The page's path, so the section the visitor is in can be marked. */
+  pathname?: string | null;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -123,7 +127,8 @@ export function MobileNav({
                     <Link
                       href={item.href}
                       onClick={() => dispatch({ type: 'CLOSE_MOBILE_MENU' })}
-                      className="hover:bg-muted block px-5 py-4 text-base"
+                      aria-current={ariaCurrent(item.href, pathname)}
+                      className="hover:bg-muted aria-[current]:decoration-foreground block px-5 py-4 text-base aria-[current]:font-semibold aria-[current]:underline aria-[current]:underline-offset-[0.4em]"
                     >
                       {item.label}
                     </Link>
@@ -149,7 +154,8 @@ export function MobileNav({
                     <Link
                       href={item.href}
                       onClick={() => dispatch({ type: 'CLOSE_MOBILE_MENU' })}
-                      className="flex-1 px-5 py-4 text-base"
+                      aria-current={ariaCurrent(item.href, pathname)}
+                      className="aria-[current]:decoration-foreground flex-1 px-5 py-4 text-base aria-[current]:font-semibold aria-[current]:underline aria-[current]:underline-offset-[0.4em]"
                     >
                       {item.label}
                     </Link>
@@ -161,12 +167,17 @@ export function MobileNav({
                       onClick={() => dispatch({ type: 'TOGGLE_MOBILE_GROUP', id: item.id })}
                       className="flex w-14 items-center justify-center"
                     >
-                      {/* Directional: points toward the reading direction when
-                          collapsed, so it must mirror in RTL. */}
+                      {/*
+                       * DOWN, NOT SIDEWAYS. The row opens a list in place, which
+                       * is what a downward chevron says - the same mark the
+                       * desktop menu uses. A sideways chevron says "go to
+                       * another screen", and in this right-to-left drawer it
+                       * pointed right, which reads as back (critique 2026-10-06).
+                       */}
                       <ChevronIcon
                         className={cn(
-                          'text-muted-foreground icon-directional size-4 transition-transform duration-200',
-                          expanded && 'rotate-90',
+                          'text-muted-foreground size-4 rotate-90 transition-transform duration-200',
+                          expanded && '-rotate-90',
                         )}
                       />
                       <span className="sr-only">

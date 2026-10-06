@@ -73,7 +73,7 @@ Per Development Rule 1, none of these is guessed. Where a *technical* default wa
 | # | Decision | Spec | Blocks | Default | Reversal cost |
 |---|---|---|---|---|---|
 | ~~I1~~ | ~~**Image / media storage provider**~~ **RESOLVED (Phase 4A):** S3-compatible object storage, Cloudflare R2 recommended; `next/image` for transformation. See [docs/MEDIA_STORAGE_DECISION.md](docs/MEDIA_STORAGE_DECISION.md). **No account is provisioned yet** — the integration is complete and tested against MinIO, and needs only credentials. | §42 | Phase 4A | Implemented in `src/lib/media`; storage optional at runtime | Resolved |
-| I2 | **Email provider** | §42 | Phase 6b | `EmailProvider` port, no implementation | Low |
+| I2 | **Email provider** | §42 | Phase 6b | `EmailProvider` port, no implementation. **Now also blocks custom-request notifications:** requests from /custom/request are saved with a number and notify nobody; until this is decided the workshop reads them with `npm run requests:list` (D4D.14). **Owner preference: WhatsApp** notifications for new requests (2026-10-06), to be built later. | Low |
 | I3 | **Managed Postgres host** | §42 | Phase 9 | Docker Postgres 16 locally; production host undecided | Low — connection string only |
 | I4 | ~~Money as integer agorot vs `Decimal`~~ | — | ~~Phase 1~~ **CLOSED Phase 2B** | **Integer agorot**, implemented in `@/lib/money` and in every monetary column of the schema (D0.1, D1.4). No `Float` holds money anywhere. | Resolved |
 | I5 | **Package manager** | — | Phase 0 | **npm** — the only one installed | Trivial |
@@ -97,7 +97,7 @@ Per Development Rule 1, none of these is guessed. Where a *technical* default wa
 | L2 | **Returns / cancellation policy** — Israeli consumer protection law sets minimums | §52 | Phase 10 | none | n/a |
 | L3 | **Shipping policy** | §52 | Phase 10 | none | n/a |
 | L4 | **Warranty policy** | §52 | Phase 10 | none | n/a |
-| L5 | **Privacy policy** — must cover the actual data collected, including custom-request uploads | §52 | Phase 10 | none | n/a |
+| L5 | **Privacy policy** — must cover the actual data collected, including custom-request uploads | §52 | Phase 10 | **Standard policy published at /legal/privacy** (owner request, D4D.19), written from what the code collects. Operator: Jewelry for Less (confirmed). Still needs: its registration number and address, a privacy contact, and a lawyer's review. Update it when payment, analytics or uploads arrive. | n/a |
 | L6 | **Accessibility statement and target standard.** Israeli regulation (IS 5568, tracking WCAG 2.0 AA) plausibly applies to a commercial Israeli site, but this is a **legal determination, not an engineering one** | §47, §52 | Phase 9 | none. Built to WCAG 2.1 AA practices as an engineering baseline; formal compliance unconfirmed | Moderate if a higher standard is later required |
 | L7 | **Cookie / consent requirements** | §52 | Phase 9 | none. Analytics is behind a wrapper so consent-gating can be added without touching call sites | Low |
 | L8 | **Invoice / receipt legal workflow** — what constitutes a compliant Israeli receipt | §52, §42 | Phase 6b | none. Architecture delegates to an external provider precisely to avoid asserting compliance | n/a |

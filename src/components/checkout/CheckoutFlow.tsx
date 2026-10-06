@@ -52,6 +52,8 @@ import {
 type PlaceOrder = (input: unknown) => Promise<Exclude<PlaceOrderResult, { ok: true }> | undefined>;
 
 const STORAGE_KEY = 'jfl-checkout';
+/** The step this tab was on, so a reload returns to it (critique 2026-10-06). */
+const STEP_KEY = 'jfl-checkout-step';
 
 const FAILURES = {
   changed: 'משהו בסל השתנה מאז שנפתח: פריט הוסר מהקטלוג או אזל. ',
@@ -84,15 +86,38 @@ export function CheckoutFlow({
   /** A field to focus once its step has rendered, instead of the heading. */
   const focusAfterStep = useRef<string | null>(null);
 
-  // Restore what this tab typed before, once, after hydration.
+  // Restore what this tab typed before, once, after hydration - and the step
+  // it was on, but only when every step before it still checks out, so a
+  // reload never lands past a field that needs correcting.
   useEffect(() => {
     try {
       const saved = readSaved(sessionStorage.getItem(STORAGE_KEY));
-      if (saved) setValues(saved);
+      if (!saved) return;
+      setValues(saved);
+
+      const savedStep = Number(sessionStorage.getItem(STEP_KEY));
+      if (savedStep === 2 || savedStep === 3) {
+        const earlier =
+          savedStep === 2
+            ? stepFields(1, saved)
+            : [...stepFields(1, saved), ...stepFields(2, saved)];
+        if (Object.keys(validate(saved, earlier)).length === 0) {
+          firstRender.current = true;
+          setStep(savedStep);
+        }
+      }
     } catch {
       // Storage refused (private mode, blocked): the form simply starts empty.
     }
   }, []);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(STEP_KEY, String(step));
+    } catch {
+      // Not saved; a reload starts at the first step.
+    }
+  }, [step]);
 
   // A new step is announced by moving focus to its heading - or, when the
   // step was opened to correct something, to the field to correct.
@@ -169,6 +194,7 @@ export function CheckoutFlow({
       // On success the action redirects to the payment page and this never
       // resumes; the saved form goes with the order it became.
       sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(STEP_KEY);
     } catch {
       // Nothing saved to clear.
     }
@@ -289,7 +315,13 @@ export function CheckoutFlow({
           {step === 1 && (
             <>
               <p className="text-soft-foreground mt-2 text-sm">
-                לאישור ההזמנה ולתיאום המשלוח. אין צורך בהרשמה.
+                לאישור ההזמנה ולתיאום המשלוח. אין צורך בהרשמה.{' '}
+                <Link
+                  href="/legal/privacy"
+                  className="decoration-border-strong hover:decoration-accent underline underline-offset-[0.35em]"
+                >
+                  מדיניות פרטיות
+                </Link>
               </p>
               <div className="mt-6 grid grid-cols-12 gap-x-4 gap-y-6">
                 {field('customerName', 'col-span-12')}

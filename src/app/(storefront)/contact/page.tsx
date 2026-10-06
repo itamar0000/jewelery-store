@@ -48,7 +48,7 @@ export default function ContactPage() {
           <section aria-labelledby="channels-heading">
             <h2
               id="channels-heading"
-              className="font-display text-center text-2xl font-bold tracking-tight md:text-3xl"
+              className="font-display text-2xl font-bold tracking-tight md:text-3xl"
             >
               דרכי יצירת קשר
             </h2>
@@ -57,7 +57,7 @@ export default function ContactPage() {
               {contactChannels.map((channel) => (
                 // Under a hairline, not in a box - the shape of the custom
                 // page's steps, and of everything else on the site.
-                <li key={channel.id} className="border-border border-t pt-5 text-center">
+                <li key={channel.id} className="border-border border-t pt-5">
                   <span className="block text-sm font-medium">{channel.label}</span>
                   <a
                     href={channel.href}
@@ -70,7 +70,7 @@ export default function ContactPage() {
             </ul>
           </section>
 
-          <section aria-labelledby="elsewhere-heading" className="mt-12 text-center">
+          <section aria-labelledby="elsewhere-heading" className="mt-12">
             <h2 id="elsewhere-heading" className="text-muted-foreground text-xs font-medium">
               אולי תמצאו תשובה כבר עכשיו
             </h2>

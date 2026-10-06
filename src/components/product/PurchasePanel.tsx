@@ -7,6 +7,7 @@ import { cn } from '@/components/ui/cn';
 import { personalizationMessage } from '@/lib/cart/messages';
 import type { FieldProblem } from '@/lib/cart/types';
 import type { CustomizationFieldView } from '@/lib/catalog/types';
+import { graphemeCount } from '@/lib/personalization/engraving';
 import { formatPrice, toAgorot, type Money } from '@/lib/money';
 
 /**
@@ -44,6 +45,9 @@ export function PersonalizationFields({
   problems: ProblemMap;
   onChange: (key: string, value: string) => void;
 }) {
+  const languageField = fields.find((field) => field.fieldType === 'LANGUAGE');
+  const language = languageField ? (values[languageField.key] ?? null) : null;
+
   return (
     <section aria-labelledby="personalisation-heading" className="border-border mt-8 border-t pt-6">
       <h2 id="personalisation-heading" className="text-base font-medium">
@@ -56,6 +60,7 @@ export function PersonalizationFields({
             key={field.id}
             field={field}
             value={values[field.key] ?? ''}
+            language={language}
             problem={problems[field.key]}
             onChange={(value) => onChange(field.key, value)}
           />
@@ -68,11 +73,13 @@ export function PersonalizationFields({
 function PersonalizationField({
   field,
   value,
+  language,
   problem,
   onChange,
 }: {
   field: CustomizationFieldView;
   value: string;
+  language: string | null;
   problem: FieldProblem['reason'] | undefined;
   onChange: (value: string) => void;
 }) {
@@ -84,7 +91,7 @@ function PersonalizationField({
 
   const error = problem && (
     <p id={errorId} className="text-destructive mt-2 text-sm">
-      {personalizationMessage(field, problem, value)}
+      {personalizationMessage(field, problem, value, language)}
     </p>
   );
 
@@ -145,15 +152,17 @@ function PersonalizationField({
   /*
    * UNDERLINES, NOT BOXES (DESIGN.md, Inputs). `dir="auto"` lets an English
    * engraving run left to right as it is typed, inside a right-to-left page.
-   * `maxLength` stops typing at the limit the server enforces anyway, and the
-   * count beside the help line says how much room is left.
+   *
+   * NO `maxLength` ATTRIBUTE. It counts UTF-16 units, so it stopped a name
+   * with niqqud short and could cut a character in two. The count beside the
+   * help line is in the characters a person sees, turns to the danger colour
+   * past the limit, and the add-to-bag check names the overrun in words.
    */
   const control = {
     id: inputId,
     name: field.key,
     value,
     dir: 'auto' as const,
-    maxLength: field.maxLength ?? undefined,
     autoComplete: 'off',
     spellCheck: false,
     'aria-invalid': problem ? true : undefined,
@@ -175,7 +184,7 @@ function PersonalizationField({
         {!field.isRequired && (
           <span className="text-muted-foreground text-sm font-normal">(לא חובה)</span>
         )}
-        {surcharge && <Surcharge amount={surcharge} />}
+        {surcharge && <Surcharge amount={surcharge} included={field.isRequired} />}
       </label>
 
       {multiline ? (
@@ -198,9 +207,14 @@ function PersonalizationField({
         <div id={helpId} className="text-muted-foreground mt-2 flex justify-between gap-4 text-xs">
           <span>{field.helpTextHe}</span>
           {field.maxLength && (
-            <span className="tabular-nums">
+            <span
+              className={cn(
+                'tabular-nums',
+                graphemeCount(value.trim()) > field.maxLength && 'text-destructive',
+              )}
+            >
               <span className="sr-only">נכתבו </span>
-              {value.length}/{field.maxLength}
+              {graphemeCount(value.trim())}/{field.maxLength}
             </span>
           )}
         </div>
@@ -211,11 +225,24 @@ function PersonalizationField({
   );
 }
 
-function Surcharge({ amount }: { amount: Money }) {
+/**
+ * A surcharge the shopper can skip is an addition; one they cannot is part of
+ * the price, and the price at the top already includes it ("כולל החריטה").
+ */
+function Surcharge({ amount, included }: { amount: Money; included: boolean }) {
   return (
     <span className="text-muted-foreground text-sm font-normal">
-      {'תוספת '}
-      <bdi>{formatPrice(amount)}</bdi>
+      {included ? (
+        <>
+          <bdi>{formatPrice(amount)}</bdi>
+          {' כלולים במחיר'}
+        </>
+      ) : (
+        <>
+          {'תוספת '}
+          <bdi>{formatPrice(amount)}</bdi>
+        </>
+      )}
     </span>
   );
 }

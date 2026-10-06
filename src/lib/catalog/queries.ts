@@ -7,6 +7,7 @@ import { STOCK_LEVELS_ARE_LIVE } from '@/lib/inventory/disclosure';
 import { fromAgorot, toAgorot, type Money } from '@/lib/money';
 import { parseFieldOptions } from '@/lib/personalization/field-options';
 
+import { diamondOriginLabel } from './diamond-terms';
 import { resolveImageUrl, type ResolvedImage } from './images';
 import type {
   CategoryDetail,
@@ -633,6 +634,13 @@ export const productCardSelect = {
     },
   },
   collections: { select: { collection: { select: { slug: true } } } },
+  /* The stone's origin, stated on the card (D4D.15). */
+  diamondSpec: { select: { isLabGrown: true, stoneCount: true } },
+  /* Surcharges a piece cannot be ordered without - part of its price (D4D.17). */
+  customFields: {
+    where: { isRequired: true, priceDeltaAgorot: { gt: 0 } },
+    select: { priceDeltaAgorot: true },
+  },
 } as const;
 
 type ProductCardRow = {
@@ -658,6 +666,9 @@ type ProductCardRow = {
     } | null;
   }[];
   collections: { collection: { slug: string } }[];
+  /** Optional so hand-built test rows need not carry it. */
+  diamondSpec?: { isLabGrown: boolean; stoneCount: number | null } | null;
+  customFields?: { priceDeltaAgorot: number }[];
 };
 
 /** Exported for the unit tests of `toProductCard`, which build rows by hand. */
@@ -705,8 +716,13 @@ export function toProductCard(
     ),
   );
 
-  const prices = row.variants.map((variant) => variant.priceAgorot ?? row.basePriceAgorot);
-  const minPrice = prices.length > 0 ? Math.min(...prices) : row.basePriceAgorot;
+  // A required surcharge - the name on a name necklace - is part of every
+  // price the piece can be bought at, so the card's figure includes it.
+  const required = (row.customFields ?? []).reduce((sum, field) => sum + field.priceDeltaAgorot, 0);
+  const prices = row.variants.map(
+    (variant) => (variant.priceAgorot ?? row.basePriceAgorot) + required,
+  );
+  const minPrice = prices.length > 0 ? Math.min(...prices) : row.basePriceAgorot + required;
   // More than one distinct price: the card's figure is a floor, and says so.
   const priceFrom = new Set(prices).size > 1;
 
@@ -764,6 +780,9 @@ export function toProductCard(
       : {}),
     ...(swatches.length > 0 ? { swatches } : {}),
     ...(badge ? { badge } : {}),
+    ...(row.diamondSpec
+      ? { stone: diamondOriginLabel(row.diamondSpec.isLabGrown, row.diamondSpec.stoneCount) }
+      : {}),
 
     /*
      * NO COMPARE-AT PRICE, and this is a truth decision rather than a styling

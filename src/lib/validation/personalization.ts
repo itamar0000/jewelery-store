@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { graphemeCount, textFieldIssue } from '@/lib/personalization/engraving';
 import type { CustomFieldTypeValue } from '@/lib/personalization/snapshot';
 
 /**
@@ -53,10 +54,12 @@ function buildFieldSchema(rule: FieldRule): z.ZodType<string | undefined> {
     text = text.min(1, `"${rule.labelHe}" is required.`);
   }
 
-  text = text.max(
-    Math.min(rule.maxLength ?? ABSOLUTE_MAX_LENGTH, ABSOLUTE_MAX_LENGTH),
-    `"${rule.labelHe}" is too long.`,
-  );
+  // Counted in graphemes - the characters a person sees - not UTF-16 units,
+  // so a name with niqqud gets the room it is promised (engraving.ts).
+  const limit = Math.min(rule.maxLength ?? ABSOLUTE_MAX_LENGTH, ABSOLUTE_MAX_LENGTH);
+  text = text.refine((value) => graphemeCount(value) <= limit, {
+    message: `"${rule.labelHe}" is too long.`,
+  });
 
   if (rule.pattern !== null && rule.pattern !== '') {
     // The pattern comes from admin-managed configuration, not from a customer.
@@ -90,7 +93,29 @@ export function buildPersonalizationSchema(rules: readonly FieldRule[]) {
     shape[rule.key] = buildFieldSchema(rule);
   }
 
-  return z.object(shape).strict();
+  // An engraving is checked against the product's chosen language, which is
+  // another field - so this rule lives on the object, not on the field.
+  const language = rules.find((rule) => rule.fieldType === 'LANGUAGE');
+
+  return z
+    .object(shape)
+    .strict()
+    .superRefine((values, context) => {
+      const chosen = language ? values[language.key] : undefined;
+      for (const rule of rules) {
+        const value = values[rule.key];
+        if (rule.fieldType !== 'TEXT' || typeof value !== 'string') continue;
+
+        const issue = textFieldIssue(value, { ...rule, language: chosen ?? null });
+        if (issue && issue !== 'length') {
+          context.addIssue({
+            code: 'custom',
+            path: [rule.key],
+            message: `"${rule.labelHe}" cannot be engraved as written (${issue}).`,
+          });
+        }
+      }
+    });
 }
 
 /**

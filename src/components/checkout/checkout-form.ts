@@ -212,7 +212,7 @@ export function fieldMessage(key: FieldKey, reason: FieldProblem['reason']): str
       return 'כתובת האימייל לא נראית תקינה. לדוגמה: name@example.com';
     case 'phone':
     case 'recipientPhone':
-      return 'מספר הטלפון צריך לכלול ספרות בלבד, לפחות 9.';
+      return 'מספר טלפון צריך לכלול לפחות 9 ספרות. אפשר עם מקפים או רווחים.';
     case 'postalCode':
       return 'מיקוד הוא 5 עד 7 ספרות.';
     default:

@@ -151,18 +151,19 @@ model Product {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  variants      ProductVariant[]
-  images        ProductImage[]
-  options       ProductOption[]
-  customFields  CustomizationField[]
-  collections   ProductCollection[]
-  categories    ProductCategory[]
-  reviews       Review[]
-  wishlistItems WishlistItem[]
-  cartItems     CartItem[]
-  orderItems    OrderItem[]
-  diamondSpec   DiamondSpec?
-  couponTargets CouponTarget[]
+  variants       ProductVariant[]
+  images         ProductImage[]
+  options        ProductOption[]
+  customFields   CustomizationField[]
+  collections    ProductCollection[]
+  categories     ProductCategory[]
+  reviews        Review[]
+  wishlistItems  WishlistItem[]
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  diamondSpec    DiamondSpec?
+  couponTargets  CouponTarget[]
+  customRequests CustomRequest[]
 
   @@index([primaryCategoryId, isActive])
   @@index([isActive, publishedAt])
@@ -1115,9 +1116,21 @@ model CustomRequest {
   customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
   /// Captured directly, so an anonymous visitor can submit without an account.
+  /// A phone OR an email is enough - the workshop needs one way back to the
+  /// visitor, not two (CHECK "CustomRequest_contact_present", D4D.14).
   fullName String
-  email    String
-  phone    String
+  email    String?
+  phone    String?
+
+  /// The model the request starts from, when it was sent from a product page.
+  productId       String?
+  product         Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  /// The model and the choices on screen when the request was sent, frozen like
+  /// an order line's snapshot: { slug, nameHe, choices: [{ labelHe, valueHe }] }.
+  productSnapshot Json?
+  /// What the visitor asked to change: gold_color, gold_karat, size, stone,
+  /// engraving, other. Codes, not Hebrew - the labels live in the code.
+  changeAreas     String[] @default([])
 
   jewelryType  ProductType
   description  String      @db.Text
@@ -1145,6 +1158,7 @@ model CustomRequest {
 
   @@index([status, createdAt])
   @@index([customerId])
+  @@index([productId])
 }
 
 /// Customer-supplied reference images. PRIVATE namespace (ARCHITECTURE 8):

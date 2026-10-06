@@ -39,7 +39,7 @@ export function SubcategoryNav({
       aria-label="תת-קטגוריות"
       className="-mx-6 -my-1 [scrollbar-width:none] overflow-x-auto px-6 py-1 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden"
     >
-      <ul className="flex w-max gap-2 md:w-auto md:flex-wrap md:justify-center">
+      <ul className="flex w-max gap-2 md:w-auto md:flex-wrap">
         {links.map((link) => {
           const active = link.id === activeId;
 

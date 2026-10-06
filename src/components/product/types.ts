@@ -88,6 +88,8 @@ export interface ProductCardData {
    * pointless chip.
    */
   readonly swatches?: readonly ProductSwatch[];
+  /** "יהלום מעבדה", "יהלומים טבעיים" - for a piece with diamonds only. */
+  readonly stone?: string;
 }
 
 /**

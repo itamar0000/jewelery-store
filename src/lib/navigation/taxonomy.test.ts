@@ -105,6 +105,7 @@ describe('FOOTER_COLUMNS', () => {
       '/custom',
       '/faq',
       '/contact',
+      '/legal/privacy',
     ]);
 
     for (const href of FOOTER_COLUMNS.flatMap((column) => column.links).map((l) => l.href)) {

@@ -7,6 +7,7 @@ import { ChevronIcon } from '@/components/ui/icons';
 import { cn } from '@/components/ui/cn';
 import type { MenuAction, MenuState } from '@/lib/navigation/menu-state';
 import type { NavItem } from '@/lib/navigation/taxonomy';
+import { ariaCurrent, isCurrentSection } from '@/lib/navigation/current';
 
 import { MegaMenu } from './MegaMenu';
 
@@ -52,11 +53,14 @@ export function DesktopNav({
   items,
   state,
   dispatch,
+  pathname = null,
 }: {
   /** The primary items to show - PRIMARY_NAV, less any the Header withholds. */
   items: readonly NavItem[];
   state: MenuState;
   dispatch: Dispatch<MenuAction>;
+  /** The page's path, so the section the visitor is in can be marked. */
+  pathname?: string | null;
 }) {
   const triggerRefs = useRef(new Map<string, HTMLAnchorElement | null>());
 
@@ -93,13 +97,22 @@ export function DesktopNav({
           const isOpen = state.openMegaMenu === item.id;
           const panelId = `megamenu-${item.id}`;
           const triggerId = `megamenu-trigger-${item.id}`;
+          // The section the visitor is in carries the same rule an open menu
+          // draws, in full paper, and says so to assistive technology.
+          const current = isCurrentSection(item.href, pathname);
 
           if (!hasMenu) {
             return (
               <li key={item.id}>
                 <Link
                   href={item.href}
-                  className="text-background/65 hover:text-background inline-flex h-12 items-center px-3 text-sm whitespace-nowrap transition-colors duration-150"
+                  aria-current={ariaCurrent(item.href, pathname)}
+                  className={cn(
+                    'after:bg-background relative inline-flex h-11 items-center px-3 text-sm whitespace-nowrap transition-colors duration-150 after:absolute after:inset-x-3 after:bottom-0 after:h-px after:transition-transform after:duration-200',
+                    current
+                      ? 'text-background after:scale-x-100'
+                      : 'text-background/65 hover:text-background after:scale-x-0',
+                  )}
                 >
                   {item.label}
                 </Link>
@@ -120,6 +133,7 @@ export function DesktopNav({
                 }}
                 aria-expanded={isOpen}
                 aria-controls={panelId}
+                aria-current={ariaCurrent(item.href, pathname)}
                 onFocus={() => dispatch({ type: 'OPEN_MEGA_MENU', id: item.id })}
                 onKeyDown={(event) => {
                   if (event.key === 'Escape' && isOpen) {
@@ -138,9 +152,9 @@ export function DesktopNav({
                   // and the open label were both ink on ink, present in the
                   // source and invisible on the screen. Anything drawn on this
                   // bar states the light value explicitly.
-                  'relative inline-flex h-12 items-center gap-1.5 px-3 text-sm whitespace-nowrap transition-colors duration-150',
+                  'relative inline-flex h-11 items-center gap-1.5 px-3 text-sm whitespace-nowrap transition-colors duration-150',
                   'after:bg-background after:absolute after:inset-x-3 after:bottom-0 after:h-px after:origin-center after:transition-transform after:duration-200',
-                  isOpen
+                  isOpen || current
                     ? 'text-background after:scale-x-100'
                     : 'text-background/65 hover:text-background after:scale-x-0 hover:after:scale-x-100',
                 )}
