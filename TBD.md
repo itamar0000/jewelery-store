@@ -24,7 +24,7 @@ Per Development Rule 1, none of these is guessed. Where a *technical* default wa
 | B1 | **Payment provider** (Israeli; cards + local methods) | §23, §42 | Phase 6b | none — business decision | n/a — port isolates it |
 | B2 | **Invoice / receipt provider** (Israeli accounting service) | §23, §42 | Phase 6b | none — business decision | n/a — port isolates it |
 | B3 | **Shipping provider** | §4 | Phase 6a | none — business decision | n/a |
-| B4 | **Shipping price and free-shipping threshold** | §4 | Phase 6a | none. Checkout treats shipping as unresolved rather than inventing an amount | n/a |
+| B4 | ~~**Shipping price and free-shipping threshold**~~ **Resolved 2026-10-05 (owner): shipping is free.** | §4 | — | `SHIPPING.feeAgorot = 0` in src/lib/cart/pricing.ts; each order records its own shipping amount | Trivial — one constant; past orders keep what they were charged |
 | B5 | **Delivery SLA** | §4 | Phase 6a | none | n/a |
 | B6 | **Low-stock threshold** | §13 | Phase 2 | `null` — **no low-stock message shown at all** until a value is set | Trivial — a config value |
 | B7 | **Made-to-order preparation times** per product/variant, and customer-facing wording | §14 | Phase 4 | none. Schema supports per-variant `prepDays`; no durations invented | Trivial — data |
@@ -116,5 +116,5 @@ Ordered by *when the cost of deciding late starts rising*, not by importance:
 2. **B11 — is size a variant axis?** Shapes catalog data entry and the entire admin product form. The schema supports both, but the business needs to answer before catalog work begins.
 3. **D3, D4, D9 — typography, palette, image standard.** Needed before catalog photography and before any visual polish; D9 in particular is expensive to change after a hundred products are shot.
 4. **B1, B2 — payment and invoicing providers.** Hard blockers on Phase 6b. Israeli provider onboarding involves business verification and can take weeks, so starting the selection early matters more than deciding quickly.
-5. **B4, B5 — shipping price and SLA.** Checkout cannot show a total without them.
+5. **B5 — delivery SLA.** Shipping is free (B4, resolved 2026-10-05), so the checkout shows a total; what it cannot say yet is when a parcel arrives.
 6. ~~**I6 — OneDrive sync.**~~ **Resolved:** the working copy is outside OneDrive.

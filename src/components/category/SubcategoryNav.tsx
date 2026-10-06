@@ -30,7 +30,15 @@ export function SubcategoryNav({
     // Centred from `md`, matching the centred page hero above it. On narrow
     // screens it stays a start-aligned horizontal scroller, because centring a
     // row that overflows hides its first item off the edge.
-    <nav aria-label="תת-קטגוריות" className="-mx-6 overflow-x-auto px-6 md:mx-0 md:px-0">
+    //
+    // NO SCROLLBAR. It drew a grey bar under the chips on every phone-width
+    // window; the row already runs to the screen edge, and a chip cut off
+    // there is the sign that it scrolls. `py-1` (cancelled by `-my-1`) is
+    // room for the chips' 44px tap area, which a scroller would otherwise clip.
+    <nav
+      aria-label="תת-קטגוריות"
+      className="-mx-6 -my-1 [scrollbar-width:none] overflow-x-auto px-6 py-1 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden"
+    >
       <ul className="flex w-max gap-2 md:w-auto md:flex-wrap md:justify-center">
         {links.map((link) => {
           const active = link.id === activeId;
@@ -42,8 +50,8 @@ export function SubcategoryNav({
                 aria-current={active ? 'page' : undefined}
                 className={
                   active
-                    ? 'bg-foreground text-background inline-flex h-9 items-center rounded-full px-4 text-sm'
-                    : 'border-border hover:border-border-strong hover:bg-muted inline-flex h-9 items-center rounded-full border px-4 text-sm transition-colors'
+                    ? 'bg-foreground text-background touch-target inline-flex h-9 items-center px-4 text-sm'
+                    : 'border-border hover:border-border-strong hover:bg-muted touch-target inline-flex h-9 items-center border px-4 text-sm transition-colors'
                 }
               >
                 {link.label}

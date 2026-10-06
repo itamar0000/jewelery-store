@@ -14,12 +14,7 @@ import { cn } from './cn';
  * that carries meaning.
  */
 export function Skeleton({ className }: { className?: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={cn('bg-muted rounded-sm motion-safe:animate-pulse', className)}
-    />
-  );
+  return <div aria-hidden="true" className={cn('bg-muted motion-safe:animate-pulse', className)} />;
 }
 
 /** A grid of product-card-shaped skeletons. */

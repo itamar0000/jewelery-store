@@ -17,8 +17,13 @@ import type { ProductCardData } from './types';
  * The card text is sized to survive two columns at 375px; the long Hebrew names
  * in the fixtures are there specifically to keep that honest.
  *
- * `compact` drops to a narrower maximum for homepage rails, where four across
- * inside a contained section would leave the cards too small.
+ * `compact` is for the homepage rail of four, which shows two across until
+ * `lg`, then all four in one row. It skips the three-column step the catalogue
+ * grid takes at `md`, which set four products as a row of three and one orphan
+ * on every tablet. It used to wait for `xl` as well, on the view that four
+ * across was too small before then; but every category grid sets the same
+ * cards four across from `lg`, and at 1024px the two-by-two rail took a
+ * quarter of the homepage for four products.
  */
 export function ProductGrid({
   products,
@@ -27,6 +32,7 @@ export function ProductGrid({
   emptyTitle = 'אין כרגע מוצרים בקטגוריה הזו.',
   emptyBody = 'הקטלוג מתעדכן. אפשר לעבור לקטגוריה אחרת דרך התפריט.',
   emptyAction,
+  headingLevel = 3,
 }: {
   products: readonly ProductCardData[];
   compact?: boolean;
@@ -36,6 +42,8 @@ export function ProductGrid({
   emptyBody?: string;
   /** A way out of the empty state - typically "clear filters". */
   emptyAction?: ReactNode;
+  /** Passed to each card: 2 directly under a page title, 3 under a section's. */
+  headingLevel?: 2 | 3;
 }) {
   // A genuinely empty category is a normal state for a shop, not an error, so
   // this explains and offers a way onward rather than leaving a blank column.
@@ -58,7 +66,7 @@ export function ProductGrid({
         // work. The row gap is larger than the column gap because the caption
         // block under each image would otherwise crowd the next row's picture.
         'grid grid-cols-2 gap-x-5 gap-y-12 sm:gap-x-8 md:gap-y-16',
-        compact ? 'md:grid-cols-3 xl:grid-cols-4' : 'md:grid-cols-3 lg:grid-cols-4',
+        compact ? 'lg:grid-cols-4' : 'md:grid-cols-3 lg:grid-cols-4',
         className,
       )}
     >
@@ -92,7 +100,12 @@ export function ProductGrid({
        */}
       {products.map((product, index) => (
         <li key={product.id} className="flex">
-          <ProductCard product={product} priority={index < 2} eager={index >= 2 && index < 4} />
+          <ProductCard
+            product={product}
+            priority={index < 2}
+            eager={index >= 2 && index < 4}
+            headingLevel={headingLevel}
+          />
         </li>
       ))}
     </ul>

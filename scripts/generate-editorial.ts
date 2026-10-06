@@ -92,7 +92,10 @@ const DEFAULT_MODEL = 'fal-ai/flux-2-pro';
  *     meaning rather than taste (see `diamonds`).
  */
 const COMPOSITION: Readonly<Record<EditorialAssetId, string>> = {
-  hero: 'Medium crop, elegant understated styling. The woman is positioned toward the LEFT of the frame, leaving the right third as clean, uncluttered negative space for headline text. Cinematic ultra-wide composition.',
+  // NOTHING IS LAID OVER THE HERO ANY MORE. The headline moved onto the paper
+  // beneath the frame, so the old instruction to reserve a third of the picture
+  // as empty backdrop now produces a photograph with a hole in it.
+  hero: 'Cinematic ultra-wide composition, medium crop, elegant understated styling. The woman sits toward the RIGHT of the frame; the remaining space is not empty backdrop but a soft falloff of light across a warm plaster wall, so the whole frame carries tone. No text is placed on this image.',
 
   'category-rings':
     'Tight vertical crop on the hand only. Fingers relaxed and clearly separated, neutral manicure, the ring sharply in focus.',
@@ -104,6 +107,15 @@ const COMPOSITION: Readonly<Record<EditorialAssetId, string>> = {
     'Vertical crop of a wrist and forearm, arm relaxed and slightly bent, hand out of frame or softly out of focus. The bracelet sits naturally around the wrist.',
   'category-sets':
     'Vertical editorial portrait crop showing a necklace and matching earrings together in one frame. The most fashion-led image of the set.',
+
+  'collection-new-arrivals':
+    'Horizontal still life, no model. Several new gold pieces laid out on warm plaster with generous space between them - two rings, a coiled fine chain, a pair of studs. Shot slightly from above, soft raking light from the left.',
+  'collection-best-sellers':
+    'Horizontal still life, no model. A diamond solitaire standing upright and forward, a tennis bracelet laid in a soft curve, a pair of diamond studs. The solitaire is the hero of the arrangement.',
+  'collection-bridal':
+    'Horizontal still life, no model. An engagement ring and a matching plain band resting side by side on ivory silk, not stacked, with drop earrings behind and slightly out of focus. Quiet and ceremonial rather than sparkling.',
+  'collection-personalized':
+    'Horizontal still life, no model. A gold name pendant whose letters are CUT FROM THE GOLD in Hebrew script, a slim bar pendant and a plain band, on warm plaster. Raking light so the cut letters catch and cast fine shadows. The lettering is jewellery, never overlaid text.',
 
   atelier:
     "Vertical crop of a goldsmith's hands at a jeweller's bench: setting a stone with fine tools, a pencil sketch and small gold components on the worktop. Warm focused task lighting, real workshop texture. Not a meeting, not a clean corporate studio.",

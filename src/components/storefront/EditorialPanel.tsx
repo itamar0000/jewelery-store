@@ -1,7 +1,8 @@
+import Link from 'next/link';
+
 import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
 import { EditorialImage } from '@/components/ui/EditorialImage';
-import { PlaceholderImage } from '@/components/ui/PlaceholderImage';
 import type { EditorialAssetId } from '@/lib/content/editorial-assets';
 import { cn } from '@/components/ui/cn';
 
@@ -23,7 +24,6 @@ import { cn } from '@/components/ui/cn';
  */
 export interface EditorialPanelProps {
   id: string;
-  eyebrow?: string;
   title: string;
   body: string;
   points?: readonly string[];
@@ -33,11 +33,16 @@ export interface EditorialPanelProps {
   /** Which registry asset sits beside the copy. */
   assetId?: EditorialAssetId;
   tone?: 'default' | 'muted';
+  /**
+   * The page's closing statement: the finale spacing tier, the line a size up,
+   * prose in soft ink, and the action an underlined line rather than a ruled
+   * button (DESIGN.md: the Underlined Action Rule). One per page.
+   */
+  finale?: boolean;
 }
 
 export function EditorialPanel({
   id,
-  eyebrow,
   title,
   body,
   points,
@@ -46,37 +51,52 @@ export function EditorialPanel({
   imageLabel,
   assetId,
   tone = 'default',
+  finale = false,
 }: EditorialPanelProps) {
   return (
     <section aria-labelledby={id} className={cn(tone === 'muted' && 'bg-muted/50')}>
-      <Container className="py-section md:py-feature">
-        <div className="grid items-center gap-8 md:grid-cols-2 md:gap-12 lg:gap-16">
-          <div className={cn(imageSide === 'end' && 'md:order-2')}>
-            {/*
-             * The ratio is on the wrapper: EditorialImage fills its parent, so
-             * the section owns the shape. Portrait rather than landscape here -
-             * a tall frame beside a column of copy reads as a magazine spread,
-             * where a wide one reads as a banner with text bolted on.
-             */}
-            <div className="relative aspect-[4/5] overflow-hidden rounded-sm">
-              {assetId ? (
+      <Container className={cn('py-section', finale ? 'md:py-finale' : 'md:py-feature')}>
+        <div
+          className={cn('grid items-center gap-8 md:gap-12 lg:gap-16', assetId && 'md:grid-cols-2')}
+        >
+          {/*
+           * NO PICTURE, NO FRAME. The panel drops to a single column rather
+           * than reserving a grey rectangle where a photograph would go.
+           *
+           * This is the same fix PageHero needed and for the same reason: a
+           * tonal stand-in is not a neutral wait. It reads as a broken image
+           * to anyone who does not know the plan, and it is the least
+           * interesting object on the page occupying half of it. Both callers
+           * on the home page pass an asset today, so nothing changes on screen
+           * - what changes is that adding a third caller without photography
+           * can no longer ship a grey box by accident.
+           */}
+          {assetId && (
+            <div className={cn(imageSide === 'end' && 'md:order-2')}>
+              {/*
+               * The ratio lives on the WRAPPER, not the image, because
+               * EditorialImage fills its parent. Portrait rather than landscape
+               * here - a tall frame beside a column of copy reads as a magazine
+               * spread, where a wide one reads as a banner with text bolted on.
+               */}
+              <div className="relative aspect-[4/5] overflow-hidden">
                 <EditorialImage
                   id={assetId}
                   sizes="(max-width: 767px) 100vw, 45vw"
                   placeholderLabel={imageLabel ?? title}
                 />
-              ) : (
-                <PlaceholderImage ratio="fill" label={imageLabel ?? title} />
-              )}
+              </div>
             </div>
-          </div>
+          )}
 
           <div>
-            {eyebrow && (
-              <p className="text-accent text-2xs tracking-snug mb-3 font-medium">{eyebrow}</p>
-            )}
-
-            <h2 id={id} className="font-display text-2xl tracking-tight text-balance md:text-3xl">
+            <h2
+              id={id}
+              className={cn(
+                'font-display text-accent font-bold tracking-tight text-balance',
+                finale ? 'text-3xl leading-[1.05] md:text-5xl' : 'text-2xl md:text-3xl',
+              )}
+            >
               {title}
             </h2>
 
@@ -84,7 +104,14 @@ export function EditorialPanel({
                 place on the homepage that asks to be READ rather than scanned,
                 and 14px Hebrew in a half-width column is a paragraph people
                 skip. */}
-            <p className="text-muted-foreground mt-5 text-base text-pretty">{body}</p>
+            <p
+              className={cn(
+                'mt-5 text-base text-pretty',
+                finale ? 'text-soft-foreground md:text-lg' : 'text-muted-foreground',
+              )}
+            >
+              {body}
+            </p>
 
             {points && points.length > 0 && (
               <ul className="mt-6 space-y-2.5">
@@ -101,11 +128,19 @@ export function EditorialPanel({
               </ul>
             )}
 
-            {action && (
-              <Button href={action.href} variant="secondary" className="mt-8">
-                {action.label}
-              </Button>
-            )}
+            {action &&
+              (finale ? (
+                <Link
+                  href={action.href}
+                  className="ease-settle decoration-border-strong hover:decoration-foreground touch-target mt-8 inline-block text-lg font-semibold underline decoration-2 underline-offset-[0.4em] transition-colors duration-(--duration-settle) md:text-xl"
+                >
+                  {action.label}
+                </Link>
+              ) : (
+                <Button href={action.href} variant="secondary" className="mt-8">
+                  {action.label}
+                </Button>
+              ))}
           </div>
         </div>
       </Container>

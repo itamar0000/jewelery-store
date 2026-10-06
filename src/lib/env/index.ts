@@ -26,6 +26,11 @@ export const env = parseEnv({
   DATABASE_URL: process.env.DATABASE_URL,
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   SITE_INDEXABLE: process.env.SITE_INDEXABLE,
+  PRICES_FINAL: process.env.PRICES_FINAL,
+  CONTACT_WHATSAPP: process.env.CONTACT_WHATSAPP,
+  CONTACT_PHONE: process.env.CONTACT_PHONE,
+  CONTACT_EMAIL: process.env.CONTACT_EMAIL,
+  VAT_RATE_BPS: process.env.VAT_RATE_BPS,
 });
 
 export { EnvironmentError, envSchema, parseEnv, type Env } from './schema';

@@ -1,254 +1,128 @@
-import { Button } from '@/components/ui/Button';
-import { Container } from '@/components/ui/Container';
 import { EditorialImage } from '@/components/ui/EditorialImage';
-import type { EditorialAssetId } from '@/lib/content/editorial-assets';
-import { cn } from '@/components/ui/cn';
+import { Container } from '@/components/ui/Container';
 
 /**
- * Homepage hero.
+ * The first viewport: one photograph at full bleed, then the line beneath it.
  *
- * THE CREATIVE IS TBD AND IS NOT INVENTED HERE. MASTER_SPECIFICATION section 31
- * records the hero concept as "TBD" with only a direction noted
- * (craftsmanship / setting / close-up product imagery). This component supplies
- * the ARCHITECTURE and takes the content as props: whoever writes the real
- * headline and supplies the real photograph changes a route, not a component.
+ * TWO ARRANGEMENTS WERE REJECTED BEFORE THIS ONE, and the reasons are worth
+ * keeping because they rule out most of the obvious answers.
  *
- * REBUILT TO BE IMAGE-LED. The previous version sized itself from a fixed
- * `21/9` crop and laid the copy over the resulting band. Two things were wrong
- * with that once the page was reviewed as rendered output:
+ * The first floated the headline and a button over the picture in the usual
+ * way. The second put them on a small sheet of paper laid on the photograph,
+ * with the action as a red stamp; the owner's word for it was "hideous", and it
+ * was - a saturated red block is the loudest thing on a quiet page, and a
+ * floating panel over a photograph is a widget, not a composition.
  *
- *   - the band was a horizontal STRIPE rather than a first screen. It never
- *     filled the viewport, so the page opened on a letterboxed banner with
- *     content already crowding underneath it;
- *   - the aspect ratio, not the viewport, decided the height. On a wide
- *     monitor that produced a short, wide slab; the hero got less commanding
- *     the bigger the screen, which is exactly backwards.
+ * SO NOTHING IS LAID OVER THE PICTURE AT ALL. The photograph gets the frame to
+ * itself, edge to edge, and the type begins where the image ends. That is how a
+ * magazine opens and how a gallery hangs a wall, and it has a plain practical
+ * virtue besides: type on paper has a contrast ratio that does not depend on
+ * what the photographer put behind it. A scrim is what you reach for when the
+ * words have nowhere to stand.
  *
- * It is now a VIEWPORT-SIZED SECTION with the image filling it. Height is
- * driven by `min-h`, the picture covers whatever box that produces, and the
- * crop adapts instead of dictating. That is what lets a real photograph
- * dominate the first screen at every width.
+ * THE LINE IS THE INVESTMENT. It is set at a size the old scale could not
+ * reach, in ink, with the tracking pulled tight - because on a page whose only
+ * colour is the jewellery, scale and restraint are what is left to spend.
  *
- * FLEXIBILITY THE BRIEF ASKS FOR:
- *   - `tone` switches between dark copy on a light scrim and light copy on a
- *     dark one, so the same component works over a high-key packshot or a
- *     moody campaign frame without a rewrite;
- *   - `align` puts the copy at the inline start or centres it;
- *   - one CTA, two, or none; `subtitle` optional;
- *   - `height` trades a full screen against a shorter editorial band.
- *
- * TEXT SITS ON A SCRIM, never directly on the picture. Contrast against
- * photography that does not exist yet cannot be guaranteed any other way, and
- * the accessibility target is still an open legal determination
- * (ARCHITECTURE section 3.5).
+ * THE ACTION IS A RULE, NOT A BUTTON. A single underlined line of type under
+ * the headline, which is what a shop confident in its photographs does; a
+ * filled block here would pull the eye off the picture it is meant to serve.
  */
-export interface HeroAction {
-  readonly label: string;
-  readonly href: string;
-}
-
-const HEIGHTS = {
-  /** Dominates the first screen. The default, and the campaign treatment. */
-  full: 'min-h-[32rem] md:min-h-[calc(100svh-8.125rem)] md:max-h-[52rem]',
-  /** A shorter editorial band, for pages that are not the homepage. */
-  band: 'min-h-[24rem] md:min-h-[32rem]',
-} as const;
-
 export function Hero({
   title,
-  displayLine,
-  subtitle,
-  primaryAction,
-  secondaryAction,
+  action,
   imageLabel,
-  assetId = 'hero',
-  tone = 'dark',
-  align = 'start',
-  height = 'full',
 }: {
+  /** The line. States what the shop sells; never a slogan. */
   title: string;
-  /**
-   * A short LATIN campaign line, set above the Hebrew headline in the display
-   * serif. Optional, and omitted entirely on pages that have nothing to say
-   * in this register.
-   *
-   * WHY THE SLOT EXISTS AT ALL. `--font-display` resolves to a Latin-only face
-   * backed by the Hebrew face (src/lib/fonts.ts). That is no longer true: the
-   * display face now carries Hebrew as well, so `font-display` sets a Hebrew
-   * heading in the serif too and this slot is no longer the only place the
-   * brand voice appears.
-   *
-   * IT REMAINS A SEPARATE ELEMENT RATHER THAN PART OF THE HEADLINE, but for a
-   * compositional reason now rather than a technical one. The old pairing had
-   * badly mismatched x-heights and could not be mixed inside a line without
-   * looking like a rendering fault; one family across both scripts removes
-   * that constraint. What is left is the layout argument - an eyebrow set
-   * wide and small above the headline is a different beat from the headline
-   * itself.
-   *
-   * IT IS NOT A TRANSLATION OF THE HEADLINE. It sits outside the heading
-   * element and is not announced as one - a screen-reader user gets the Hebrew
-   * `h1`, which is the real title of the page. Putting an English restatement
-   * in the accessibility tree of a Hebrew store would be noise, not access.
-   */
-  displayLine?: string;
-  subtitle?: string;
-  primaryAction?: HeroAction;
-  secondaryAction?: HeroAction;
+  action: { readonly label: string; readonly href: string };
   imageLabel?: string;
-  /** Which registry asset fills the plane. See lib/content/editorial-assets. */
-  assetId?: EditorialAssetId;
-  /** `dark` = dark copy on a light scrim. `light` = light copy on a dark one. */
-  tone?: 'dark' | 'light';
-  align?: 'start' | 'center';
-  height?: keyof typeof HEIGHTS;
 }) {
-  const light = tone === 'light';
-
   return (
-    <section className={cn('relative isolate flex items-center overflow-hidden', HEIGHTS[height])}>
+    /*
+     * THE FIRST SCREEN IS SIZED FROM THE REAL HEADER (`--header-height`).
+     *
+     * It used to subtract a flat 11rem from the viewport. That allowed for a
+     * 4rem header and left the top of the line peeking above the fold; the
+     * desktop header grew a navigation row to 8rem and nothing was adjusted,
+     * so on every desktop the line began just BELOW the fold and the first
+     * screen said nothing at all.
+     *
+     * FROM `lg`, THE PHOTOGRAPH TAKES WHAT THE LINE LEAVES. The section is the
+     * first screen exactly, and the picture flexes to fill whatever the
+     * headline and its action do not use - so both are on screen at any
+     * desktop height and any line count, with no figure to keep in sync. Below
+     * `lg` the original arrangement stands, now with honest arithmetic: the
+     * photograph fills the screen but for 7rem, and the line breaks the fold
+     * beneath it.
+     */
+    <section className="relative lg:mb-16 lg:flex lg:min-h-[calc(100svh-var(--header-height))] lg:flex-col">
       {/*
-       * The image is a background LAYER rather than a sibling that sets the
-       * height. `inset-0` plus the section's own min-height is what makes the
-       * viewport the authority on scale.
+       * The photograph, edge to edge, with nothing laid over it.
+       *
+       * `artDirection="orientation"`: this box follows the screen's shape, so a
+       * portrait screen of any width - a phone, an upright tablet - gets the
+       * portrait photograph, and a landscape one the wide. Switched at a width
+       * breakpoint instead, an upright tablet got the 21:9 file stretched 2.6x
+       * across a tall box and cropped to the bare wall beside the model.
+       *
+       * `lg:min-h-64` keeps a usable band on the shortest screens. Below about
+       * 620px of height the action is the part that drops under the fold.
        */}
-      <div className="absolute inset-0 -z-20">
+      <div className="relative h-[calc(100svh-var(--header-height)-7rem)] min-h-[30rem] w-full overflow-hidden lg:h-auto lg:min-h-64 lg:flex-1">
         {/*
-         * PRIORITY. This is the largest contentful paint on the homepage, and
-         * the only image on the site that opts out of lazy loading.
-         *
-         * `100vw` because the hero is full-bleed at every width - anything
-         * narrower would make the browser pick a source too small and upscale
-         * it across the whole first screen.
+         * THE SETTLE (DESIGN.md, Motion): the photograph releases from a 4%
+         * over-scale over two seconds - the site's one atmospheric movement.
+         * It went missing when the hero was rewritten for type on paper, which
+         * left its keyframes defined and unused. The frame clips the over-scale,
+         * and reduced motion collapses it to the resting state.
          */}
-        {/*
-         * The settle wraps the image rather than being applied to it, so the
-         * animation owns `transform` outright. EditorialImage's own classes
-         * stay free for the art-directed focal point, which is also a
-         * positioning concern and would otherwise be competing for the same
-         * property.
-         */}
-        <div className="animate-hero-settle size-full">
+        <div className="animate-hero-settle absolute inset-0">
           <EditorialImage
-            id={assetId}
+            id="hero"
             sizes="100vw"
             priority
             hidePlaceholderLabel
             placeholderLabel={imageLabel}
+            artDirection="orientation"
           />
         </div>
       </div>
 
       {/*
-       * Scrim. `to-l` is a PHYSICAL direction because CSS gradients have no
-       * logical equivalent; it is correct here because the storefront is
-       * RTL-only (src/lib/config/site.ts), so inline-start is always the right
-       * edge. A centred hero gets a vertical wash instead, because a
-       * side-weighted gradient under centred text darkens one shoulder only.
+       * The line, on paper, immediately under the frame. Aligned to the inline
+       * start - the right of this RTL page - and given the full measure rather
+       * than being centred, because a centred line at this size reads as a
+       * poster caption instead of as the page speaking.
+       *
+       * THE MEASURE IS 64rem, up from 56rem, so the line sets in two lines at
+       * the top size rather than three - it breaks at the comma - and leaves
+       * the photograph a further 92px of the first screen.
+       *
+       * `short:` (under 800px of viewport height) tightens the rhythm and steps
+       * the display size down once, from 5.75rem to 4.5rem, so a 768px laptop
+       * still sees the line, the action and a real band of photograph.
        */}
-      <div
-        aria-hidden="true"
-        className={cn(
-          'absolute inset-0 -z-10',
-          align === 'center'
-            ? light
-              ? 'from-foreground/75 via-foreground/45 bg-gradient-to-t to-transparent'
-              : 'from-background/85 via-background/55 bg-gradient-to-t to-transparent'
-            : light
-              ? 'from-foreground/80 via-foreground/40 bg-linear-to-l to-transparent'
-              : 'from-background/90 via-background/50 bg-linear-to-l to-transparent',
-        )}
-      />
+      <Container width="wide" className="short:lg:pt-8 pt-10 pb-16 md:pt-14 md:pb-24 lg:pb-8">
+        <h1 className="font-display animate-rise-in short:xl:text-6xl max-w-5xl text-4xl leading-[1] font-bold tracking-tight text-balance md:text-6xl xl:text-7xl">
+          {title}
+        </h1>
 
-      <Container width="wide" className="py-16">
-        <div
-          className={cn(
-            'max-w-xl',
-            align === 'center' && 'mx-auto max-w-2xl text-center',
-            light && 'text-background',
-          )}
+        {/*
+         * THE ACTION CARRIES WEIGHT NOW. It was 18px under a 92px line - the
+         * loudest thing on the screen was a sentence and the quietest was the
+         * way in. Still a line of type, not a button (DESIGN.md, the Underlined
+         * Action Rule), but stepped up to 28px on desktop with a 2px rule, so
+         * it reads as the next thing to do rather than as a caption.
+         *
+         * `touch-target` gives it a 44px tap area wherever it is drawn smaller.
+         */}
+        <a
+          href={action.href}
+          className="animate-rise-in ease-settle decoration-border-strong hover:decoration-foreground touch-target short:lg:mt-5 short:xl:text-xl mt-8 inline-block text-lg font-semibold underline decoration-2 underline-offset-[0.4em] transition-colors duration-(--duration-settle) [animation-delay:120ms] focus-visible:ring-2 focus-visible:ring-(--color-ring) focus-visible:ring-offset-4 focus-visible:ring-offset-(--color-background) focus-visible:outline-none md:text-xl xl:text-2xl"
         >
-          {/*
-           * THE ONE PLACE ON THE SITE SET IN LATIN, ON PURPOSE.
-           *
-           * `tracking-[0.14em]` is an arbitrary value rather than a token, and
-           * it has to be: the tracking scale in tokens.css runs tight-to-normal
-           * only, because positive letter-spacing breaks Hebrew glyph joins and
-           * is never correct for it. That rule is about HEBREW. This element is
-           * Latin by contract, where wide tracking on a light serif is the
-           * whole effect - so it reaches past the scale deliberately, and the
-           * scale stays honest for everything else.
-           *
-           * `font-light` picks 300 from the display face's variable range. The
-           * heavier cuts read as a wedding invitation, which section 2 rules
-           * out.
-           */}
-          {displayLine && (
-            <p
-              aria-hidden="true"
-              className={cn(
-                'font-display animate-rise-in mb-4 text-xl font-light tracking-[0.14em] uppercase md:text-2xl',
-                light ? 'text-background/90' : 'text-foreground/80',
-              )}
-            >
-              {displayLine}
-            </p>
-          )}
-
-          {/*
-           * THE STAGGER.
-           *
-           * Each block enters a beat after the one above it, so the first
-           * screen assembles top-down instead of appearing all at once. Ninety
-           * milliseconds is small enough that nobody watches it happen and
-           * large enough that the order is felt.
-           *
-           * The delays are arbitrary values rather than tokens because they are
-           * a composition local to this one component - the RELATIONSHIP
-           * between these four lines - not a site-wide design value. A
-           * `--stagger-2` token would imply other components should share it,
-           * and they should not.
-           *
-           * All four inherit `both` from `--animate-rise-in`, without which a
-           * delayed element paints at its end state first and the stagger
-           * flashes. See the token.
-           */}
-          <h1 className="font-display animate-rise-in text-4xl tracking-tight text-balance [animation-delay:90ms] md:text-5xl xl:text-6xl">
-            {title}
-          </h1>
-
-          {subtitle && (
-            <p
-              className={cn(
-                'animate-rise-in mt-6 max-w-md text-base text-pretty [animation-delay:180ms]',
-                align === 'center' && 'mx-auto',
-                light ? 'text-background/80' : 'text-muted-foreground',
-              )}
-            >
-              {subtitle}
-            </p>
-          )}
-
-          {(primaryAction ?? secondaryAction) && (
-            <div
-              className={cn(
-                'animate-rise-in mt-10 flex flex-wrap gap-3 [animation-delay:270ms]',
-                align === 'center' && 'justify-center',
-              )}
-            >
-              {primaryAction && (
-                <Button href={primaryAction.href} variant="primary" size="lg">
-                  {primaryAction.label}
-                </Button>
-              )}
-              {secondaryAction && (
-                <Button href={secondaryAction.href} variant="secondary" size="lg">
-                  {secondaryAction.label}
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
+          {action.label}
+        </a>
       </Container>
     </section>
   );

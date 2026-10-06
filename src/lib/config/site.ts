@@ -41,7 +41,21 @@ export const SITE_LOCALE = 'he-IL';
  * ONE CONSTANT, ON PURPOSE. Replacing it when the real name is settled is an
  * edit here and nowhere else; nothing downstream spells the name out.
  */
-export const SITE_NAME = 'עדי';
+/*
+ * LATIN, ON A HEBREW PAGE, ON PURPOSE.
+ *
+ * The owner chose this name; it replaces the placeholder "עדי". A Latin
+ * wordmark inside an RTL document is ordinary in this market and needs one
+ * piece of care, which the Header and Footer apply: it is wrapped in a
+ * direction isolate so the bidi algorithm cannot reorder it or drag
+ * neighbouring punctuation into the middle of it.
+ *
+ * It also says something the catalog can back. "For less" is a price claim,
+ * and this shop can make one honestly: it manufactures its own pieces and
+ * carries no retail middleman's margin (PRODUCT.md, Positioning). It would be
+ * an empty boast on a reseller.
+ */
+export const SITE_NAME = 'Jewelry for Less';
 
 /**
  * One line describing the store, for the home page `<title>` and share cards.

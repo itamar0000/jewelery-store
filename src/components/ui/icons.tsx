@@ -117,6 +117,15 @@ export function MinusIcon(props: IconProps) {
   );
 }
 
+/** Not mirrored: a tick reads the same in both directions. */
+export function CheckIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m5 12.5 4.5 4.5L19 7.5" />
+    </Icon>
+  );
+}
+
 export function FilterIcon(props: IconProps) {
   return (
     <Icon {...props}>

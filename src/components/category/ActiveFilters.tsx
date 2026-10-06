@@ -1,5 +1,3 @@
-import Link from 'next/link';
-
 import { CloseIcon } from '@/components/ui/icons';
 import {
   FACET_CODES,
@@ -8,6 +6,8 @@ import {
   type CatalogQuery,
   type Facet,
 } from '@/lib/catalog/filters';
+
+import { CatalogLink } from './CatalogTransition';
 
 /**
  * The active-filter chips, with a clear-all link.
@@ -64,25 +64,23 @@ export function ActiveFilters({
       <h2 className="sr-only">סינון פעיל</h2>
 
       {chips.map((chip) => (
-        <Link
+        <CatalogLink
           key={chip.key}
           href={chip.href}
-          scroll={false}
-          className="border-border-strong hover:bg-muted inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors"
+          className="border-border-strong hover:bg-muted inline-flex items-center gap-1.5 border px-3 py-1 text-xs transition-colors pointer-coarse:min-h-11"
         >
           {chip.label}
           <CloseIcon aria-hidden="true" className="size-3" />
           <span className="sr-only">, הסרת הסינון</span>
-        </Link>
+        </CatalogLink>
       ))}
 
-      <Link
+      <CatalogLink
         href={buildCatalogHref(basePath, query, { clearAll: true, sort: query.sort })}
-        scroll={false}
-        className="text-accent px-2 py-1 text-xs underline underline-offset-4"
+        className="text-accent inline-flex items-center px-2 py-1 text-xs underline underline-offset-4 pointer-coarse:min-h-11"
       >
         נקה סינון
-      </Link>
+      </CatalogLink>
     </div>
   );
 }

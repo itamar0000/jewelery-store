@@ -18,8 +18,10 @@ import { resetDb, testPrisma } from '@/test/db';
  *   - visibility filtering (a draft must never reach a customer)
  *   - descendant categories rolling up into their parent
  *   - the card price being the LOWEST sellable variant price
- *   - badges coming from real collection membership and real availability
- *   - low-stock messaging appearing ONLY on genuinely low stock
+ *   - the one badge coming from real collection membership
+ *   - no stock claim at all while stock levels are seed data
+ *     (src/lib/inventory/disclosure.ts; the live path is unit-tested in
+ *     product-card.test.ts)
  *   - a missing inventory row failing CLOSED
  */
 vi.mock('@/lib/db', () => ({ prisma: testPrisma }));
@@ -205,7 +207,11 @@ describe('getProductsByCategory', () => {
       expect(card?.stockNotice).toBeUndefined();
     });
 
-    it('emits a notice only when stock is genuinely at or below the threshold', async () => {
+    /*
+     * The case that used to print "נותרו 2 במלאי": DENY, at its threshold. The
+     * count is seed data, so the card stays silent until stock levels are live.
+     */
+    it('says nothing even at the threshold while stock levels are not live', async () => {
       const rings = await seedCategory('rings', 'טבעות');
       await seedProduct({
         slug: 'low',
@@ -216,36 +222,33 @@ describe('getProductsByCategory', () => {
       });
 
       const [card] = await getProductsByCategory(rings.id);
-      expect(card?.stockNotice).toContain('2');
-    });
-
-    it('stays silent when stock is above the threshold', async () => {
-      const rings = await seedCategory('rings', 'טבעות');
-      await seedProduct({
-        slug: 'ample',
-        categoryId: rings.id,
-        onHand: 20,
-        lowStockThreshold: 2,
-        policy: 'DENY',
-      });
-
-      const [card] = await getProductsByCategory(rings.id);
       expect(card?.stockNotice).toBeUndefined();
     });
   });
 
-  describe('badges', () => {
-    it('marks made-to-order only when every variant is made to order', async () => {
+  describe('badge', () => {
+    it('marks a product in new arrivals as new', async () => {
       const rings = await seedCategory('rings', 'טבעות');
-      await seedProduct({ slug: 'mto', categoryId: rings.id, onHand: 0 });
+      const product = await seedProduct({ slug: 'fresh', categoryId: rings.id });
+
+      const collection = await testPrisma.collection.create({
+        data: { slug: 'new-arrivals', nameHe: 'חדש באתר', isActive: true },
+      });
+      await testPrisma.productCollection.create({
+        data: { productId: product.id, collectionId: collection.id },
+      });
 
       const [card] = await getProductsByCategory(rings.id);
-      expect(card?.badges).toContain('made-to-order');
+      expect(card?.badge).toBe('new');
     });
 
-    it('derives new and best-seller from real collection membership', async () => {
+    /*
+     * Best-seller membership and made-to-order availability no longer badge a
+     * card: one is the band's claim, the other is the norm here.
+     */
+    it('gives a made-to-order best seller no badge', async () => {
       const rings = await seedCategory('rings', 'טבעות');
-      const product = await seedProduct({ slug: 'featured', categoryId: rings.id, onHand: 5 });
+      const product = await seedProduct({ slug: 'featured', categoryId: rings.id, onHand: 0 });
 
       const collection = await testPrisma.collection.create({
         data: { slug: 'best-sellers', nameHe: 'רבי מכר', isActive: true },
@@ -255,7 +258,7 @@ describe('getProductsByCategory', () => {
       });
 
       const [card] = await getProductsByCategory(rings.id);
-      expect(card?.badges).toContain('best-seller');
+      expect(card?.badge).toBeUndefined();
     });
   });
 });
@@ -297,6 +300,20 @@ describe('getProductBySlug', () => {
     const product = await getProductBySlug('stocked');
     expect(product?.variants[0]?.availability.state).toBe('IN_STOCK');
     expect(product?.variants[0]?.availability.available).toBe(3);
+  });
+
+  /*
+   * Its count is seed data, so it does not decide what the page says: one
+   * colour of a ring used to read "במלאי" and the next "מיוצר בהזמנה" on
+   * nothing but invented numbers.
+   */
+  it('resolves a made-to-order variant as made to order, whatever its count', async () => {
+    const rings = await seedCategory('rings', 'טבעות');
+    await seedProduct({ slug: 'workshop', categoryId: rings.id, onHand: 4 });
+
+    const product = await getProductBySlug('workshop');
+    expect(product?.variants[0]?.availability.state).toBe('MADE_TO_ORDER');
+    expect(product?.variants[0]?.availability.isPurchasable).toBe(true);
   });
 
   /**

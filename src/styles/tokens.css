@@ -29,66 +29,78 @@
  * ========================================================================= */
 
 /* -------------------------------------------------------------------------
- * LAYER 1 - reference tokens (provisional)
+ * LAYER 1 - reference tokens
  *
- * Contrast against the surface tokens was measured (WCAG 2.1 relative
- * luminance). Every foreground below clears 4.5:1 on white, pearl and cream:
+ * THE ONLY COLOUR ON THIS SITE IS THE JEWELLERY.
  *
- *              white   pearl   cream   cream-deep
- *   ink        18.42   17.51   16.22   14.45
- *   ink-soft   10.86   10.32    9.56    8.52
- *   ink-muted   6.74    6.41    5.94    5.29
- *   accent      6.16    5.86    5.42    4.83
- *   danger      8.00    7.60    7.04    6.27
- *   success     6.47    6.15    5.69    5.07
- *   warning     5.91    5.62    5.21    4.64
+ * That is the whole palette decision, and it is a position rather than a
+ * restriction. Paper and ink, and nothing else: no field colour, no accent, no
+ * stamp. Every warm note on any page comes out of a photograph, which means
+ * gold reads as gold because it is the only gold there is.
  *
- * These ratios must be re-measured when the real palette replaces this one.
- * The compliance target itself is a legal determination and remains TBD
- * (ARCHITECTURE section 3.5, TBD.md).
+ * TWO EARLIER ATTEMPTS ARE BURIED HERE, and both are worth recording because
+ * they were rejected for opposite reasons. The first was a saturated trade
+ * blue owning the whole viewport; the owner's judgement was that it does not
+ * read as a jewellery house, and that is the owner's call. The second went pale
+ * but kept a blue ink and a red stamp, and it landed as the generic light shop
+ * the site had been before - which was the fault it was supposed to fix.
+ *
+ * SO THE DISTINCTION IS NOT CARRIED BY HUE AT ALL. It is carried by type at
+ * scale, by photography that runs edge to edge, by hairline rules, and by the
+ * amount of paper left empty. A page can be near-white and still be
+ * unmistakable; it just has to be unmistakable about something other than
+ * colour.
+ *
+ * THE PAPER IS BARELY WARM AND DELIBERATELY NOT CREAM. Cream plus a serif is
+ * the shape every generated storefront takes, and this site wore it once
+ * already. #FAFAF8 is a hair off neutral - enough that gold photography sits on
+ * it without going cold, far short of ivory stationery.
+ *
+ * Contrast measured (WCAG 2.1 relative luminance):
+ *
+ *                  on paper   on paper-deep
+ *   ink              18.4        17.2
+ *   ink-soft          9.1         8.5
+ *   ink-muted         5.3         5.0
+ *   line-strong       3.4         3.1  (a control's outline: WCAG 1.4.11, 3:1)
+ *   paper on ink     18.4  (page colour as type, on the primary action)
  * ---------------------------------------------------------------------- */
 :root {
-  /* Surfaces - white through warm cream */
-  --ref-white: #ffffff;
-  --ref-pearl: #faf9f7;
-  --ref-cream: #f4f0e9;
-  --ref-cream-deep: #eae3d7;
+  /* The page. Barely warm, never cream. */
+  --ref-paper: #fafaf8;
+  --ref-paper-deep: #f0efec;
 
-  /* Type - black typography, softened for secondary text */
-  --ref-ink: #141414;
-  --ref-ink-soft: #3d3d3d;
-  --ref-ink-muted: #5f5b55;
+  /* Ink. The primary action is a block of this with paper type on it. */
+  --ref-ink: #111110;
+  --ref-ink-soft: #46443f;
+  --ref-ink-muted: #6e6b64;
 
-  /* Hairlines. Luxury boutique reads as restraint: thin, low-contrast rules. */
-  --ref-line: #e3ddd2;
-  --ref-line-strong: #cfc7b8;
+  /* Hairlines. The whole structural vocabulary of the page is these two.
+   *
+   * THE STRONG ONE IS A CONTROL'S OUTLINE - the underline that is the whole of
+   * an empty field, the square of a checkbox - so it holds 3:1 against both
+   * grounds. It was #b9b6ae, 1.9:1: a field nobody could find on a bright
+   * screen. The plain hairline stays light; it only divides. */
+  --ref-line: #dedcd6;
+  --ref-line-strong: #8c8881;
 
-  /* Accent - warm metallic, deliberately muted. Section 2 warns against
-   * black-and-gold "luxury" styling, so this is a quiet brass, not gold. */
-  --ref-accent: #7a5c34;
-  --ref-accent-soft: #f0e9dd;
-
-  /* Status. Desaturated so they do not fight the boutique palette. */
-  --ref-danger: #9a2222;
-  --ref-success: #1f6b45;
-  --ref-warning: #8a5a10;
+  /* Status. Desaturated to near-ink, because a bright system colour on a page
+   * this quiet reads as an error in the design rather than in the form. */
+  --ref-danger: #8c2f22;
+  --ref-success: #2a5c46;
+  --ref-warning: #7a5c1f;
 
   /* --- Development placeholder surface ----------------------------------
-   * TEMPORARY. Delete with src/components/ui/PlaceholderImage.tsx once real
-   * photography exists.
+   * TEMPORARY. Delete with src/components/ui/PlaceholderImage.tsx once every
+   * product and collection has real photography.
    *
-   * Deliberately MUCH darker than any real surface token. The first pass drew
-   * placeholders as a cream-on-cream wash, which was so close to the page
-   * background that every image area read as blank paper: the homepage looked
-   * like an empty document rather than a composition with the pictures
-   * missing, and it was impossible to judge scale, rhythm or balance.
+   * Denser than any real surface, because a photograph is a dense object on
+   * the page and a stand-in that is not dense makes the layout under review a
+   * different layout from the one that will ship.
    *
-   * A photograph is a dense object on the page. The stand-in has to be dense
-   * too, or the layout being reviewed is not the layout that will ship.
-   *
-   * Contrast measured: placeholder-ink on placeholder is 5.1:1. */
-  --ref-placeholder: #d9d1c4;
-  --ref-placeholder-ink: #55503f;
+   * Contrast measured: placeholder-ink on placeholder is 5.4:1. */
+  --ref-placeholder: #dcd9d2;
+  --ref-placeholder-ink: #56534c;
 
   /* --- Motion curves ----------------------------------------------------
    * Raw timing functions, named by what they ARE. The semantic layer below
@@ -115,42 +127,92 @@
  * Layer 1 instead of freezing a copy of the value.
  * ---------------------------------------------------------------------- */
 @theme inline {
-  /* Page */
-  --color-background: var(--ref-pearl);
+  /* The page. */
+  --color-background: var(--ref-paper);
   --color-foreground: var(--ref-ink);
 
-  /* Secondary / de-emphasised text and fills */
-  --color-muted: var(--ref-cream);
+  /* A recessed band, used to pace the scroll rather than to group things. */
+  --color-muted: var(--ref-paper-deep);
   --color-muted-foreground: var(--ref-ink-muted);
 
-  /* Raised surfaces: product cards, dialogs, drawers */
-  --color-card: var(--ref-white);
+  /*
+   * Secondary PROSE - a product's description, an answer - where full ink is
+   * heavy across a long measure and muted ink is too faint to read at length.
+   * DESIGN.md has always named this role (Soft Ink); without a semantic token
+   * nothing could use it, and long text fell back to the metadata grey.
+   */
+  --color-soft-foreground: var(--ref-ink-soft);
+
+  /*
+   * THERE IS NO CARD SURFACE, and that is deliberate. `card` resolves to the
+   * page itself so that any component still asking for it renders flush rather
+   * than as a panel: photographs sit directly on the paper, and the only thing
+   * that ever separates two pieces of content is a hairline or empty space.
+   * Boxing a product shot is what made the grid read as a template.
+   */
+  --color-card: var(--ref-paper);
   --color-card-foreground: var(--ref-ink);
 
-  /* Lines */
+  --color-paper: var(--ref-paper);
+  --color-paper-foreground: var(--ref-ink);
+  --color-paper-muted: var(--ref-ink-muted);
+
+  /* Lines. With no boxes and no fills, these carry the entire structure. */
   --color-border: var(--ref-line);
   --color-border-strong: var(--ref-line-strong);
+  --color-border-field: var(--ref-line-strong);
   --color-input: var(--ref-line-strong);
 
-  /* Focus ring. Never removed - only restyled (ARCHITECTURE section 3.5). */
-  --color-ring: var(--ref-accent);
+  /* Focus is visible, always - and it is ink, like everything else. */
+  --color-ring: var(--ref-ink);
+  --color-ring-offset: var(--ref-paper);
 
-  /* Accent */
-  --color-accent: var(--ref-accent);
-  --color-accent-foreground: var(--ref-white);
-  --color-accent-muted: var(--ref-accent-soft);
+  /*
+   * EMPHASIS IS INK, NOT A COLOUR. An active nav item, a hover, a link, the
+   * primary action: all of them are simply darker. A page whose only colour is
+   * the jewellery cannot spend a hue on a hover state without making the hover
+   * the most colourful thing on screen.
+   */
+  --color-accent: var(--ref-ink);
+  --color-accent-foreground: var(--ref-paper);
+  --color-accent-muted: var(--ref-paper-deep);
+
+  /*
+   * The primary action. A block of ink with the paper colour as its type.
+   *
+   * It replaces a red stamp, which the owner's words for were "hideous", and
+   * they were right: a saturated red block is the loudest thing on a quiet page
+   * and it read as a sticker rather than as a considered control.
+   */
+  --color-stamp: var(--ref-ink);
+  --color-stamp-hover: #2b2a27;
+  --color-stamp-foreground: var(--ref-paper);
+
+  /*
+   * The scrim behind a drawer or a dialog.
+   *
+   * IT EXISTS BECAUSE THREE COMPONENTS WERE REACHING PAST THE LAYER BOUNDARY
+   * to get it. A modal overlay is ink at low alpha, and with no semantic name
+   * for that, FilterPanel and MobileNav both wrote `bg-(--ref-ink)/35` - a
+   * Layer-1 reference token named directly from a component, which the header
+   * of this file forbids for the good reason that it defeats the whole
+   * re-pointing mechanism. Naming the role here is the fix; the alpha stays at
+   * the call site, because how far a given overlay recedes is a per-surface
+   * decision.
+   */
+  --color-scrim: var(--ref-ink);
 
   /* Development placeholder. TEMPORARY - see the reference tokens above. */
   --color-placeholder: var(--ref-placeholder);
   --color-placeholder-foreground: var(--ref-placeholder-ink);
 
-  /* Status */
+  /* Status. */
   --color-destructive: var(--ref-danger);
-  --color-destructive-foreground: var(--ref-white);
+  --color-destructive-foreground: var(--ref-paper);
   --color-success: var(--ref-success);
-  --color-success-foreground: var(--ref-white);
+  --color-success-foreground: var(--ref-paper);
   --color-warning: var(--ref-warning);
-  --color-warning-foreground: var(--ref-white);
+  --color-warning-foreground: var(--ref-paper);
 }
 
 /* -------------------------------------------------------------------------
@@ -241,38 +303,44 @@
    * place the brand faces get configured, and it carries the reasoning for
    * running two of them.
    *
-   * THE SEAM IS NOW FILLED. `--font-display` used to alias `--font-sans`,
-   * which meant every heading marked `font-display` rendered identically to
-   * body copy: the seam existed but nothing came through it. It now resolves
-   * to a real display serif.
+   * THE FACES ARE MIRIAM LIBRE OVER ASSISTANT, and the display slot is a real
+   * voice rather than an alias of the body face. Miriam Libre is squarish and
+   * flat-terminalled - letters that look cut rather than written, which is
+   * what a struck stamp produces; Assistant carries the written margin, the
+   * UI and every measurement.
+   *
+   * NEITHER IS A SERIF, and the stacks below end in `sans-serif` on both lines
+   * for that reason. The previous pairing was a Hebrew book serif over a
+   * neutral sans; it was replaced because a high-contrast serif over a warm
+   * light ground is the single most common shape a generated interface takes.
    *
    * READ THE FALLBACK ORDER BELOW AS A MECHANISM, NOT A SAFETY NET. Font
    * fallback is per-GLYPH, not per-element: the browser walks the list for
-   * each character and takes the first family that has it. Frank Ruhl Libre
-   * carries BOTH scripts, so it claims every glyph in a heading and one line
-   * holding Hebrew and Latin together does not change face mid-word.
+   * each character and takes the first family that has it. Both faces carry
+   * Hebrew AND Latin, so a heading holding "18K" inside a Hebrew line does not
+   * change face mid-line.
    *
-   * THE DISPLAY FACE MUST STAY AHEAD OF HEEBO AND CANNOT BE REVERSED. Heebo
-   * covers Latin as well as Hebrew, so listing it first would win every glyph
-   * and the display face would silently never render - a failure that looks
-   * exactly like the font failing to load. That is not hypothetical: the
-   * previous display face was Latin-only on a Hebrew site, which had the same
-   * effect for a different reason.
-   *
-   * The generic at the end differs between the two stacks (`sans-serif` for
-   * body, `serif` for display) so that a total webfont failure still degrades
-   * to the right KIND of face. */
+   * THE DISPLAY FACE MUST STAY AHEAD OF ASSISTANT AND CANNOT BE REVERSED.
+   * Assistant covers Latin as well as Hebrew, so listing it first would win
+   * every glyph and the display face would silently never render - a failure
+   * that looks exactly like the font failing to load. That is not
+   * hypothetical: an earlier display face on this site was Latin-only on a
+   * Hebrew page, which had the same effect for a different reason. */
   --font-sans:
-    var(--font-hebrew-sans), 'Segoe UI', system-ui, -apple-system, 'Noto Sans Hebrew',
+    var(--font-house-sans), 'Segoe UI', system-ui, -apple-system, 'Noto Sans Hebrew',
     'Arial Hebrew', Arial, sans-serif;
   --font-display:
-    var(--font-display-serif), var(--font-hebrew-sans), 'Segoe UI', system-ui, -apple-system,
-    'Noto Sans Hebrew', 'Arial Hebrew', Arial, serif;
+    var(--font-house-display), var(--font-house-sans), 'Segoe UI', system-ui, -apple-system,
+    'Noto Sans Hebrew', 'Arial Hebrew', Arial, sans-serif;
 
   /* Type scale. Line heights are generous - Hebrew has no ascender/descender
-   * rhythm to lean on, and section 2 asks for generous whitespace. */
-  --text-2xs: 0.6875rem;
-  --text-2xs--line-height: 1.45;
+   * rhythm to lean on, and section 2 asks for generous whitespace.
+   *
+   * 0.75rem (12px) IS THE FLOOR. There was an 11px step below it, and it ended
+   * up setting sentences, section labels and a product's SKU - Hebrew at 11px
+   * loses the distinctions between letters that differ by a stroke (ד/ר, ה/ח,
+   * ו/ז). The step is gone rather than discouraged, so nothing can reach for
+   * it; type-floor.test.ts holds the line. */
   --text-xs: 0.75rem;
   --text-xs--line-height: 1.5;
   --text-sm: 0.875rem;
@@ -296,6 +364,13 @@
    * pulled tighter than the Latin convention at this size. */
   --text-6xl: 4.5rem;
   --text-6xl--line-height: 1;
+  /* THE TWO SIZES THIS REDESIGN IS BUILT ON. A light page reads as expensive
+   * through scale and restraint, not through colour, and the old scale simply
+   * had no step large enough to carry a first viewport on its own. Hebrew has
+   * no ascender/descender rhythm to fill a tall line box, so the leading is
+   * pulled well under the Latin convention at this size. */
+  --text-7xl: 5.75rem;
+  --text-7xl--line-height: 0.95;
 
   /* Letter-spacing. Hebrew must never be letter-spaced positively - it breaks
    * glyph joins and legibility - so the scale runs tight-to-normal only. */
@@ -344,13 +419,25 @@
   --radius-full: 9999px;
 
   /* --- Shadow -----------------------------------------------------------
-   * Soft and warm-tinted rather than neutral grey, so cards sit on cream
-   * without looking cut out. Deliberately subtle: section 2 rejects noise. */
-  --shadow-xs: 0 1px 2px 0 rgb(20 16 10 / 0.04);
-  --shadow-sm: 0 1px 3px 0 rgb(20 16 10 / 0.06), 0 1px 2px -1px rgb(20 16 10 / 0.04);
-  --shadow-md: 0 4px 12px -2px rgb(20 16 10 / 0.08), 0 2px 4px -2px rgb(20 16 10 / 0.04);
-  --shadow-lg: 0 12px 28px -6px rgb(20 16 10 / 0.1), 0 4px 8px -4px rgb(20 16 10 / 0.05);
-  --shadow-xl: 0 24px 48px -12px rgb(20 16 10 / 0.14);
+   * ALMOST NOTHING USES THESE. Photographs sit flush on the paper and panels
+   * do not exist, so a shadow appears only where something genuinely floats
+   * above the page - a drawer, a dialog. A shadow under a product image is how
+   * a gallery turns into a template.
+   *
+   * RE-WEIGHTED FOR A PALE GROUND. These were tuned for paper lying on a dark
+   * field, where a shadow has to survive against near-black. On a pale sheet
+   * the same values read as smudges, so the whole scale steps down: one sheet
+   * of paper lifting a millimetre off another is a very soft thing.
+   *
+   * A SHADOW MEANS "PAPER ON THE FIELD" AND NOTHING ELSE. It is not a hover
+   * affordance and not a hierarchy device; the few things that float carry one
+   * are physical objects lying on a ground. Deliberately subtle: section 2
+   * rejects noise. */
+  --shadow-xs: 0 1px 2px 0 rgb(6 20 34 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(6 20 34 / 0.06), 0 1px 2px -1px rgb(6 20 34 / 0.05);
+  --shadow-md: 0 4px 12px -2px rgb(6 20 34 / 0.08), 0 2px 4px -2px rgb(6 20 34 / 0.05);
+  --shadow-lg: 0 12px 28px -6px rgb(6 20 34 / 0.1), 0 4px 8px -4px rgb(6 20 34 / 0.06);
+  --shadow-xl: 0 24px 48px -12px rgb(6 20 34 / 0.13);
 
   /* --- Motion durations -------------------------------------------------
    * Speed is the loudest signal a site sends about what it thinks it is.
@@ -408,4 +495,12 @@
   --container-narrow: 48rem; /* forms, checkout column */
   --container-content: 72rem; /* default page content */
   --container-wide: 90rem; /* full-bleed catalog grids */
+
+  /* --- Reading measure -------------------------------------------------
+   * The width of LONG text - an answer, a policy, a guide - in em, so it
+   * scales with the type. Assistant's Hebrew runs about 0.41em a character,
+   * so 30em is roughly 74 characters a line at any size; the 40rem prose
+   * container above holds nearly 100 at 16px, and is kept for cards and
+   * one-line intros, which are not read at length. */
+  --measure-reading: 30em;
 }

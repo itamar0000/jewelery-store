@@ -8,7 +8,7 @@
  *
  * A slot is a (variant, position) pair: "the main image for the white-gold 18K
  * variant", "the detail image shared by the whole product". The seed already
- * occupies some of them - `demo-aurora-ring` has a complete set of fifteen -
+ * occupies some of them - `aurora-ring` has a complete set of fifteen -
  * but most products were given a single product-level row and nothing else, so
  * a script that only UPDATED would silently drop four fifths of a delivered
  * photo set on the floor.
@@ -92,6 +92,50 @@ function flag(name: string): string | undefined {
   return i === -1 ? undefined : process.argv[i + 1];
 }
 
+const PRODUCT_SELECT = {
+  id: true,
+  slug: true,
+  nameHe: true,
+  images: { select: { id: true, position: true, variantId: true } },
+  variants: {
+    select: {
+      id: true,
+      optionValues: {
+        select: { value: { select: { value: true, option: { select: { code: true } } } } },
+      },
+    },
+  },
+} as const;
+
+/**
+ * MANIFESTS WRITTEN BEFORE D4D.1 STILL RESOLVE.
+ *
+ * Product slugs lost their `demo-` prefix (docs/DECISIONS.md D4D.1,
+ * scripts/remove-demo-markers.ts), but a manifest prepared earlier names
+ * `demo-aurora-ring`. Failing every entry of an otherwise good manifest over a
+ * rename would be the wrong kind of strict, so the exact slug is tried first and
+ * the slug without the prefix second. The caller reports every fallback, so the
+ * manifest can be corrected rather than relied on.
+ *
+ * Only that one prefix, and only as a fallback: an exact match always wins, and
+ * no other fuzzy matching is attempted - a photograph attached to the wrong
+ * product is worse than one not attached at all.
+ */
+const LEGACY_SLUG_PREFIX = 'demo-';
+
+async function findProduct(prisma: PrismaClient, slug: string) {
+  const exact = await prisma.product.findUnique({ where: { slug }, select: PRODUCT_SELECT });
+  if (exact !== null || !slug.startsWith(LEGACY_SLUG_PREFIX)) {
+    return { product: exact, legacy: false };
+  }
+
+  const renamed = await prisma.product.findUnique({
+    where: { slug: slug.slice(LEGACY_SLUG_PREFIX.length) },
+    select: PRODUCT_SELECT,
+  });
+  return { product: renamed, legacy: renamed !== null };
+}
+
 async function main(): Promise<void> {
   const dir = flag('dir');
   const manifestPath = flag('manifest');
@@ -150,6 +194,7 @@ async function main(): Promise<void> {
   let rowsUpdated = 0;
   let rowsCreated = 0;
   const problems: string[] = [];
+  const legacySlugs = new Map<string, string>();
 
   try {
     for (const entry of entries) {
@@ -158,27 +203,14 @@ async function main(): Promise<void> {
         continue;
       }
 
-      const product = await prisma.product.findUnique({
-        where: { slug: entry.slug },
-        select: {
-          id: true,
-          nameHe: true,
-          images: { select: { id: true, position: true, variantId: true } },
-          variants: {
-            select: {
-              id: true,
-              optionValues: {
-                select: { value: { select: { value: true, option: { select: { code: true } } } } },
-              },
-            },
-          },
-        },
-      });
+      const { product, legacy } = await findProduct(prisma, entry.slug);
 
       if (!product) {
         problems.push(`no product with slug ${entry.slug}`);
         continue;
       }
+
+      if (legacy) legacySlugs.set(entry.slug, product.slug);
 
       /*
        * Which variants wear this colour. A variant is a colour AND a karat, so
@@ -220,7 +252,7 @@ async function main(): Promise<void> {
       const bytes = await readFile(path.join(dir, entry.file));
 
       console.log(
-        `${entry.slug.padEnd(26)} ${entry.role.padEnd(6)} ${entry.colour.padEnd(6)} ` +
+        `${product.slug.padEnd(26)} ${entry.role.padEnd(6)} ${entry.colour.padEnd(6)} ` +
           `${String(slots.length).padStart(2)} slot(s)  ${entry.file}`,
       );
 
@@ -234,7 +266,7 @@ async function main(): Promise<void> {
       const target = await storage.createUpload({
         contentType,
         bytes: bytes.length,
-        originalFilename: `${entry.slug}-${entry.colour.toLowerCase()}-${entry.role}`,
+        originalFilename: `${product.slug}-${entry.colour.toLowerCase()}-${entry.role}`,
         productId: product.id,
         visibility: 'public',
       });
@@ -297,6 +329,12 @@ async function main(): Promise<void> {
   console.log('');
   console.log(dryRun ? 'DRY RUN - nothing uploaded or written.' : `uploaded ${uploaded} file(s)`);
   if (!dryRun) console.log(`rows: ${rowsUpdated} updated, ${rowsCreated} created`);
+
+  if (legacySlugs.size > 0) {
+    console.log(`\n${legacySlugs.size} manifest slug(s) resolved through the old demo- prefix:`);
+    for (const [from, to] of legacySlugs) console.log(`  ${from} -> ${to}`);
+    console.log('  Update the manifest to the current slugs.');
+  }
 
   if (problems.length > 0) {
     console.log(`\n${problems.length} problem(s):`);

@@ -2,10 +2,9 @@ import Link from 'next/link';
 
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/components/ui/cn';
-import { formatPrice } from '@/lib/money';
+import { PRICE_FROM, formatPrice } from '@/lib/money';
 
 import { ProductPhoto } from './ProductPhoto';
-import { WishlistButton } from './WishlistButton';
 import type { ProductBadge, ProductCardData } from './types';
 
 /**
@@ -20,13 +19,12 @@ import type { ProductBadge, ProductCardData } from './types';
  *    data says nothing about inventory, which is the honest default. See
  *    ./types.ts.
  *
- * 2. ONE LINK, NOT A LINKED CARD. The whole card is not wrapped in an anchor,
- *    because the wishlist button sits inside it and nesting an interactive
- *    control in a link is invalid HTML with genuinely unpredictable behaviour.
- *    Instead the product name is the link and carries a `before:` overlay that
- *    spans the card, so the full surface is clickable while the accessible name
- *    stays exactly "product name". The wishlist button is raised above that
- *    overlay with `relative z-10`.
+ * 2. ONE LINK, NOT A LINKED CARD. The product name is the link and carries a
+ *    `before:` overlay that spans the card, so the full surface is clickable
+ *    while the accessible name stays exactly "product name". The card holds no
+ *    other control today - the wishlist heart is withheld until saving is real
+ *    (src/lib/placeholders.ts) - but the overlay is what lets one return
+ *    without nesting a button in a link, which is invalid HTML.
  *
  * 3. PRICES GO THROUGH `formatPrice`. It emits the correct directional marks
  *    for RTL, so prices must never be interpolated by hand
@@ -40,26 +38,32 @@ import type { ProductBadge, ProductCardData } from './types';
  */
 const BADGE_LABELS: Record<ProductBadge, string> = {
   new: 'חדש',
-  'best-seller': 'רב מכר',
-  'made-to-order': 'בהזמנה אישית',
 };
 
 export function ProductCard({
   product,
   priority = false,
   eager = false,
+  headingLevel = 3,
 }: {
   product: ProductCardData;
   /** See ProductPhoto: preload, for the likely LCP image only. */
   priority?: boolean;
   /** See ProductPhoto: eager without preload, for the rest of the first row. */
   eager?: boolean;
+  /**
+   * The name's heading level, one below whatever heads the grid: 2 on a
+   * listing page, where the grid sits directly under the page's h1; 3 inside
+   * a homepage section that has its own h2. It was always 3, which left every
+   * category page jumping from h1 to h3.
+   */
+  headingLevel?: 2 | 3;
 }) {
-  const { name, slug, price, compareAtPrice, badges, stockNotice, imageAlt, hoverImageAlt } =
+  const Heading = headingLevel === 2 ? 'h2' : 'h3';
+  const { name, slug, price, compareAtPrice, badge, stockNotice, imageAlt, hoverImageAlt } =
     product;
   /* One grid, four columns at the top breakpoint - see ProductGrid. */
   const SIZES = '(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw';
-  const discounted = compareAtPrice !== undefined;
   const swatches = product.swatches ?? [];
 
   return (
@@ -80,7 +84,15 @@ export function ProductCard({
      * white will sit on it correctly too.
      */
     <article className="group relative flex w-full flex-col">
-      <div className="bg-muted/50 relative overflow-hidden">
+      {/*
+       * NOTHING FRAMES THE PHOTOGRAPH. No fill, no border, no shadow, no
+       * padding - the packshot sits directly on the page, and the only thing
+       * separating one card from the next is the space around it. Boxing a
+       * product shot is what makes a grid read as a template, and on a ground
+       * this pale a box is also the only thing that would introduce an edge
+       * the photograph does not already have.
+       */}
+      <div className="relative overflow-hidden">
         <ProductPhoto
           url={product.imageUrl ?? null}
           alt={imageAlt ?? name}
@@ -104,7 +116,7 @@ export function ProductCard({
            */
           imageClassName={cn(
             hoverImageAlt === undefined &&
-              'ease-settle transition-transform duration-(--duration-drift) group-hover:scale-[1.04]',
+              'ease-settle transition-transform duration-(--duration-drift) group-hover:scale-[1.04] motion-reduce:group-hover:scale-100',
           )}
         />
 
@@ -112,38 +124,39 @@ export function ProductCard({
           <HoverFrame label={hoverImageAlt} url={product.hoverImageUrl ?? null} sizes={SIZES} />
         )}
 
-        {badges && badges.length > 0 && (
+        {badge && (
           /*
            * Raised above the hover frame. Without the z-index the second image
-           * fades in over the badges and they disappear under the cursor, which
+           * fades in over the badge and it disappears under the cursor, which
            * reads as a rendering fault rather than as a design.
            */
-          <ul className="absolute top-3 z-10 flex flex-col items-start gap-1.5 ps-3">
-            {badges.map((badge) => (
-              <li key={badge}>
-                {/* One tone for all three now. The old accent/info split tried
-                    to separate promotion from lead-time, but on a photograph
-                    the difference read as "two kinds of sticker" rather than as
-                    a meaningful distinction. */}
-                <Badge tone="onImage">{BADGE_LABELS[badge]}</Badge>
-              </li>
-            ))}
-          </ul>
+          <Badge tone="onImage" className="absolute start-3 top-3 z-10">
+            {BADGE_LABELS[badge]}
+          </Badge>
         )}
-
-        <WishlistButton productName={name} className="absolute end-2 top-2 z-10" />
       </div>
 
       <div className="flex flex-1 flex-col gap-1.5 pt-4">
-        <h3 className="text-sm leading-snug">
+        <Heading className="text-sm leading-snug">
           {/* `before:` overlay makes the card clickable without wrapping it. */}
           <Link
             href={`/product/${slug}`}
-            className="hover:text-accent transition-colors before:absolute before:inset-0 before:content-['']"
+            /*
+             * UNDERLINE, NOT A COLOUR CHANGE.
+             *
+             * This was `hover:text-accent`, which worked when the page ground
+             * was pearl and the accent was brass. On the trade field the
+             * caption is already bare metal and so is the accent, so the hover
+             * changed nothing at all - a state that exists in the source and
+             * not on the screen. An underline is the editorial answer and it
+             * reads on any ground; the offset is themed rather than left to
+             * the browser's default, which sits too tight under Hebrew.
+             */
+            className="decoration-border-strong underline-offset-[0.35em] transition-colors before:absolute before:inset-0 before:content-[''] hover:underline"
           >
             {name}
           </Link>
-        </h3>
+        </Heading>
 
         {/*
          * THE PRICE SITS LEVEL WITH THE NAME - same size, same weight.
@@ -168,8 +181,32 @@ export function ProductCard({
          * instead of ragging against each other.
          */}
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 pt-0.5">
-          <span className={cn('text-sm tabular-nums', discounted && 'text-accent')}>
-            {formatPrice(price)}
+          {/*
+           * THE STRIKE-THROUGH CARRIES THE DISCOUNT, NOT A COLOUR.
+           *
+           * The discounted price used to be tinted with the accent. In this
+           * palette there is nothing to tint it with: the only colour on the
+           * site is the jewellery (DESIGN.md), and emphasis is ink. The
+           * struck-through comparison beside it already states the fact
+           * unambiguously, so nothing is lost by saying it once.
+           */}
+          {/*
+           * THE CARD STATES A FLOOR WHEN THERE IS ONE, AND NOTHING ELSE.
+           *
+           * Whether prices are final is said once per view, in words, by
+           * whatever renders the grid (see src/lib/catalog/price-disclosure.ts).
+           * It used to be a "≈" on every card, which read as a typo, was
+           * explained only in the footer, and vanished on the product page.
+           *
+           * "החל מ־" is a different fact and does belong here: this product's
+           * options change its price, and the figure is the lowest of them.
+           *
+           * `bdi` isolates the figure, so the prefix stays in the Hebrew run at
+           * the visual start instead of being pulled after the digits.
+           */}
+          <span className="text-sm font-semibold tabular-nums">
+            {product.priceFrom && PRICE_FROM}
+            <bdi>{formatPrice(price)}</bdi>
           </span>
 
           {compareAtPrice && (
@@ -229,7 +266,14 @@ export function ProductCard({
         )}
 
         {/* Real inventory only. Absent by default - see the header comment. */}
-        {stockNotice && <p className="text-warning text-2xs">{stockNotice}</p>}
+        {/*
+         * INK, NOT GOLD. This rendered in `text-warning`, an olive-gold that
+         * measured roughly 2.2:1 on the trade field - under the floor, and a
+         * second offence besides: gold appears only inside photographs in this
+         * world, never as type. A scarcity line is information, and it is set
+         * like the rest of the information on the card.
+         */}
+        {stockNotice && <p className="text-muted-foreground text-xs">{stockNotice}</p>}
       </div>
     </article>
   );

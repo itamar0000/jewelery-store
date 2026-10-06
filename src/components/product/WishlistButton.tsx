@@ -9,9 +9,12 @@ import { PLACEHOLDER_ATTR } from '@/lib/placeholders';
 /**
  * Save-to-wishlist toggle.
  *
- * PLACEHOLDER (registry id `wishlist`). The pressed state is local and is lost
- * on navigation - there is no persistence, no account, and no server call.
- * MASTER_SPECIFICATION section 26 defines the real behaviour; Phase 6 builds it.
+ * PLACEHOLDER (registry id `wishlist`), AND NOT RENDERED ANYWHERE. The pressed
+ * state is local and is lost on navigation - there is no persistence, no
+ * account, and no server call - so the cards and the product page stopped
+ * offering it. MASTER_SPECIFICATION section 26 defines the real behaviour;
+ * Phase 6 builds it, and puts this control back where it was (ProductCard,
+ * ProductDetailView).
  *
  * The ACCESSIBILITY CONTRACT is real even though the behaviour is not, because
  * it is the part later phases must not regress:

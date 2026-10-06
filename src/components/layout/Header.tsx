@@ -10,9 +10,10 @@ import { MobileNav } from '@/components/navigation/MobileNav';
 import { SearchOverlay } from '@/components/navigation/SearchOverlay';
 import { Container } from '@/components/ui/Container';
 import { cn } from '@/components/ui/cn';
-import { BagIcon, HeartIcon, MenuIcon, SearchIcon, UserIcon } from '@/components/ui/icons';
+import { BagIcon, MenuIcon, SearchIcon } from '@/components/ui/icons';
+import { ITEMS, countOf } from '@/lib/i18n/count';
 import { INITIAL_MENU_STATE, isScrollLocked, menuReducer } from '@/lib/navigation/menu-state';
-import { PLACEHOLDER_ATTR } from '@/lib/placeholders';
+import { PRIMARY_NAV } from '@/lib/navigation/taxonomy';
 
 /**
  * The storefront header.
@@ -31,8 +32,27 @@ import { PLACEHOLDER_ATTR } from '@/lib/placeholders';
  *
  * The scroll listener is passive and only ever flips one boolean.
  */
-export function Header() {
+export function Header({
+  contactAvailable = false,
+  cartCount = 0,
+}: {
+  /**
+   * Whether any contact channel is configured (src/lib/contact). Without one,
+   * "צור קשר" leaves the navigation: an item leading to a page with no way to
+   * get in touch is an invitation the shop cannot answer.
+   */
+  contactAvailable?: boolean;
+  /**
+   * Units in the bag, read by the layout from the cart cookie on every
+   * request, so the count is right on the first paint and after every change
+   * (the cart's actions revalidate the layout).
+   */
+  cartCount?: number;
+}) {
   const [state, dispatch] = useReducer(menuReducer, INITIAL_MENU_STATE);
+  const navItems = contactAvailable
+    ? PRIMARY_NAV
+    : PRIMARY_NAV.filter((item) => item.id !== 'contact');
   const [scrolled, setScrolled] = useReducerScrolled();
   const hamburgerRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
@@ -81,9 +101,29 @@ export function Header() {
 
   return (
     <header
+      /*
+       * THE MASTHEAD IS INK, NOT PAPER.
+       *
+       * The owner asked for the bar to be a different colour from the page. It
+       * is a different VALUE rather than a different hue: the world's position
+       * is that the only colour on the site is the jewellery, so a coloured bar
+       * would be the one non-product colour on every screen, and two attempts
+       * at introducing a hue have already been rejected.
+       *
+       * Ink gives the bar its own presence, anchors the top of a very light
+       * page, and makes the wordmark read as a mark rather than as a line of
+       * text. Swapping it for an actual colour later is a single token.
+       *
+       * THE FOCUS RING IS STATED HERE TOO. The global ring is ink, which on
+       * this bar is invisible - the State Your Value Rule (DESIGN.md) applies
+       * to focus exactly as it does to type. `--focus-ring` carries the paper
+       * value to every control on the bar; the paper panels this header owns
+       * (mega menu, drawer, search) set it back to ink, and set their own ink
+       * foreground, because they inherit this bar's paper type otherwise.
+       */
       className={cn(
-        'bg-background sticky top-0 z-30 transition-shadow duration-200',
-        scrolled ? 'border-border border-b shadow-sm' : 'border-b border-transparent',
+        'bg-foreground text-background sticky top-0 z-30 transition-shadow duration-200 [--focus-ring:var(--color-background)]',
+        scrolled ? 'shadow-md' : '',
       )}
     >
       {/*
@@ -104,7 +144,43 @@ export function Header() {
        * true middle of the container whatever the icons do.
        */}
       <Container className="flex h-16 items-center gap-4 lg:h-20">
-        <div className="flex flex-1 items-center justify-start">
+        {/*
+         * THE HOUSE MARK LEADS THE ROW, at the inline start - the RIGHT of this
+         * RTL page - which is where FIRST VIEWPORT places it and where a
+         * packet carries the mark of the house that handled it. It was
+         * centred, optically balanced between two flex cells; that read well
+         * but was an uncited deviation from the contract, and a mark a visitor
+         * meets first is worth more than a symmetrical masthead.
+         */}
+        <div className="flex flex-1 items-center justify-start gap-2">
+          {/*
+           * THE HOUSE MARK.
+           *
+           * A keyline box in the display face, on the ink bar. It is the one
+           * piece of identity on the page, and on a site whose whole position
+           * is that the only colour is the jewellery, a mark has to be carried
+           * by weight and a rule rather than by a logo or a colour.
+           *
+           * STILL TYPOGRAPHIC, because no drawn logo exists (PRODUCT.md). When
+           * one lands it replaces the text inside this same box.
+           */}
+          <Link
+            href="/"
+            className="ease-settle group border-background/50 hover:border-background touch-target shrink-0 border px-3 py-1 transition-[border-color] duration-(--duration-settle)"
+            aria-label="לדף הבית"
+          >
+            {/*
+             * `bdi` ISOLATES THE NAME. The wordmark is Latin inside a Hebrew
+             * RTL document, and a bare Latin run in RTL text lets the bidi
+             * algorithm pull neighbouring characters into it and reorder the
+             * words around it. Isolating it means the mark always reads
+             * left-to-right as written, wherever it is placed.
+             */}
+            <bdi className="font-display block text-lg leading-none font-bold tracking-tight whitespace-nowrap lg:text-2xl">
+              {SITE_NAME}
+            </bdi>
+          </Link>
+
           {/* Hamburger: mobile only. Desktop navigation is always visible
               (section 6), so this is hidden from `lg` upward. */}
           <button
@@ -112,74 +188,55 @@ export function Header() {
             type="button"
             aria-expanded={state.mobileMenuOpen}
             onClick={() => dispatch({ type: 'TOGGLE_MOBILE_MENU' })}
-            className="hover:text-accent -ms-2 inline-flex size-10 items-center justify-center transition-colors lg:hidden"
+            className="text-background/65 hover:text-background -ms-2 inline-flex size-11 items-center justify-center transition-colors lg:hidden"
           >
             <MenuIcon className="size-5" />
             <span className="sr-only">פתיחת תפריט הניווט</span>
           </button>
         </div>
 
-        {/*
-         * Wordmark. PLACEHOLDER - the brand name and logo are TBD
-         * (section 2 and 57). Set as plain type rather than an invented mark,
-         * so nothing here reads as a settled identity. Given real size and the
-         * centre of the masthead, because "the brand is TBD" is a reason not to
-         * invent a LOGO, not a reason to leave the name looking like a link.
-         */}
-        <Link
-          href="/"
-          className="shrink-0 text-lg font-medium tracking-tight whitespace-nowrap lg:text-2xl"
-          aria-label="לדף הבית"
-        >
-          {SITE_NAME}
-        </Link>
-
         <div className="flex flex-1 items-center justify-end">
           {/*
            * Icons lose the filled hover chip they had. A grey rounded square
            * under the cursor is app chrome; at this size the colour shift alone
-           * reads as the more expensive interaction, and the hit area stays the
-           * full 40px either way.
+           * reads as the more expensive interaction. The hit area is 44px - a
+           * fingertip, not a cursor - and nothing visible grows with it.
            */}
           <button
             type="button"
             onClick={() => dispatch({ type: 'OPEN_SEARCH' })}
-            className="hover:text-accent inline-flex size-10 items-center justify-center transition-colors"
+            className="text-background/65 hover:text-background inline-flex size-11 items-center justify-center transition-colors"
           >
             <SearchIcon className="size-5" />
             <span className="sr-only">חיפוש</span>
           </button>
 
           {/*
-           * Wishlist, account and cart are links to placeholder routes. None
-           * shows a count: a badge reading "0" would be a claim about state
-           * that no system is tracking yet.
+           * Search and the cart only. Wishlist and account icons are withheld
+           * until saving and signing in exist (src/lib/placeholders.ts): an
+           * icon for a feature that does nothing is a promise the masthead
+           * repeats on every page.
+           *
+           * THE COUNT IS A NUMERAL, NOT A BADGE. A filled disc on the corner of
+           * the bag is app chrome; a figure set beside it in full paper - the
+           * one thing on the bar at full strength besides the mark - is how a
+           * printed masthead would say it. Nothing at zero: an empty bag needs
+           * no announcement. The spoken name carries the count either way.
            */}
           <Link
-            href="/wishlist"
-            className="hover:text-accent hidden size-10 items-center justify-center transition-colors sm:inline-flex"
-            {...PLACEHOLDER_ATTR}
-          >
-            <HeartIcon className="size-5" />
-            <span className="sr-only">מועדפים</span>
-          </Link>
-
-          <Link
-            href="/account"
-            className="hover:text-accent hidden size-10 items-center justify-center transition-colors sm:inline-flex"
-            {...PLACEHOLDER_ATTR}
-          >
-            <UserIcon className="size-5" />
-            <span className="sr-only">החשבון שלי</span>
-          </Link>
-
-          <Link
             href="/cart"
-            className="hover:text-accent -me-2 inline-flex size-10 items-center justify-center transition-colors"
-            {...PLACEHOLDER_ATTR}
+            className="text-background/65 hover:text-background -me-2 inline-flex h-11 min-w-11 items-center justify-center gap-1.5 px-1 transition-colors"
           >
             <BagIcon className="size-5" />
-            <span className="sr-only">סל הקניות</span>
+            {cartCount > 0 && (
+              <span
+                aria-hidden="true"
+                className="text-background text-sm font-semibold tabular-nums"
+              >
+                {cartCount}
+              </span>
+            )}
+            <span className="sr-only">{cartLabel(cartCount)}</span>
           </Link>
         </div>
       </Container>
@@ -194,14 +251,20 @@ export function Header() {
        */}
       <div className="border-border/70 relative hidden border-t lg:block">
         <Container>
-          <DesktopNav state={state} dispatch={dispatch} />
+          <DesktopNav items={navItems} state={state} dispatch={dispatch} />
         </Container>
       </div>
 
-      <MobileNav state={state} dispatch={dispatch} />
+      <MobileNav items={navItems} state={state} dispatch={dispatch} />
       <SearchOverlay state={state} dispatch={dispatch} />
     </header>
   );
+}
+
+/** The cart link's spoken name: "סל הקניות, פריט אחד", "סל הקניות, 3 פריטים". */
+export function cartLabel(count: number): string {
+  if (count <= 0) return 'סל הקניות';
+  return `סל הקניות, ${countOf(count, ITEMS)}`;
 }
 
 /**

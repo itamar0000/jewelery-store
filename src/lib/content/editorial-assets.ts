@@ -35,7 +35,8 @@ import path from 'node:path';
  */
 
 /** Where in the page an asset belongs. Documentation, and a grouping key. */
-export type EditorialSection = 'hero' | 'category' | 'atelier' | 'bridal' | 'diamonds';
+export type EditorialSection =
+  'hero' | 'category' | 'collection' | 'atelier' | 'bridal' | 'diamonds';
 
 /**
  * The point that must survive every crop, in percent.
@@ -117,6 +118,10 @@ export type EditorialAssetId =
   | 'category-necklaces'
   | 'category-bracelets'
   | 'category-sets'
+  | 'collection-new-arrivals'
+  | 'collection-best-sellers'
+  | 'collection-bridal'
+  | 'collection-personalized'
   | 'atelier'
   | 'bridal'
   | 'diamonds';
@@ -149,18 +154,32 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     mobileSrc: `${BASE}/hero/hero-mobile.jpg`,
     // Decorative: the <h1> beside it carries the message.
     alt: '',
-    // Held slightly above centre so the jewellery survives the bottom crop on a
-    // tall phone, and clear of the inline-start third where the copy sits.
-    focalPoint: { x: 35, y: 40 },
-    mobileFocalPoint: { x: 50, y: 32 },
+    // ON THE SUBJECT, which in the delivered master sits in the right half:
+    // earrings, three necklaces, rings and bracelets between x 55% and 85%.
+    // The old 35% kept clear of copy that used to sit over the picture, and in
+    // any box narrower than the photograph it cropped to the empty wall.
+    //
+    // Below centre vertically because the desktop box is a wide band - 3:1 to
+    // 3.6:1 once the headline and its action share the first screen - so some
+    // of the frame's height always goes. 55% gives it up from the hair rather
+    // than from the pendants and bracelets.
+    focalPoint: { x: 70, y: 55 },
+    // The portrait master is composed around a centred subject, so the window
+    // stays centred across; 40% keeps the eyes in frame when a tablet's wider
+    // box crops it hardest, with the necklaces, rings and bracelets beneath.
+    // (It replaced a master with the model hard against the left edge, which
+    // this point used to pull the window toward with x: 0.)
+    mobileFocalPoint: { x: 50, y: 40 },
     aspect: 'desktop ~21:9 full-bleed · mobile ~4:5 portrait',
     // 21:9. The hero box runs between roughly 2:1 and 3:1 across real
     // desktops; 21:9 sits in the middle, so neither extreme crops hard.
     master: { desktop: { width: 2520, height: 1080 }, mobile: { width: 1280, height: 1600 } },
     brief:
       'Editorial jewellery campaign. A woman wearing the jewellery, modern luxury, ' +
-      'warm ivory/champagne environment. Generous negative space on the inline-start ' +
-      '(right, in RTL) third, where the headline and buttons sit.',
+      'warm ivory/champagne environment. NOTHING IS LAID OVER THIS PICTURE - the ' +
+      'headline sits on paper beneath the frame - so the composition must hold the ' +
+      'whole frame on its own. No reserved empty third; where the subject is not, ' +
+      'carry the frame with light falloff and tone rather than bare backdrop.',
   },
 
   'category-rings': {
@@ -168,9 +187,9 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     section: 'category',
     desktopSrc: `${BASE}/categories/rings.jpg`,
     alt: '',
-    focalPoint: { x: 50, y: 45 },
-    aspect: '4:5 portrait',
-    master: { desktop: { width: 1400, height: 1750 } },
+    focalPoint: { x: 50, y: 52 },
+    aspect: '16:9 landscape, cropped to the tile',
+    master: { desktop: { width: 1600, height: 873 } },
     brief: 'Close-up of a hand wearing a ring. Elegant styling, hand relaxed, ring in focus.',
   },
   'category-earrings': {
@@ -178,9 +197,9 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     section: 'category',
     desktopSrc: `${BASE}/categories/earrings.jpg`,
     alt: '',
-    focalPoint: { x: 50, y: 40 },
-    aspect: '4:5 portrait',
-    master: { desktop: { width: 1400, height: 1750 } },
+    focalPoint: { x: 42, y: 45 },
+    aspect: '16:9 landscape, cropped to the tile',
+    master: { desktop: { width: 1600, height: 873 } },
     brief: 'Side profile, close on the ear. Earring catching the light, hair back or up.',
   },
   'category-necklaces': {
@@ -188,9 +207,9 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     section: 'category',
     desktopSrc: `${BASE}/categories/necklaces.jpg`,
     alt: '',
-    focalPoint: { x: 50, y: 45 },
-    aspect: '4:5 portrait',
-    master: { desktop: { width: 1400, height: 1750 } },
+    focalPoint: { x: 50, y: 55 },
+    aspect: '16:9 landscape, cropped to the tile',
+    master: { desktop: { width: 1600, height: 873 } },
     brief:
       'Neck and shoulder, necklace resting at the collarbone. Skin and metal, minimal clothing detail.',
   },
@@ -199,9 +218,9 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     section: 'category',
     desktopSrc: `${BASE}/categories/bracelets.jpg`,
     alt: '',
-    focalPoint: { x: 50, y: 50 },
-    aspect: '4:5 portrait',
-    master: { desktop: { width: 1400, height: 1750 } },
+    focalPoint: { x: 55, y: 50 },
+    aspect: '16:9 landscape, cropped to the tile',
+    master: { desktop: { width: 1600, height: 873 } },
     brief: 'Wrist and hand, bracelet in focus. Natural gesture rather than a posed product shot.',
   },
   'category-sets': {
@@ -209,12 +228,73 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     section: 'category',
     desktopSrc: `${BASE}/categories/sets.jpg`,
     alt: '',
-    focalPoint: { x: 50, y: 40 },
-    aspect: '4:5 portrait',
-    master: { desktop: { width: 1400, height: 1750 } },
+    focalPoint: { x: 45, y: 42 },
+    aspect: '16:9 landscape, cropped to the tile',
+    master: { desktop: { width: 1600, height: 873 } },
     brief:
       'The most editorial of the five: a lifestyle composition showing coordinated ' +
       'pieces worn together - necklace and earrings, or ring and bracelet.',
+  },
+
+  /*
+   * COLLECTION IMAGERY, which this site went without until now.
+   *
+   * A collection is a curated group rather than a category, and it had no
+   * picture of any kind: the band rendered as a list of names because there was
+   * nothing to show. These four are still lifes rather than portraits, which is
+   * the distinction that keeps them from competing with the category tiles
+   * directly above them - a category is a person wearing the thing, a
+   * collection is the things themselves laid out.
+   *
+   * Landscape, because they run as wide bands rather than as tiles.
+   */
+  'collection-new-arrivals': {
+    id: 'collection-new-arrivals',
+    section: 'collection',
+    desktopSrc: `${BASE}/collections/new-arrivals.jpg`,
+    alt: '',
+    focalPoint: { x: 50, y: 50 },
+    aspect: '3:2 landscape',
+    master: { desktop: { width: 1800, height: 1200 } },
+    brief:
+      'Still life of several new gold pieces laid out on warm plaster with space ' +
+      'between them. Fresh and uncluttered, soft raking light.',
+  },
+  'collection-best-sellers': {
+    id: 'collection-best-sellers',
+    section: 'collection',
+    desktopSrc: `${BASE}/collections/best-sellers.jpg`,
+    alt: '',
+    focalPoint: { x: 50, y: 50 },
+    aspect: '3:2 landscape',
+    master: { desktop: { width: 1800, height: 1200 } },
+    brief:
+      'Still life of the most recognisable pieces - a solitaire standing forward, a ' +
+      'tennis bracelet in a soft curve, diamond studs.',
+  },
+  'collection-bridal': {
+    id: 'collection-bridal',
+    section: 'collection',
+    desktopSrc: `${BASE}/collections/bridal.jpg`,
+    alt: '',
+    focalPoint: { x: 50, y: 50 },
+    aspect: '3:2 landscape',
+    master: { desktop: { width: 1800, height: 1200 } },
+    brief:
+      'Bridal still life on ivory silk: an engagement ring and a matching band side ' +
+      'by side, drop earrings behind. Quiet rather than sparkling.',
+  },
+  'collection-personalized': {
+    id: 'collection-personalized',
+    section: 'collection',
+    desktopSrc: `${BASE}/collections/personalized.jpg`,
+    alt: '',
+    focalPoint: { x: 50, y: 50 },
+    aspect: '3:2 landscape',
+    master: { desktop: { width: 1800, height: 1200 } },
+    brief:
+      'Personalised pieces: a gold name pendant cut in Hebrew script, a bar pendant ' +
+      'and a plain band. The lettering is CUT FROM THE GOLD, never overlaid text.',
   },
 
   atelier: {

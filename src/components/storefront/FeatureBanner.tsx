@@ -1,37 +1,28 @@
-import { Button } from '@/components/ui/Button';
+import Link from 'next/link';
+
 import { Container } from '@/components/ui/Container';
 import { EditorialImage } from '@/components/ui/EditorialImage';
-import { cn } from '@/components/ui/cn';
 import type { EditorialAssetId } from '@/lib/content/editorial-assets';
 
 /**
- * A full-bleed image band with copy laid over it.
+ * A full-bleed photograph with its line set on the paper beneath it - the
+ * hero's grammar, used once more down the page.
  *
- * WHY THIS EXISTS RATHER THAN A FOURTH `EditorialPanel`.
+ * WHY THE HERO'S GRAMMAR. Bridal is the one occasion the catalogue is built
+ * around, and it sat seventh on the homepage in a hairline box: a framed
+ * picture at a third of the width, a 30px heading, a secondary button - the
+ * same weight as the FAQ list after it. It now opens edge to edge like the
+ * first screen does, with nothing laid over the photograph, the display line
+ * starting where the image ends and the action an underlined line of type
+ * (DESIGN.md, the First Viewport Rule and the Underlined Action Rule). Type on
+ * paper, so its contrast never depends on the photograph behind it.
  *
- * The homepage ran three `EditorialPanel`s in a row - diamond education, custom
- * and bridal. Each is a half-width picture beside a column of text, alternating
- * which side the picture sits on. Individually each one is fine. Stacked, they
- * read as a template repeating itself: same proportions, same type sizes, same
- * rhythm, three times, so the page has no peak and the eye stops reading.
- *
- * MASTER_SPECIFICATION section 30 asks whether bridal should be a full-width
- * feature, a split editorial or a collection banner. Making it full-bleed is
- * what breaks the run: the page gets a second large image moment after the
- * hero, and the two remaining split panels either side of it read as
- * deliberate contrast rather than as a loop.
- *
- * It is a LAYOUT, not a new capability. Content still arrives as props from the
- * route, the photography is still the shared placeholder surface, and the copy
- * is still the provisional descriptive text the rest of the page uses.
- *
- * The scrim tracks the copy rather than covering the frame - vertical on mobile
- * where the text sits low, horizontal from the inline start on desktop where it
- * sits beside the subject. See the note on the gradient itself.
+ * THE CROP FOLLOWS THE SCREEN. The bridal master has a separately art-directed
+ * portrait file; below 48rem the band is a 4:5 portrait, and from there a wide
+ * band whose height is capped so the line beneath it still shares the screen.
  */
 export function FeatureBanner({
   id,
-  eyebrow,
   title,
   body,
   action,
@@ -39,22 +30,15 @@ export function FeatureBanner({
   assetId = 'bridal',
 }: {
   id: string;
-  eyebrow?: string;
   title: string;
   body: string;
   action?: { label: string; href: string };
   imageLabel?: string;
-  /** Which registry asset fills the banner. */
   assetId?: EditorialAssetId;
 }) {
   return (
-    <section aria-labelledby={id} className="relative isolate">
-      {/*
-       * A campaign moment: one large image, minimal copy over it. The box is
-       * sized here and the picture covers it, so the crop adapts to the
-       * viewport instead of a fixed ratio dictating the height.
-       */}
-      <div className="relative max-h-[34rem] min-h-[26rem] w-full" style={{ height: '55vh' }}>
+    <section aria-labelledby={id} className="pt-tight md:pt-section">
+      <div className="relative aspect-[4/5] w-full overflow-hidden md:aspect-auto md:h-[min(42vw,calc(100svh-var(--header-height)-14rem))] md:min-h-80">
         <EditorialImage
           id={assetId}
           sizes="100vw"
@@ -63,65 +47,27 @@ export function FeatureBanner({
         />
       </div>
 
-      {/*
-       * THE SCRIM FOLLOWS THE COPY, AND THE COPY MOVES AT `md`.
-       *
-       * It used to be one full-width bottom-to-top wash at every size. That
-       * kept the text legible, but it also laid a 90%-opaque band of page
-       * colour across the ENTIRE bottom edge - including the half of the frame
-       * holding the hand and the rings, which is the subject the banner exists
-       * to show. On the bridal frame the engagement ring sits at roughly 30% in
-       * and 45% down, squarely under the heaviest part of that wash.
-       *
-       * So the gradient is now responsive, because the layout it is protecting
-       * is responsive:
-       *
-       *   mobile   copy is anchored to the BOTTOM and spans the full width
-       *            (`items-end pb-12`), so the scrim has to be vertical. A
-       *            side gradient here would leave the text on bare photograph.
-       *
-       *   md+      copy is vertically centred inside a `max-w-lg` block at the
-       *            inline start - the RIGHT of this RTL page - so the scrim
-       *            runs horizontally from that edge and is fully transparent
-       *            before it reaches the subject.
-       *
-       * `to-t` and `to-l` are PHYSICAL directions because CSS gradients have no
-       * logical equivalent. `to-l` is correct here only because the storefront
-       * is RTL-only (src/lib/config/site.ts), which makes the inline start the
-       * right edge; in an LTR context this would need to be `to-r`.
-       *
-       * The stops are explicit rather than left to Tailwind's defaults: fully
-       * covered behind the text, half-strength through the middle, and gone by
-       * 80% so the last fifth of the frame - the hand - is untouched.
-       */}
-      <div
-        aria-hidden="true"
-        className={cn(
-          'absolute inset-0',
-          'from-background/90 via-background/45 bg-linear-to-t to-transparent',
-          'md:from-background/90 md:via-background/60 md:bg-linear-to-l md:via-40% md:to-transparent md:to-80%',
+      <Container width="wide" className="pb-section md:pb-feature pt-10 md:pt-14">
+        <h2
+          id={id}
+          className="font-display max-w-4xl text-4xl leading-[1] font-bold tracking-tight text-balance md:text-5xl xl:text-6xl"
+        >
+          {title}
+        </h2>
+
+        <p className="text-soft-foreground mt-6 max-w-(--measure-reading) text-base text-pretty md:text-lg">
+          {body}
+        </p>
+
+        {action && (
+          <Link
+            href={action.href}
+            className="ease-settle decoration-border-strong hover:decoration-foreground touch-target mt-8 inline-block text-lg font-semibold underline decoration-2 underline-offset-[0.4em] transition-colors duration-(--duration-settle) md:text-xl"
+          >
+            {action.label}
+          </Link>
         )}
-      />
-
-      <div className="absolute inset-0 flex items-end pb-12 md:items-center md:pb-0">
-        <Container width="wide">
-          <div className="max-w-lg">
-            {eyebrow && <p className="text-accent text-2xs mb-3 font-medium">{eyebrow}</p>}
-
-            <h2 id={id} className="font-display text-3xl tracking-tight text-balance md:text-4xl">
-              {title}
-            </h2>
-
-            <p className="text-muted-foreground mt-4 max-w-md text-base text-pretty">{body}</p>
-
-            {action && (
-              <Button href={action.href} variant="secondary" size="lg" className="mt-8">
-                {action.label}
-              </Button>
-            )}
-          </div>
-        </Container>
-      </div>
+      </Container>
     </section>
   );
 }

@@ -2,6 +2,47 @@
 @import '../styles/tokens.css';
 
 /*
+ * SHORT SCREENS, as a variant: `short:` applies below 50rem (800px) of
+ * viewport HEIGHT.
+ *
+ * Width breakpoints cannot see the case that matters on a laptop: a 1366x768
+ * screen loses a hundred pixels to the browser, and a layout that fits the
+ * first screen at 900px tall does not at 650. Only the homepage's first
+ * screen uses it - to tighten its rhythm and step the display line down one
+ * size - because that is the one composition built to fit a viewport.
+ */
+@custom-variant short (@media (height < 50rem));
+
+/*
+ * A 44px TOUCH TARGET, WITHOUT CHANGING WHAT IS DRAWN.
+ *
+ * Adds an invisible box centred on the element and grows it to at least
+ * 2.75rem in each direction - 44px, the size a fingertip needs (WCAG 2.5.5).
+ * An element already that large gets nothing: `min()` collapses the inset to
+ * zero. So an underlined line of type, a 36px swatch or a 40px size button
+ * keeps exactly its drawn size and still takes the tap a thumb aims at it.
+ *
+ * Percentages in `inset` resolve against the element itself, height for
+ * top/bottom and width for left/right, which is what makes one declaration
+ * serve both axes.
+ *
+ * NOT FOR TIGHTLY STACKED LISTS. The box grows outward, so two targets closer
+ * than the growth would overlap and a tap could land on the wrong one. Lists
+ * (the footer, the filter values) get real 44px rows on touch screens instead.
+ * Not for elements that are themselves positioned: it sets `position:
+ * relative`.
+ */
+@utility touch-target {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: min(0px, calc((100% - 2.75rem) / 2));
+  }
+}
+
+/*
  * Global base styles.
  *
  * Everything here is document-level. Component styling belongs in components;
@@ -32,13 +73,148 @@
   }
 
   /*
+   * THE STICKY HEADER'S HEIGHT, stated once.
+   *
+   * Header.tsx draws a 4rem masthead row and, from `lg`, a 5rem one with a
+   * hairline and a 3rem navigation row beneath it. Everything that has to
+   * clear the header - the hero sizing its photograph to the first screen,
+   * the product gallery sticking under it, an anchor scrolling a heading into
+   * view - reads this rather than a number of its own. They used to hold three
+   * different numbers, and the product page's left a 90px gap on tablets,
+   * where the header is the short one. header-height.test.ts holds it to the
+   * header's own classes.
+   */
+  :root {
+    --header-height: 4rem;
+  }
+
+  @media (width >= 64rem) {
+    :root {
+      --header-height: calc(8rem + 1px);
+    }
+  }
+
+  /*
    * Focus is visible, always. Section 47 requires keyboard operability, and a
    * removed focus ring is the single most common way that is lost. Styled to
    * fit the palette rather than suppressed.
+   *
+   * THE RING TAKES ITS COLOUR FROM THE SURFACE IT SITS ON. Ink by default. A
+   * surface that is itself ink - the masthead - sets `--focus-ring` to the
+   * paper value, because an ink ring on the ink bar is a ring nobody can see
+   * (it shipped that way once). A paper surface drawn INSIDE the masthead - the
+   * mega menu, the mobile drawer, the search overlay - sets it back to ink.
+   * Custom properties inherit, so every control on a surface is covered
+   * without anyone remembering a class per control.
    */
   :focus-visible {
-    outline: 2px solid var(--color-ring);
+    outline: 2px solid var(--focus-ring, var(--color-ring));
     outline-offset: 2px;
+  }
+
+  /*
+   * THE SURFACES THE BROWSER DRAWS.
+   *
+   * Selection, the caret and the scrollbar ship with defaults that belong to no
+   * design system, and they are the cheapest part of a page to get right and
+   * the easiest to forget. On a page this quiet a stock blue selection or a
+   * grey system scrollbar is the loudest colour on screen.
+   */
+
+  /* Selection is ink at low strength - a pencil mark over paper. */
+  ::selection {
+    background-color: var(--ref-line-strong);
+    color: var(--ref-ink);
+  }
+
+  html {
+    caret-color: var(--ref-ink);
+  }
+
+  /*
+   * The scrollbar belongs to the paper. Firefox takes the two-value shorthand;
+   * WebKit needs its own pseudo-elements, and both are given the same colours
+   * rather than one browser getting a designed bar and the other a default.
+   */
+  html {
+    scrollbar-color: var(--ref-line-strong) var(--ref-paper-deep);
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: var(--ref-paper-deep);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--ref-line-strong);
+    border: 2px solid var(--ref-paper-deep);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--ref-ink-muted);
+  }
+
+  /*
+   * THE CONTROLS THE BROWSER DRAWS INSIDE FIELDS.
+   *
+   * A search field's clear button is a blue x and a number field's spinner is
+   * grey system chrome - the two loudest marks in a quiet form, and the only
+   * blue on the site. The clear button keeps its job and takes the palette: the
+   * same x the close buttons use, drawn as a mask so ink colours it. The
+   * spinner goes - a price range is typed, not nudged a shekel at a time.
+   */
+  input[type='search']::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
+    background-color: var(--color-muted-foreground);
+    -webkit-mask: var(--mask-close) center / contain no-repeat;
+    mask: var(--mask-close) center / contain no-repeat;
+  }
+
+  input[type='search']::-webkit-search-cancel-button:hover {
+    background-color: var(--color-foreground);
+  }
+
+  input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  :root {
+    /* CloseIcon's path (src/components/ui/icons.tsx), as a mask. */
+    --mask-close: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E");
+  }
+
+  /*
+   * Underlines sit clear of Hebrew rather than cutting through its descenders.
+   * The browser default offset is tuned for Latin and is too tight here.
+   */
+  a {
+    text-underline-offset: 0.3em;
+  }
+
+  /*
+   * Figures in a column are compared, not read. Every measurement on this site
+   * - karat, length, carat, price - lines up by default rather than waiting for
+   * a component to remember `tabular-nums`.
+   */
+  dd,
+  td {
+    font-variant-numeric: tabular-nums;
   }
 
   /*
@@ -143,6 +319,21 @@
 
   @media (width >= 48rem) {
     .editorial-focal {
+      object-position: var(--editorial-focal-desktop, 50% 50%);
+    }
+  }
+
+  /*
+   * The same choice made by ORIENTATION, for an image whose box follows the
+   * viewport's shape rather than its width - the hero. Must match the `media`
+   * EditorialImage puts on the <source> for `artDirection="orientation"`.
+   */
+  .editorial-focal-orientation {
+    object-position: var(--editorial-focal-mobile, 50% 50%);
+  }
+
+  @media (orientation: landscape) {
+    .editorial-focal-orientation {
       object-position: var(--editorial-focal-desktop, 50% 50%);
     }
   }

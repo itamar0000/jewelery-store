@@ -42,33 +42,24 @@ export interface PlaceholderEntry {
 export const PLACEHOLDERS: readonly PlaceholderEntry[] = [
   {
     id: 'wishlist',
-    what: 'Wishlist buttons are inert toggles with no persistence. Header count is omitted, not zeroed.',
+    what: 'Withheld: no heart on cards or the product page, no header or drawer link, and /wishlist is a 404. WishlistButton (the accessible toggle, local state only) is kept, unrendered.',
     replacedBy: 'Phase 6 - accounts and saved items.',
   },
   {
-    id: 'cart',
-    what: 'Cart control links to a placeholder route. No line items, no totals, no badge count.',
-    replacedBy: 'Phase 5 - cart and checkout.',
+    id: 'payment',
+    what: 'The checkout is real up to payment: orders are placed as PENDING_PAYMENT with their stock held, and /checkout/payment states that payment is not active and nothing was charged. getPaymentProvider() returns null.',
+    replacedBy:
+      'TBD B1 - a payment provider adapter and its webhook (src/lib/payments/provider.ts lists the steps).',
   },
   {
     id: 'account',
-    what: 'Account control links to a placeholder route. No authentication exists.',
+    what: 'Withheld: no header or drawer link, and /account is a 404. No authentication exists.',
     replacedBy: 'Phase 6 - authentication.',
   },
   {
-    id: 'filters',
-    what: 'Filter and sort controls render their full visual architecture but do not filter or sort. Opened from the toolbar; closed by default.',
-    replacedBy: 'Phase 3B - URL-driven filter state against real queries.',
-  },
-  {
     id: 'contact',
-    what: 'Contact page lists channels with no values and no form. Nothing is collected and nothing is sent.',
+    what: 'Contact is configuration (CONTACT_* env, src/lib/contact). With no channel set, the nav item, footer column, product-page prompt and FAQ line are hidden and /contact is a 404. There is no enquiry form; nothing is collected.',
     replacedBy: 'Business details (TBD section 52) plus an enquiry inbox.',
-  },
-  {
-    id: 'variant-form',
-    what: 'Product page renders real variants, prices and stock, but the personalization fields are display-only and Add to cart is disabled.',
-    replacedBy: 'Phase 4 - product experience; Phase 5 - cart.',
   },
   {
     id: 'imagery',

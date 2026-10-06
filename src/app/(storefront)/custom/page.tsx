@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 
 import { PageHero } from '@/components/storefront/PageHero';
+import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
-import { PLACEHOLDER_ATTR } from '@/lib/placeholders';
+import { contactAvailable } from '@/lib/contact';
 
 export const metadata: Metadata = {
   title: 'עיצוב אישי',
@@ -18,8 +19,11 @@ export const metadata: Metadata = {
  * that collects a customer name, phone and reference photo and then discards
  * them would be worse than no form at all.
  *
- * So this page explains the process and stops at the point where the form
- * belongs, with that slot clearly marked.
+ * So this page explains the process. Step one is getting in touch, so when a
+ * contact channel exists (src/lib/contact) the page ends on the way to do it;
+ * when none does, it ends on the process. It used to end on a dashed box saying
+ * the form "has not been built at this stage" - the slot was marked for the
+ * team, but a visitor read it as the shop not being ready.
  *
  * The three steps below are process description, not marketing claims - no
  * turnaround time or price is stated, because neither has been decided.
@@ -42,7 +46,10 @@ export default function CustomPage() {
 
       <Container className="py-12 md:py-16">
         <section aria-labelledby="process-heading">
-          <h2 id="process-heading" className="text-center text-2xl tracking-tight md:text-3xl">
+          <h2
+            id="process-heading"
+            className="font-display text-center text-2xl font-bold tracking-tight md:text-3xl"
+          >
             איך זה עובד
           </h2>
 
@@ -58,7 +65,7 @@ export default function CustomPage() {
           <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-12">
             {STEPS.map((step, index) => (
               <li key={step.id} className="border-border border-t pt-6">
-                <span className="text-accent text-2xs font-medium">שלב {index + 1}</span>
+                <span className="text-accent text-xs font-medium">שלב {index + 1}</span>
                 <h3 className="mt-3 text-base font-medium">{step.title}</h3>
                 <p className="text-muted-foreground mt-2 text-sm text-pretty">{step.body}</p>
               </li>
@@ -66,16 +73,13 @@ export default function CustomPage() {
           </ol>
         </section>
 
-        <div
-          className="border-border mt-12 rounded-sm border border-dashed p-8 text-center"
-          {...PLACEHOLDER_ATTR}
-        >
-          <p className="text-muted-foreground text-sm">
-            כאן ייכנס טופס הפנייה, כולל העלאת תמונת השראה. הטופס לא נבנה בשלב זה, ולכן לא נאספים כאן
-            פרטים אישיים.
-          </p>
-          <p className="text-muted-foreground/70 text-2xs mt-3">ייבנה בשלב מאוחר יותר.</p>
-        </div>
+        {contactAvailable && (
+          <div className="mt-12 text-center">
+            <Button href="/contact" variant="secondary">
+              יצירת קשר
+            </Button>
+          </div>
+        )}
       </Container>
     </>
   );

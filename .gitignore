@@ -50,3 +50,9 @@ desktop.ini
 # output, and only files promoted through scripts/prepare-editorial.ts belong
 # in public/.
 /.editorial-drafts/
+
+# Impeccable decision-page state: a running server's scratch, not source.
+.impeccable/questions/
+
+# Impeccable inspection captures: build evidence, regenerated on demand.
+.impeccable/review/

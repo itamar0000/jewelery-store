@@ -5,7 +5,9 @@ import { FeatureBanner } from '@/components/storefront/FeatureBanner';
 import { FeaturedProducts } from '@/components/storefront/FeaturedProducts';
 import { FaqSection } from '@/components/storefront/FaqSection';
 import { Hero } from '@/components/storefront/Hero';
-import { getCollection, getCollections, getProductsByCollection } from '@/lib/catalog/queries';
+import { BEST_SELLERS_SLUG, getBestSellers } from '@/lib/catalog/best-sellers';
+import { getCollections } from '@/lib/catalog/queries';
+import { contactAvailable } from '@/lib/contact';
 
 /**
  * The homepage.
@@ -26,11 +28,11 @@ import { getCollection, getCollections, getProductsByCollection } from '@/lib/ca
  *
  * Each band states itself differently, and they alternate in weight:
  *
- *   hero          PEAK    full-viewport image, no competing content
- *   categories    high    asymmetric grid, lead tile, labels ON the images
+ *   hero          PEAK    one photograph edge to edge, the line beneath it
+ *   categories    high    asymmetric grid, lead tile, names on a rule below
  *   best sellers  valley  centred heading, four products, captions below
  *   diamonds      mid     split editorial on a muted ground
- *   collections   high    tall portrait tiles, copy over the frame
+ *   collections   high    wide alternating bands, name on a rule below
  *   atelier       mid     split editorial, mirrored from the diamonds panel
  *   bridal        PEAK    full-bleed campaign banner, the closing image
  *   FAQ           valley  three questions in a narrow column
@@ -60,13 +62,13 @@ import { getCollection, getCollections, getProductsByCollection } from '@/lib/ca
  * it, so that nothing reads as a settled brand decision. Replacing it is a
  * change to this file only; the components take their content as props.
  *
- * DATA COMES FROM THE DATABASE. Best sellers are the products in the
- * `best-sellers` collection, in the curator's order; the collections band lists
- * the real active collections. Both are read HERE, in the route, and passed
- * down - no component queries anything.
+ * DATA COMES FROM THE DATABASE. Best sellers come from one ranking - units
+ * sold, then the curated `best-sellers` collection (src/lib/catalog/best-sellers.ts);
+ * the collections band lists the real active collections. Both are read HERE,
+ * in the route, and passed down - no component queries anything.
  *
- * The best-sellers band is omitted entirely when the collection is empty or
- * missing, rather than rendering an empty shelf under a heading.
+ * The best-sellers band is omitted entirely when the ranking is empty, rather
+ * than rendering an empty shelf under a heading.
  */
 /**
  * Rendered per request, not prerendered.
@@ -83,61 +85,82 @@ import { getCollection, getCollections, getProductsByCollection } from '@/lib/ca
  */
 export const dynamic = 'force-dynamic';
 
+/** The rail's length: four, one row at the widest breakpoint. */
+const RAIL = 4;
+
+/**
+ * Collections that have a band of their own on this page, so the collections
+ * row does not list them a second time.
+ */
+const OWN_BAND = new Set([BEST_SELLERS_SLUG, 'bridal']);
+
 export default async function HomePage() {
-  const [bestSellers, collections] = await Promise.all([
-    getCollection('best-sellers').then((collection) =>
-      collection ? getProductsByCollection(collection.id, { limit: 4 }) : [],
-    ),
-    getCollections(),
-  ]);
+  const [ranking, collections] = await Promise.all([getBestSellers(), getCollections()]);
+  const bestSellers = ranking.slice(0, RAIL);
 
   return (
     <>
+      {/*
+       * THE PAGE OPENS ON THE JEWELLERY, NOT ON THE OFFER.
+       *
+       * An earlier version opened on the personalisation offer - the headline
+       * and the only action were both about altering a model. The owner's
+       * judgement was that this pushes the service before the visitor has seen
+       * a single piece, and the page now leads with the photography. The
+       * mechanism - their own workshop, any model alterable - has not been
+       * dropped; it moved to the custom band below, where a visitor arrives
+       * already interested.
+       *
+       * The line is the only claim in this viewport, and it claims one thing:
+       * what the shop sells and who makes it. No price, no stock, no urgency.
+       */}
       <Hero
+        title="תכשיטי זהב ויהלומים, ישר מהסדנה שלנו"
         /*
-         * Provisional like every other string on this page, and descriptive
-         * rather than promotional for the same reason: it names the category
-         * the store trades in, and asserts nothing about the brand. It is
-         * also, deliberately, the only Latin text in the storefront - see the
-         * `displayLine` contract on Hero.
+         * The label says where it goes. It read "לקטלוג המלא" and opened
+         * /rings: there is no all-products page, so the honest destination for
+         * "the catalogue" is the five categories directly below.
          */
-        displayLine="Fine Jewelry"
-        title="תכשיטי זהב ויהלומים"
-        /*
-         * The second sentence here used to be a note to ourselves - "this text
-         * is temporary and will be replaced once the brand language is
-         * settled". It was the third line a first-time visitor read, and it
-         * reclassified the whole site from "shop" to "unfinished project"
-         * before they reached a single product. Process notes do not belong on
-         * the surface a stranger lands on.
-         *
-         * What is left is the strongest claim the copy already made and buried:
-         * designed and made in Israel, every piece adjustable.
-         */
-        subtitle="עיצוב וייצור בישראל, עם אפשרות התאמה אישית לכל דגם."
-        primaryAction={{ label: 'לקטלוג', href: '/rings' }}
-        secondaryAction={{ label: 'עיצוב אישי', href: '/custom' }}
-        imageLabel="תמונת נושא — טרם צולמה"
+        action={{ label: 'לכל הקטגוריות', href: '#discovery-heading' }}
+        imageLabel="תמונת נושא"
       />
 
       <CategoryDiscovery />
 
+      {/*
+       * "לצפייה בהכל" only when "all" is more than the rail already shows. The
+       * collection holds exactly the four on screen, so the link opened the
+       * same four on a page of their own.
+       */}
       <FeaturedProducts
         id="best-sellers-heading"
         title="רבי מכר"
         description="הדגמים המבוקשים ביותר בקטלוג."
-        href="/collections/best-sellers"
+        href={ranking.length > bestSellers.length ? `/collections/${BEST_SELLERS_SLUG}` : undefined}
         products={bestSellers}
+      />
+
+      {/*
+       * BRIDAL IS FOURTH, NOT SEVENTH, and in the hero's grammar: the one
+       * occasion the catalogue is built around, given the page's second
+       * full-bleed photograph instead of a framed box near the end of the page
+       * (FeatureBanner).
+       */}
+      <FeatureBanner
+        id="bridal-heading"
+        title="אירוסין ונישואין"
+        body="טבעות אירוסין, טבעות נישואין וסטים תואמים. כל דגם ניתן להתאמה לפי משקל קראט, גוון זהב ומידה."
+        action={{ label: 'לאוסף הכלה', href: '/collections/bridal' }}
+        assetId="bridal"
+        imageLabel="אוסף כלה"
       />
 
       <EditorialPanel
         id="diamonds-heading"
-        eyebrow="יהלומים"
         title="טבעי או מעבדה — הבחירה שלך"
         body="בקטלוג יש תכשיטים המשובצים ביהלומים טבעיים ותכשיטים המשובצים ביהלומי מעבדה. שני הסוגים זהים בהרכב הכימי, במבנה הגבישי ובתכונות האופטיות; ההבדל הוא במקור ההיווצרות ובמחיר."
         points={[
           'סוג היהלום מצוין במפורש בעמוד כל מוצר',
-          'תעודה לכל אבן מעל משקל מסוים',
           'יהלום מעבדה — מחיר נמוך יותר לאותו גודל ואיכות',
         ]}
         action={{ label: 'לשאלות ותשובות', href: '/faq' }}
@@ -147,30 +170,31 @@ export default async function HomePage() {
         imageLabel="תקריב יהלום"
       />
 
-      <CollectionsSection collections={collections} />
-
-      <EditorialPanel
-        id="custom-heading"
-        eyebrow="עיצוב אישי"
-        title="תכשיט שנבנה לפי בקשה"
-        body="ניתן להזמין תכשיט בעיצוב אישי, לשנות דגם קיים או להוסיף חריטה ושמות. התהליך מתחיל בפנייה, וממשיך בשרטוט ובאישור לפני הייצור."
-        action={{ label: 'לפרטים ולפנייה', href: '/custom' }}
-        imageSide="end"
-        assetId="atelier"
-        imageLabel="עבודת צורף"
-      />
-
-      <FeatureBanner
-        id="bridal-heading"
-        eyebrow="כלה"
-        title="אירוסין ונישואין"
-        body="טבעות אירוסין, טבעות נישואין וסטים תואמים. כל דגם ניתן להתאמה לפי משקל קראט, גוון זהב ומידה."
-        action={{ label: 'לאוסף הכלה', href: '/collections/bridal' }}
-        assetId="bridal"
-        imageLabel="אוסף כלה"
+      <CollectionsSection
+        collections={collections.filter((collection) => !OWN_BAND.has(collection.slug))}
       />
 
       <FaqSection />
+
+      {/*
+       * THE PAGE ENDS ON THE WORKSHOP. It used to end on three FAQ links and
+       * then the footer's line that prices are estimates - a disclaimer as the
+       * last word. The close is now the shop's one real advantage (PRODUCT.md:
+       * their own workshop, so any model can be made another way), at the
+       * finale spacing tier with the line a size up.
+       */}
+      <EditorialPanel
+        id="custom-heading"
+        title="תכשיט שנבנה לפי בקשה"
+        body="ניתן להזמין תכשיט בעיצוב אישי, לשנות דגם קיים או להוסיף חריטה ושמות. התהליך מתחיל בפנייה, וממשיך בשרטוט ובאישור לפני הייצור."
+        // "ולפנייה" only when there is a way to make one (src/lib/contact);
+        // without a channel, /custom explains the process and nothing more.
+        action={{ label: contactAvailable ? 'לפרטים ולפנייה' : 'איך זה עובד', href: '/custom' }}
+        imageSide="end"
+        assetId="atelier"
+        imageLabel="עבודת צורף"
+        finale
+      />
     </>
   );
 }

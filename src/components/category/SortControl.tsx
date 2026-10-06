@@ -11,6 +11,8 @@ import {
   type SortKey,
 } from '@/lib/catalog/filters';
 
+import { useCatalogNavigation } from './CatalogTransition';
+
 /**
  * Sort control.
  *
@@ -30,7 +32,16 @@ import {
  */
 export function SortControl({ query, basePath }: { query: CatalogQuery; basePath: string }) {
   const router = useRouter();
+  const navigation = useCatalogNavigation();
   const id = useId();
+
+  /*
+   * "הכי רלוונטי" ranks against a search term, so it is offered only where
+   * there is one. On a category page it was a choice that changed nothing.
+   * (A URL asking for it without a term is already read as the default sort
+   * by parseCatalogSearchParams, so the menu never holds a value it lacks.)
+   */
+  const keys = SORT_KEYS.filter((key) => key !== 'relevance' || query.q.length > 0);
 
   return (
     <div className="flex items-center gap-2">
@@ -41,14 +52,18 @@ export function SortControl({ query, basePath }: { query: CatalogQuery; basePath
       <select
         id={id}
         value={query.sort}
-        onChange={(event) =>
-          router.push(buildCatalogHref(basePath, query, { sort: event.target.value as SortKey }), {
-            scroll: false,
-          })
-        }
-        className="border-border-strong focus:border-accent h-11 rounded-sm border bg-transparent px-3 text-sm outline-none"
+        onChange={(event) => {
+          const href = buildCatalogHref(basePath, query, { sort: event.target.value as SortKey });
+          if (navigation) navigation.navigate(href);
+          else router.push(href, { scroll: false });
+        }}
+        /*
+         * An underline, like every field here (DESIGN.md, Inputs). The
+         * native menu is kept for its keyboard and type-ahead behaviour.
+         */
+        className="border-border-strong focus:border-accent h-11 border-b bg-transparent pe-1 text-sm pointer-coarse:text-base"
       >
-        {SORT_KEYS.map((key) => (
+        {keys.map((key) => (
           <option key={key} value={key}>
             {SORT_LABELS[key]}
           </option>

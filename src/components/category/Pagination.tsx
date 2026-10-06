@@ -1,8 +1,8 @@
-import Link from 'next/link';
-
 import { cn } from '@/components/ui/cn';
 import { ChevronIcon } from '@/components/ui/icons';
 import { buildCatalogHref, type CatalogQuery } from '@/lib/catalog/filters';
+
+import { CatalogLink } from './CatalogTransition';
 
 /**
  * Page navigation.
@@ -21,7 +21,16 @@ import { buildCatalogHref, type CatalogQuery } from '@/lib/catalog/filters';
  *
  * Chevrons use `icon-directional`: previous and next are reading-order
  * concepts, so they mirror in RTL (ARCHITECTURE section 3.2).
+ *
+ * A NEW PAGE STARTS AT THE TOP OF THE GRID. Every link carries `#results` (the
+ * toolbar above the grid) and scrolls to it. These links used `scroll={false}`
+ * like the filters, which left a shopper who paged from the bottom looking at
+ * the bottom of the next page - its last row, with the first eleven above the
+ * fold they had just scrolled past.
  */
+/** The id of the toolbar above the grid - where a new page starts. */
+export const RESULTS_ANCHOR = 'results';
+
 export function Pagination({
   query,
   basePath,
@@ -35,17 +44,18 @@ export function Pagination({
 }) {
   if (totalPages <= 1) return null;
 
-  const href = (target: number) => buildCatalogHref(basePath, query, { page: target });
+  const href = (target: number) =>
+    `${buildCatalogHref(basePath, query, { page: target })}#${RESULTS_ANCHOR}`;
 
   return (
     <nav aria-label="ניווט בין עמודים" className="mt-12 flex justify-center">
       <ul className="flex items-center gap-1">
         <li>
           {page > 1 ? (
-            <Link href={href(page - 1)} scroll={false} className={stepClass}>
+            <CatalogLink href={href(page - 1)} scroll className={stepClass}>
               <ChevronIcon aria-hidden="true" className="icon-directional size-4 rotate-180" />
               <span className="sr-only">לעמוד הקודם</span>
-            </Link>
+            </CatalogLink>
           ) : (
             <span aria-hidden="true" className={cn(stepClass, 'opacity-30')}>
               <ChevronIcon className="icon-directional size-4 rotate-180" />
@@ -60,12 +70,12 @@ export function Pagination({
             </li>
           ) : (
             <li key={entry}>
-              <Link
+              <CatalogLink
                 href={href(entry)}
-                scroll={false}
+                scroll
                 aria-current={entry === page ? 'page' : undefined}
                 className={cn(
-                  'inline-flex size-10 items-center justify-center rounded-sm border text-sm transition-colors',
+                  'inline-flex size-11 items-center justify-center border text-sm transition-colors',
                   entry === page
                     ? 'border-foreground bg-foreground text-background'
                     : 'border-border hover:border-border-strong hover:bg-muted',
@@ -73,17 +83,17 @@ export function Pagination({
               >
                 {entry}
                 {entry === page && <span className="sr-only">, העמוד הנוכחי</span>}
-              </Link>
+              </CatalogLink>
             </li>
           ),
         )}
 
         <li>
           {page < totalPages ? (
-            <Link href={href(page + 1)} scroll={false} className={stepClass}>
+            <CatalogLink href={href(page + 1)} scroll className={stepClass}>
               <ChevronIcon aria-hidden="true" className="icon-directional size-4" />
               <span className="sr-only">לעמוד הבא</span>
-            </Link>
+            </CatalogLink>
           ) : (
             <span aria-hidden="true" className={cn(stepClass, 'opacity-30')}>
               <ChevronIcon className="icon-directional size-4" />
@@ -96,7 +106,7 @@ export function Pagination({
 }
 
 const stepClass =
-  'border-border hover:border-border-strong hover:bg-muted inline-flex size-10 items-center justify-center rounded-sm border transition-colors';
+  'border-border hover:border-border-strong hover:bg-muted inline-flex size-11 items-center justify-center border transition-colors';
 
 /**
  * First page, last page, and a window around the current one. `null` is a gap.

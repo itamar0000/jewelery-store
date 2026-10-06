@@ -990,6 +990,9 @@ The fabrication lives in the products, and that is where the markers stay:
 `DEMO-` SKUs, `demo-` slugs, and a Hebrew demo notice opening every short
 description.
 
+_Superseded in part by D4D.1: the product markers came off once the owner
+confirmed the pieces are real, manufacturable models._
+
 Subcategory slugs are globally qualified — `diamond-rings`, not `diamond` —
 because `Category.slug` is unique table-wide and "diamond" would otherwise
 collide across rings, earrings, necklaces and bracelets. The navigation hrefs
@@ -1597,3 +1600,580 @@ could be a fan-out is a latency bug wherever the server happens to run.
 with React's `cache()`. The category page asked for the same category twice on
 every render — once in `generateMetadata`, once in the component — which was one
 entirely wasted round trip per page view.
+
+---
+
+## D4C.1 — Paper is a generated material, not a CSS fill
+
+The site's world is a diamond parcel: folded paper, blue tissue, a rubber
+stamp. The first build of it rendered every one of those as a flat rectangle,
+and the finish review said so — **material: contradicted**. It fabricated
+nothing, which was right, but it also produced no material, so the parcel read
+as a panel with a shadow rather than as paper.
+
+`scripts/generate-paper-grain.mjs` produces the fibre: two octaves of
+deterministic noise — fine grain with a slight directional bias so it runs
+along the sheet, plus a long undulation so the sheet is not uniformly grainy
+the way synthetic noise is — tiled seamlessly at 256px and quantised to eight
+alpha levels.
+
+**It is deliberately at the edge of visibility.** Grain you can see is a
+texture effect; grain you can only notice the absence of is paper. The alpha
+darkens and lightens whatever sits beneath it rather than tinting, so one sheet
+serves every paper token without a variant per colour.
+
+**Deterministic on purpose.** The seed is fixed, so regenerating produces the
+same sheet rather than new noise — a texture that changes every build is a
+diff nobody can review.
+
+32KB, fetched once, cached for the whole site. A 512px tile was generated first
+and weighed 284KB for grain nobody can resolve at this amplitude; after a
+performance pass earlier in the same session (D4B.1, D4B.2) that would have
+been self-defeating.
+
+The PNG carries its own provenance in a `tEXt` chunk: procedural, seeded, not
+photographed and not generated imagery.
+
+---
+
+## D4C.2 — The parcel world was replaced, and D4C.1 went with it
+
+The briefke direction shipped twice and was rejected twice, for opposite
+reasons. On a saturated trade-blue field the owner's judgement was that it does
+not read as a jewellery house. Inverted to a pale ground it landed as the
+generic light shop the site had been before — the exact fault the redesign
+existed to fix — and the paper label carrying a red stamp in the first viewport
+drew the owner's plainest note yet.
+
+Both are the owner's calls and both are right. Recording the reason, because it
+generalises: the direction was a **world** invented around the product rather
+than a reading of what the product needs to look like. A diamond parcel is a
+lovely object and a genuine piece of this trade, and none of that made the page
+look like somewhere you would spend fifteen thousand shekels.
+
+What replaced it takes a position instead of a world: **the only colour on the
+site is the jewellery.** Paper and ink, no accent, no field, no stamp. The
+distinction is carried by type at scale, by photography running edge to edge, by
+hairline rules, and by how much paper is left empty — none of which can collapse
+into "cream plus a serif", because none of them is a colour.
+
+The generated paper grain from D4C.1 is deleted with it, asset and generator
+both. It was the right answer to "the parcel renders as a flat rectangle"; there
+are no parcels now, and a texture under a photograph on a gallery page is noise.
+D4C.1 stays in this file as the record of why it existed.
+
+---
+
+## D4D.1 — The demo markers come off the products, in place
+
+D3B.2 marked every seeded product three ways — a `demo-` slug, a `DEMO-` SKU and
+"נתוני הדגמה בלבד — לא מוצר אמיתי." opening both descriptions — on the premise
+that the products were fictional. That premise no longer holds. The owner has
+confirmed that every model in the catalogue can be manufactured (PRODUCT.md,
+"Products are representative"), so the pieces are honest demonstrations of what
+the workshop makes. The marker meant for the database had become a false
+statement on the storefront: every product page told a shopper the piece was
+not real, and the slug and SKU repeated it in the address bar and on the page.
+
+**What changed.** The seed no longer writes the notice, the prefixes, two
+invented `DEMO-LAB` certificates, or two lines of product copy that asserted
+stock ("במלאי", "מלאי מוגבל…"). The 18K prices it derives are rounded to whole
+ten shekels instead of leaving agorot on a placeholder (₪3,115.20 is now
+₪3,120).
+
+**What is still invented, and stays flagged elsewhere.** Prices are placeholders
+and stock levels are made up. Neither is marked in the data. The storefront is
+responsible for not presenting them as facts: prices as estimates, and no
+scarcity claims built from stock that is not real. That is a presentation rule,
+not a data marker, and it lands in the Phase 1 storefront passes. Certificates
+are not seeded at all: a certificate number names a real document, and an
+invented one is a false claim rather than sample data.
+
+**Why a script and not a re-seed.** The seed deletes the catalogue before
+inserting it, and the product photography is attached afterwards by
+`scripts/place-product-images.ts`, keyed on product ids. Re-seeding a database
+that has its photographs unlinks every one of them. `scripts/remove-demo-markers.ts`
+brings an existing database to the state the corrected seed produces without
+creating or deleting a product, variant or image row. It is dry-run by default,
+matches only the exact strings the seed wrote, aborts on any slug or SKU
+collision, writes everything (search documents included) in one transaction, and
+finds nothing to do on a second run. Its only deletions are the two invented
+certificate rows.
+
+Run against the development database on 2026-10-05. Afterwards the ids of all 51
+products and 123 variants were unchanged, and so were all 286 image rows: their
+product, variant, storage key, position and alt text. Those rows point at 154
+distinct photographs, and every one still served from storage. All 51 search
+documents were rebuilt without the notice's words.
+
+**Storage keys keep their old names.** Objects in the bucket are still called
+`…-demo-aurora-ring-yellow-main.jpg`. Renaming them would detach the photographs
+for nothing a shopper can see. New uploads take the current slug.
+
+**Old manifests still work.** A photo manifest written before this change names
+`demo-aurora-ring`. `place-product-images.ts` tries the exact slug first and then
+the slug without the prefix, and reports every fallback so the manifest gets
+corrected. No other fuzzy matching is done.
+
+**Slugs are URLs.** Renaming them changed every product URL. That is free today:
+the site is not indexed (SITE_INDEXABLE) and has not launched. Done after
+launch, it would need redirects.
+
+---
+
+## D4D.2 — Best sellers are one ranking: units sold, then the curated picks
+
+"רבי מכר" is a claim about sales, and until now it was the membership of a
+hand-kept collection, made in two places: the homepage band and a "רב מכר"
+badge on each member's card. Nothing connected either to an order.
+
+`src/lib/catalog/best-sellers.ts` now ranks products by units sold, from order
+lines whose order reached a sold status (`PAID` through `COMPLETED`; not
+`PENDING_PAYMENT`, `CANCELLED` or `REFUNDED`). The curated `best-sellers`
+collection fills whatever places sales do not, in the curator's order. The
+homepage band and `/collections/best-sellers` both read it, so the claim has
+one source.
+
+**Today it changes nothing a shopper sees.** There are no orders — the seed
+creates none and checkout takes no payment — so the ranking is exactly the
+curated collection. When paid orders exist they lead, with no code change. No
+sales figure is invented, and none is displayed: the order of the list is the
+only output. By the owner's instruction the band carries no explanation of how
+it is chosen.
+
+**The card badge went** (see D4D.4): a second, per-card copy of the claim would
+have had to follow the ranking.
+
+**Left open, as business calls:** all-time rather than a recent window, and no
+minimum number of sales before a product outranks a curated pick. Either is a
+change to `rankedBySales` alone.
+
+---
+
+## D4D.3 — Stock levels are not live, so the storefront states none
+
+Every stock count in the database came from the seed. PRODUCT.md is explicit
+that pieces are made after the order. Built from those counts, the storefront
+put a "נותרו … במלאי" line on eight cards (two of them made-to-order pieces).
+On product pages one colour of a piece read "במלאי", the next "מיוצר בהזמנה",
+and two variants said "אזל מהמלאי" — none of it true of anything.
+
+`STOCK_LEVELS_ARE_LIVE` (`src/lib/inventory/disclosure.ts`, `false`) now gates
+it, and `toAvailability` applies it:
+
+- no low-stock threshold is applied, so no unit count reaches a card or a
+  product page;
+- a made-to-order variant resolves as made to order whatever its count, so its
+  page states the configured lead time, consistently across colours;
+- a DENY variant still resolves from its count, so `isPurchasable` keeps its
+  meaning for the cart, but the product page says nothing about it — no
+  "במלאי", no "אזל מהמלאי".
+
+**A constant, not an environment variable.** Real stock arrives with the admin's
+inventory workflow, which is a code change anyway. Prices, which the owner can
+make real by data entry alone, have `PRICES_FINAL` instead.
+
+**The mechanism stays tested.** `toProductCard` takes the policy as an option,
+and its unit tests cover the live path: a DENY product at its threshold says so.
+
+**Still open:** the lead times themselves ("זמן הכנה משוער 14 ימי עסקים") come
+from the seed too. They are kept because they describe how the workshop works
+rather than how much it holds, but they need the owner's confirmation. And
+before checkout ships, the DENY variants' `isPurchasable` rests on invented
+counts — two of them would refuse a sale.
+
+---
+
+## D4D.4 — One badge per card, and no wishlist or account until they work
+
+**Badges.** A card could carry "חדש", "רב מכר" and "בהזמנה אישית" at once, stacked
+on the photograph. "בהזמנה אישית" is the norm in this workshop, so badging some
+cards implied the others were not; "רב מכר" duplicated the band it sat in and
+contradicted "חדש" beside it. `ProductCardData.badge` is now a single optional
+value and `ProductBadge` is `'new'` alone. The product page's "בהזמנה אישית"
+badge went as well: the line under the price already says "מיוצר בהזמנה" with
+the lead time.
+
+**Wishlist and account.** The heart on every card and product page toggled a
+local state that was lost on navigation, and the header and drawer linked to
+pages explaining that nothing worked. All of it is withheld: no heart, no
+header or drawer link, and `/wishlist` and `/account` are 404s, as `/contact` is
+without a channel. `WishlistButton` is kept, unrendered, because its
+accessibility contract is the part Phase 6 should reuse. The cart stays, by the
+owner's instruction: checkout is the next piece of work, not a removal.
+
+---
+
+## D4D.5 — The first screen is sized from the header, and every control takes 44px
+
+**The first screen.** The hero subtracted a flat 11rem from the viewport, which
+allowed for a 4rem header. The desktop header is 8rem plus a hairline, so on
+every desktop the headline began just below the fold and the first screen said
+nothing; on an upright tablet the 21:9 photograph was stretched 2.6x across a
+tall box and cropped to the wall beside the model.
+
+- `--header-height` (globals.css) states the header's height once. The hero, the
+  sticky product gallery and anchor scrolling read it; header-height.test.ts
+  holds it to the header's own row classes. The product gallery's offset had
+  been 90px too low on tablets.
+- From 64rem the photograph takes whatever height the headline and its action
+  leave, so both are on the first screen down to about 620px of height. This
+  changed DESIGN.md's First Viewport Rule, by the owner's decision: the old rule
+  had the top of the line breaking the fold. The headline's measure went from
+  56rem to 64rem so it sets in two lines, and under 800px of height (`short:`)
+  it steps down one size. Below 64rem the photograph still fills the screen but
+  for 7rem.
+- The hero picks its crop by orientation instead of width, so every portrait
+  screen gets the portrait master. Its focal points were aimed at a previous
+  pair of masters - the wide one at empty wall, the portrait one at the left
+  edge - and now follow the delivered files.
+
+**Touch targets.** The audit measured 27px, 22px and 18px tap targets on phones.
+Two mechanisms, chosen by whether a control can grow without being redrawn:
+
+- `touch-target` (a utility) adds an invisible box that grows a control to at
+  least 44x44px and adds nothing to one already that size. Used on lines of
+  type, breadcrumbs, chips, swatches and option buttons, where nothing drawn
+  changes.
+- Tightly stacked lists (the footer, filter values, active-filter chips) would
+  overlap if their targets grew outward, so under a touch pointer
+  (`pointer-coarse:`) their rows become 44px. Under a mouse they keep their
+  compact rhythm.
+
+Icon buttons went from 40px to 44px, and text fields are 16px under a touch
+pointer so iOS does not zoom into them. A decorative chevron in the breadcrumbs
+was painted over a link's tap area by its mirroring transform; it no longer
+takes pointer events.
+
+**Also:** the best-sellers rail sets two across until 80rem instead of three
+and an orphan, and the subcategory chips no longer draw a scrollbar.
+
+---
+
+## D4D.6 — A 12px floor, a Hebrew reading measure, and one rule per heading level
+
+**The floor.** The type scale had an 11px step (`text-2xs`), and it was setting
+sentences, section labels, the badge and a product's SKU - the SKU in a 70%
+grey that measured 2.8:1. In Hebrew, 11px loses the single strokes that tell
+ד from ר and ה from ח. The step is removed rather than discouraged, every use
+moved to 12px, and `type-floor.test.ts` fails if a size below 0.75rem comes
+back, from the scale or as an arbitrary value. Translucent ink is no longer used
+for text. DESIGN.md's Label role moved from 0.6875rem to 0.75rem, as the
+approved plan's 12px minimum requires.
+
+**The product page reads like a page that is read.** Its descriptions, lead-time
+line, personalisation list and diamond details were 14px in the metadata grey.
+They are 16px in Soft Ink, the colour DESIGN.md has always given to secondary
+prose but that had no semantic token until now (`text-soft-foreground`).
+Controls stay at the 14px UI size. The title went from 36px regular - the only
+heading on the site that did not read as one - to the display face at 700,
+36px stepping to 48px from `xl`: one size under the category title it is
+reached from, because it shares a column with the price and the options.
+
+**One rule per heading level.** Two of the homepage's section headings
+(categories, FAQ) were regular weight, one of them a size smaller, between
+sections set in DESIGN.md's Title role; the custom and contact pages set theirs
+in the body face; the error page's title was body type too. All now follow the
+role for their level. Alignment still varies with each band's layout - centred
+over a rail, start-aligned over an asymmetric grid - and was left alone.
+
+**A reading measure, by the owner's decision.** Assistant's Hebrew averages about
+0.41em a character, so DESIGN.md's 40rem prose container held about 98
+characters a line at 16px. Long text now takes `--measure-reading`, 30em -
+about 74 characters at any size. The FAQ uses it; the 40rem container stays for
+cards and one-line intros.
+
+**The hero's action carries weight.** It was 18px under a 92px line. It is now
+semibold at 18 → 22 → 28px with a 2px rule - still a line of type, per the
+Underlined Action Rule. The first screen still holds it at every desktop height
+(D4D.5); the photograph gives up a few pixels.
+
+**Considered and not done.** The audit suggested trying the headline at regular
+weight or about 64px so the photograph leads. That is a taste call the plan did
+not include. Collection names stay as large as their band's title: DESIGN.md
+puts both in the Title role.
+
+---
+
+## D4D.7 — The shipped components now match DESIGN.md
+
+The audit found the components contradicting the design system they were
+documented against (its finding #22). Each conflict was resolved toward
+DESIGN.md, because nothing in the code made a case for the deviation:
+
+- **Actions are square.** Subcategory, search and active-filter chips were
+  pills; the filter button, pagination, product option buttons, the filter
+  drawer's actions and the search rows had 4px corners. DESIGN.md: an action
+  never takes a rounded corner. Radius stays where it is allowed - drawer close
+  controls, empty-state frames, the badge, swatch dots, list markers, and the
+  filter checkboxes (0.25rem).
+- **Fields are underlines.** The sort menu and the price inputs were boxes. The
+  price fields now carry the shekel sign and are each one `<label>`, so a tap
+  anywhere on the 44px field focuses the number.
+- **No panels.** The stone type on the product page sat in a tinted panel with a
+  2px side stripe; it is now a plain line in ink. Contact channels (shown only
+  when configured) sit under hairlines instead of in boxed cards.
+- **One link treatment.** "לצפייה בהכל" and "לכל השאלות" were a fourth action
+  style whose hover changed ink to ink. They are now the underlined line the
+  collection links already used; the mega menu's links and the homepage FAQ
+  rows also had invisible hovers and now underline.
+- **The hero settles again.** DESIGN.md's one atmospheric motion - the hero
+  photograph releasing from a 4% over-scale - was lost when the hero was
+  rewritten, leaving its keyframes unused. It is back, clipped to the frame.
+- **Shared components.** Two hand-built "clear" buttons are now `Button`, which
+  gained a `scroll` prop so clearing filters still keeps the page where it is.
+
+Also: the browser's blue search-clear x and the number spinners are themed or
+removed; the filter tick is a drawn icon instead of a "✓" character; the
+homepage's FAQ questions link to their answers (`/faq#id`) instead of the top
+of the page; a product option with a single value is stated rather than drawn
+as a one-button choice; the relevance sort is offered only with a search term;
+and the 404 has its own title. DESIGN.md's footer line now describes the
+columns that exist rather than five.
+
+**Not changed:** 12 products per page. Rings run to two pages at 12; 24 would
+show every current category whole. It is a listing decision, and the
+pagination tests are built around 12.
+
+## D4D.8 — The checkout is real up to payment, and stops there in words
+
+The product page was a dead end: no way to buy, and nothing to say so. The
+critique's one P0. The owner's brief: a real cart and a real checkout that
+saves a real order, no charge, and an ending that says plainly that payment is
+not active - built as the finished flow, so that turning payment on later is
+one adapter and nothing else.
+
+**What exists now.**
+
+- **A guest cart** (`src/lib/cart/`): a `Cart` row found by a random 192-bit
+  token in an httpOnly, `SameSite=Lax` cookie. Reading never creates a cart;
+  the first add does. The header shows the count, read by the storefront layout
+  per request (which makes the three static info pages request-time too; with
+  no cookie there is no query).
+- **One resolver for a line** (`line.ts`), used by the cart page, the checkout
+  and order creation alike, so the price reviewed is the price recorded and a
+  line the cart marks unavailable is one the order refuses. Nothing on a line
+  is trusted as stored: price, labels and validity are recomputed from the
+  catalogue on every read.
+- **The product page buys.** Personalisation became inputs (the server
+  validates the product's own field rules and prices the surcharge); one
+  primary "הוספה לסל"; missing choices are named at their field and the first
+  one takes focus. A combination that cannot be ordered says so in words -
+  there is still no disabled button.
+- **Checkout** (`/checkout`): details, delivery, review, as three views of one
+  form (back never loses a field; the browser's back leaves the checkout). What
+  was typed is kept in sessionStorage for the tab and cleared once the order is
+  placed. Delivery to someone else is one checkbox; the recipient's fields are
+  worded around the delivery ("שם לקבלת המשלוח") to stay free of gender.
+- **Placing the order** (`src/lib/orders/place-order.ts`), in one transaction:
+  customer found or created by normalised email, the order written as
+  PENDING_PAYMENT with every line frozen (names, labels, SKU, personalisation
+  with its labels, the diamond and certificate, price, promised lead time),
+  stock held through `reserveInventory`, cart emptied. A cart that changed
+  under the shopper is refused, not trimmed. The last unit of a stocked piece
+  goes to one order; the other is refused and leaves no trace (tested).
+- **Payment** (`/checkout/payment`): with no provider configured - today - the
+  page says the order is saved, payment is not active, nothing was charged, and
+  nothing is made until it is paid. No check mark, no thanks. With a provider it
+  hands off to the provider's page (`startPaymentAction`). `/order/confirmation`
+  renders only a PAID order, so it is unreachable until payment exists.
+  `src/lib/payments/provider.ts` lists the activation steps.
+
+**Schema change: `Order.accessTokenHash`** (migration
+`20261005120000_order_access_token`, additive, nullable, unique). The payment
+page, the provider's return and a future "view your order" email all need a
+guest to reach their own order without an account. Order numbers are
+sequential and printed, so they cannot be the key; the browser holds a random
+token and the database stores only its SHA-256. It applies on deploy through
+`prisma migrate deploy`, which the Vercel build already runs.
+
+**Decisions inside the build:**
+
+- **Shipping is free** - the owner's decision (TBD B4, resolved). A constant in
+  `pricing.ts`, recorded per order.
+- **VAT is stated only when configured** (`VAT_RATE_BPS`, optional, never
+  defaulted - TBD B21). Prices include VAT either way.
+- **No marketing opt-in checkbox.** The schema supports one, but there is no
+  email provider (I2) and no privacy policy (L5): asking for consent to a list
+  that does not exist, from an address nobody has verified, is a promise the
+  shop cannot keep. `marketingOptIn` is sent as false; when the box returns,
+  consent only ever moves toward yes on an order and must be confirmed by the
+  email provider before anything is sent.
+- **No terms checkbox.** There are no terms yet (L1); a box agreeing to nothing
+  would be theatre.
+- **The review step's button names its action.** "שמירת ההזמנה" while no
+  provider exists, "להמשך לתשלום" once one does, with a line above it saying
+  payment is not active.
+- **No sticky bar on the checkout form**, a deviation from the brief: on a
+  phone it covers the field being typed into once the keyboard opens. The
+  button follows the last field instead, and the order total sits in the
+  folded summary at the top.
+
+**Not built:** an undo for removing a line (re-adding from the product page is
+one tap away), and quantity on the product page (jewellery is bought one at a
+time; the cart changes it).
+
+## D4D.9 — The listing keeps its place: no remount, counted filters, paging to the grid
+
+The critique's hardening findings, all on the catalogue pages:
+
+- **The filter drawer no longer closes after every choice.** The listing sat
+  in a Suspense boundary keyed on the query string, so each filter tap
+  remounted it - drawer, expanded groups, scroll and focus included. The key
+  is gone; filter, sort and page changes run as one React transition
+  (`src/components/category/CatalogTransition.tsx`) that keeps the current
+  results on screen, dimmed and `aria-busy`, until the next set arrives. The
+  skeleton is for the first load only. Filter values are still real links
+  (`CatalogLink`): no-JS, new-tab and copy-link behave as before.
+- **Every filter value says how many products it leads to.** Counted in
+  PostgreSQL with the listing's own predicate (`getFacetCounts`, over
+  `buildCatalogWhere`), so a count cannot disagree with its grid; tested
+  against the grid totals. Each value is counted against the other facets
+  (values within a facet are alternatives). About twenty count queries per
+  listing, concurrent - measured at ~0.3s for the whole page warm. A value
+  that would lead to nothing is shown with its 0 but is not a link; a chosen
+  value stays a link at any count, so it can always be cleared.
+- **A new page starts at the top of the grid.** Pagination links carry
+  `#results` and scroll to the toolbar; they used `scroll={false}`, which left
+  a shopper paging from the bottom looking at the bottom of the next page.
+- **Hebrew counts.** `countOf` (`src/lib/i18n/count.ts`) names the one -
+  "מוצר אחד", "מסנן פעיל אחד" - instead of "1 מוצרים"; every count on the site
+  goes through it.
+- **Headings step down one level.** Product names were always `h3`, so every
+  category, collection and search page jumped from `h1` to `h3`. The grid now
+  takes a level: `h2` under a page title, `h3` inside a homepage section.
+- **Field and checkbox strokes hold 3:1.** `line-strong` moved from `#b9b6ae`
+  (1.9:1 on paper) to `#8c8881` (3.4:1 on paper, 3.1:1 on the recessed band;
+  ink selected text on it, 5.4:1). Same hue, same role - "where a line has to
+  read as a control" - so DESIGN.md's palette keeps its two hairlines; only the
+  value changed. Link underlines at rest are darker as a result.
+
+Also: the placeholder registry's "filters do nothing" entry was removed; they
+have worked since Phase 3B. The price fields reset when their range is cleared
+elsewhere (a chip, "נקה סינון"), since the form no longer remounts.
+
+## D4D.10 — Grades keep their printed words and gain their meaning
+
+The critique found the product page speaking the trade's shorthand to a
+shopper: "G", "VS1", "Excellent", "Emerald" with nothing beside them; a ring
+size of "52" without a unit; "קראט" for gold purity a few rows above "קראט"
+for a stone's weight; and an FAQ answer on grading that listed the grades and
+explained none.
+
+- **Glossed, not translated.** A certificate prints "VS1"; the page still does,
+  because a shopper comparing with a certificate or another shop needs the
+  same word. Beside it now: its place on the standard scale in Hebrew -
+  "VS1 · פגמים זעירים, נראים רק בהגדלה", "G · כמעט חסר צבע",
+  "Excellent · מצוין" (`src/lib/catalog/diamond-terms.ts`). The glosses
+  describe the laboratories' scales, not any stone in particular, and a grade
+  off the scale is left unglossed rather than guessed at.
+- **Shapes are Hebrew first** - "עגול", "אובלי", "טיפה" - in the filters, in
+  their chips and on the product page, where the certificate term follows
+  ("עגול · Round"). URL tokens and stored values are unchanged.
+- **Ring sizes state their unit**: the European scale, the ring's inner
+  circumference in millimetres - the only scale the catalogue's 48-60 can be -
+  with a link to the FAQ answer, which now also says how to measure an
+  existing ring (inner diameter x 3.14).
+- **"קראט זהב" for the gold.** The option label was catalogue content
+  ("קראט" on 44 options), so it changed by a data migration
+  (`20261006090000_gold_karat_label`) that touches only rows still carrying
+  the seed's label, plus the seed itself. The stone keeps "משקל כולל ... קראט";
+  the FAQ now says outright that the two are different measures.
+- **The grading answer explains each scale** - weight, colour, clarity, cut,
+  shape - in the order the product page lists them.
+- **Shipping in the FAQ splits** into what is decided (free, B4) and what is
+  not (delivery time, B5), which stays unpublished as before.
+
+## D4D.11 — The catalogue filters what a piece is, not what it can be made in
+
+PRODUCT.md is unambiguous: the workshop is the owner's, so every model can be
+made in another karat, gold colour, size or length, and "the site may promise
+alteration freely". The catalogue said the opposite. Its karat, colour, ring
+size and length filters answered "which models LIST this value": 43 of 50
+products list fewer than all three gold colours, 31 list one karat, and size
+48 appears on 2 of 18 rings - so a shopper who asked for rose gold, or for
+size 48, was shown a fraction of what the workshop would make for them, and
+"emerald + yellow" came back empty.
+
+- **Filters keep what a piece is**: price, stone shape, carat, style, pendant
+  type. Karat, gold colour, ring size and length left every category's
+  `filterConfig` by data migration (`20261006100000_filters_without_made_to_measure_axes`,
+  order preserved, nothing else touched), the seed and the search page. Old
+  links carrying those parameters are inert - the same normalisation that
+  already ignored `?ringSize=52` on a necklace page. The facet machinery is
+  unchanged and still supports them, should a future catalogue hold pieces
+  that genuinely cannot be altered.
+- **Where a shopper looks for those filters, the reason**: the top of the
+  filter panel says there is no need to filter by them - every model can be
+  ordered in any of them.
+- **On the product page, one true line under the options**: "רוצים גוון זהב,
+  קראט או מידה אחרים? כל דגם אפשר להזמין גם בהם", naming size for a ring and
+  length for a chain, with a link to how a custom order works. It promises no
+  price and no lead time for an unlisted configuration, because none is set.
+- **An empty filter result offers custom design** beside "נקה סינון".
+
+**Not done:** a "view in white gold" preference that switches card photographs
+to a colour; widening every ring's listed sizes; prices for unlisted
+configurations. The first is a feature, the other two are catalogue decisions
+for the owner.
+
+## D4D.12 — The homepage gives bridal its moment and ends on the workshop
+
+Same visual world, new order and weight. The critique measured the lower
+homepage as generic: collections took 36% of the page for four links, "רבי
+מכר" appeared twice (and its "view all" opened the same four products),
+bridal sat seventh in a framed box, and the page ended on three FAQ links and
+the footer's line that prices are estimates.
+
+The page now runs: hero, categories, best sellers, **bridal**, diamonds,
+collections, FAQ, **the workshop**.
+
+- **Bridal takes the hero's grammar, fourth instead of seventh**
+  (`FeatureBanner`): a full-bleed photograph - the portrait master on a phone,
+  a wide band whose height leaves the line on screen from 48rem - the display
+  line on paper beneath it, the action an underlined line. Nothing laid over
+  the photograph.
+- **Collections are one row** of the collections without a band of their own
+  (new arrivals, personalised); best sellers and bridal are not listed again.
+  36% of the page became 11% at 1440px.
+- **"לצפייה בהכל" on best sellers appears only when there is more to see** than
+  the four in the rail.
+- **The rail goes four-across from 64rem**, like every category grid, instead
+  of waiting for 80rem; at 1024px the two-by-two rail had taken a quarter of the
+  page. DESIGN.md updated.
+- **The page closes on the workshop** - "תכשיט שנבנה לפי בקשה" - at the finale
+  spacing tier, the line a size up, the action underlined: the shop's one real
+  advantage as the last word instead of a disclaimer. Its action says
+  "לפרטים ולפנייה" only when a contact channel exists; without one it reads
+  "איך זה עובד", which is what /custom then offers.
+- **The product photograph takes its column.** A fixed 26rem cap held it at
+  ~420px beside a 235px empty gutter; the remaining cap is the viewport's
+  height, which a sticky square needs. At 1440x900 the frame is 477px - the
+  column less the thumbnail rail.
+
+## D4D.13 — Polish: motion on the system, honest labels, titles sized to the page
+
+The critique's minor findings, closed:
+
+- **Category tiles drift like every other image.** Their hover zoom was 700ms
+  of stock ease-out; it is now the `drift` tier on the house curve, as the
+  product and collection images already were.
+- **Under reduced motion the zoom goes, rather than snapping.** The global rule
+  shortens transitions to nothing, which made a hovered photograph JUMP to its
+  zoom - a jolt where a drift was meant. Every hover zoom now has
+  `motion-reduce:group-hover:scale-100`.
+- **Search examples are called examples.** "חיפושים פופולריים", "חיפושים
+  נפוצים" and "אולי התכוונת" claimed a popularity count and a spelling
+  correction that do not exist; the shared list (`src/lib/search/examples.ts`)
+  is headed "הצעות לחיפוש" before a search and "אפשר לנסות" after one that
+  found nothing.
+- **Pages that are a sentence take the smaller title.** Search and the 404 set
+  a 72px headline over one line of text; they now use the product page's
+  2.25rem → 3rem `h1` (`PageHero size="compact"`), as the cart and checkout
+  do. DESIGN.md's Headline role names them.
+- **The hero line matches its photograph.** "...מהסדנה שלנו לאצבע שלך" ran
+  over a necklace; it reads "תכשיטי זהב ויהלומים, ישר מהסדנה שלנו" - the same
+  manufacturer-direct claim, without the finger.
+- **Stale comments.** ProductCard still spoke of "the one red in the palette";
+  FeatureBanner described copy laid over the photograph (it was rewritten in
+  D4D.12).

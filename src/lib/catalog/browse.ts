@@ -13,9 +13,11 @@ import {
   type CatalogQuery,
   type Facet,
   type FacetCode,
+  type FacetCounts,
   type FacetValue,
   type SortKey,
 } from './filters';
+import { shapeNameHe } from './diamond-terms';
 import { activeProduct, productCardSelect, toProductCard } from './queries';
 
 import type { Prisma } from '@/generated/prisma/client';
@@ -193,12 +195,13 @@ async function buildFacet(code: FacetCode, scope: Prisma.ProductWhereInput): Pro
       param: FACET_PARAM[code],
       source,
       labelHe: FACET_LABELS[code],
-      // Kept in English: these are the terms printed on the certificate
-      // (specification section 49).
+      // In Hebrew, as a shopper names them ("טיפה", not "Pear"). The value
+      // and the URL token stay the certificate's term, so links are stable,
+      // and the product page shows that term beside the Hebrew one.
       values: shapes.map((shape) => ({
         value: shape,
         token: shape.toLowerCase(),
-        labelHe: shape,
+        labelHe: shapeNameHe(shape) ?? shape,
       })),
     };
   }
@@ -407,6 +410,63 @@ export function buildCatalogOrderBy(sort: SortKey): Prisma.ProductOrderByWithRel
   }
 }
 
+/**
+ * How many products each facet value leads to, given every OTHER active filter.
+ *
+ * COUNTED WITH THE LISTING'S OWN PREDICATE. Each figure is a `count` over
+ * `buildCatalogWhere` - the clause the grid itself is fetched with - so the
+ * number beside a value can never disagree with the grid that value opens. An
+ * in-memory reimplementation of the filter rules would be a second copy, and
+ * the axis rule in particular (one variant must satisfy karat AND colour) is
+ * exactly the kind that drifts.
+ *
+ * WITHIN A FACET, VALUES ARE ALTERNATIVES, so each is counted as that facet's
+ * only selection: the figure beside "זהב לבן" is how many white-gold pieces
+ * match everything else chosen, whether or not another colour is ticked.
+ *
+ * ONE QUERY PER VALUE, ALL AT ONCE. A category offers about twenty values; at
+ * this catalogue's size each count is a handful of index lookups, and they run
+ * concurrently on the pool rather than one after another (see D4B.2).
+ *
+ * Search passes its ranked ids, so a count covers the search results only.
+ */
+export async function getFacetCounts(
+  categoryIds: readonly string[],
+  query: CatalogQuery,
+  facets: readonly Facet[],
+  rankedIds?: readonly string[],
+): Promise<FacetCounts> {
+  if (rankedIds !== undefined && rankedIds.length === 0) {
+    return Object.fromEntries(
+      facets.map((facet) => [
+        facet.code,
+        Object.fromEntries(facet.values.map((value) => [value.value, 0])),
+      ]),
+    );
+  }
+
+  const jobs = facets
+    .filter((facet) => facet.code !== 'price')
+    .flatMap((facet) =>
+      facet.values.map(async (value) => {
+        const where = buildCatalogWhere(categoryIds, {
+          ...query,
+          values: { ...query.values, [facet.code]: [value.value] },
+        });
+        const count = await prisma.product.count({
+          where: rankedIds === undefined ? where : { ...where, id: { in: [...rankedIds] } },
+        });
+        return [facet.code, value.value, count] as const;
+      }),
+    );
+
+  const counts: Partial<Record<FacetCode, Record<string, number>>> = {};
+  for (const [code, value, count] of await Promise.all(jobs)) {
+    (counts[code] ??= {})[value] = count;
+  }
+  return counts;
+}
+
 export interface CatalogPage {
   readonly products: readonly ProductCardData[];
   /** Total matching the ACTIVE FILTERS, not the category total. */
@@ -467,7 +527,7 @@ export async function getCatalogPage(
   });
 
   return {
-    products: rows.map(toProductCard),
+    products: rows.map((row) => toProductCard(row)),
     total,
     page,
     totalPages,
@@ -518,7 +578,13 @@ async function getRankedPage(
       select: productCardSelect,
     });
 
-    return { products: rows.map(toProductCard), total, page, totalPages, pageSize: query.pageSize };
+    return {
+      products: rows.map((row) => toProductCard(row)),
+      total,
+      page,
+      totalPages,
+      pageSize: query.pageSize,
+    };
   }
 
   const surviving = await prisma.product.findMany({ where, select: { id: true } });
@@ -545,7 +611,7 @@ async function getRankedPage(
   const products = pageIds
     .map((id) => byId.get(id))
     .filter((row): row is NonNullable<typeof row> => row !== undefined)
-    .map(toProductCard);
+    .map((row) => toProductCard(row));
 
   return { products, total, page, totalPages, pageSize: query.pageSize };
 }

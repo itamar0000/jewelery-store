@@ -17,6 +17,18 @@ import { z } from 'zod';
  * now would be inventing configuration for integrations that do not exist, and
  * would make the schema reject environments that are perfectly valid today.
  */
+
+/** An optional free-text variable. Unset and empty both mean "not configured". */
+const optionalText = z.preprocess(
+  (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+  z.string().trim().optional(),
+);
+
+function digitCount(value: string, min: number, max: number): boolean {
+  const digits = value.replace(/\D/g, '').length;
+  return digits >= min && digits <= max;
+}
+
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
@@ -67,6 +79,64 @@ export const envSchema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((value) => value === 'true'),
+
+  /**
+   * Whether the catalogue's prices are real figures a shopper can act on.
+   *
+   * DEFAULTS TO FALSE, because today they are not (PRODUCT.md, principle 1).
+   * While false, the storefront labels prices as estimates wherever they are
+   * shown; flipping it removes every qualifier at once. Opening the site to
+   * search (SITE_INDEXABLE) before this is true would put placeholder prices in
+   * front of searchers, which is the thing that flag exists to prevent.
+   */
+  PRICES_FINAL: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+
+  /**
+   * Contact channels. ALL OPTIONAL, and with none set the site invites no
+   * contact at all: no nav item, no footer column, no "questions?" prompt, and
+   * /contact is a 404. PRODUCT.md is explicit that a site inviting a
+   * conversation it cannot receive is worse than one that does not invite it.
+   *
+   * Values are the business's own and are never defaulted or guessed.
+   *
+   * CONTACT_WHATSAPP - the number in international form, e.g. 972501234567
+   *                    (spaces, dashes and a leading + are accepted).
+   * CONTACT_PHONE    - shown exactly as written, e.g. 03-1234567.
+   * CONTACT_EMAIL    - an email address.
+   */
+  CONTACT_WHATSAPP: optionalText.refine(
+    (value) => value === undefined || (/^\+?[\d\s-]+$/.test(value) && digitCount(value, 8, 15)),
+    'CONTACT_WHATSAPP must be a phone number in international form, e.g. 972501234567.',
+  ),
+  CONTACT_PHONE: optionalText.refine(
+    (value) => value === undefined || (/^\+?[\d\s()-]+$/.test(value) && digitCount(value, 7, 15)),
+    'CONTACT_PHONE must be a phone number, e.g. 03-1234567.',
+  ),
+  CONTACT_EMAIL: optionalText.refine(
+    (value) => value === undefined || z.email().safeParse(value).success,
+    'CONTACT_EMAIL must be an email address.',
+  ),
+
+  /**
+   * VAT rate in basis points (1800 = 18%), recorded on every order at the moment
+   * it is placed, so a later rate change never rewrites history (TBD B21).
+   *
+   * OPTIONAL AND NEVER DEFAULTED. The rate and the business's VAT registration
+   * are the owner's facts; with none set, orders record no VAT figure and the
+   * checkout shows none. Catalog prices are VAT-inclusive either way - this
+   * only decides whether the included VAT is stated.
+   */
+  VAT_RATE_BPS: optionalText.pipe(
+    z
+      .string()
+      .regex(/^\d+$/, 'VAT_RATE_BPS must be a whole number of basis points, e.g. 1800.')
+      .transform(Number)
+      .pipe(z.number().max(10_000, 'VAT_RATE_BPS may not exceed 10000 (100%).'))
+      .optional(),
+  ),
 });
 
 export type Env = z.infer<typeof envSchema>;

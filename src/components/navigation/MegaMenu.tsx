@@ -1,7 +1,7 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 import { Container } from '@/components/ui/Container';
-import { PlaceholderImage } from '@/components/ui/PlaceholderImage';
 import type { NavItem } from '@/lib/navigation/taxonomy';
 
 /**
@@ -20,6 +20,13 @@ import type { NavItem } from '@/lib/navigation/taxonomy';
  *
  * The panel is a `<section>` labelled by the trigger, so a screen-reader user
  * who moves into it is told which menu they are in.
+ *
+ * IT STATES ITS OWN FOREGROUND. The panel renders inside the ink masthead,
+ * which sets paper-coloured type for everything beneath it. A paper panel that
+ * inherits that is paper on paper - every link in it was invisible once. So
+ * the panel names the ink that belongs to its surface, and resets the focus
+ * ring to ink for the same reason (see `:focus-visible` in globals.css).
+ * src/components/navigation/surface-contrast.test.tsx holds this in place.
  */
 export function MegaMenu({ item, labelledBy }: { item: NavItem; labelledBy: string }) {
   if (!item.columns) return null;
@@ -27,7 +34,7 @@ export function MegaMenu({ item, labelledBy }: { item: NavItem; labelledBy: stri
   return (
     <section
       aria-labelledby={labelledBy}
-      className="border-border bg-card absolute inset-x-0 top-full border-t shadow-lg"
+      className="border-border bg-card text-card-foreground absolute inset-x-0 top-full border-t shadow-lg [--focus-ring:var(--color-ring)]"
     >
       {/*
        * LAYOUT: link columns packed at the inline start, feature panel pinned
@@ -51,7 +58,7 @@ export function MegaMenu({ item, labelledBy }: { item: NavItem; labelledBy: stri
           {item.columns.map((column) => (
             <div key={column.id} className="min-w-40">
               {column.title && (
-                <h3 className="text-muted-foreground text-2xs mb-5 font-medium">{column.title}</h3>
+                <h3 className="text-muted-foreground mb-5 text-xs font-medium">{column.title}</h3>
               )}
 
               <ul className="space-y-3">
@@ -59,7 +66,9 @@ export function MegaMenu({ item, labelledBy }: { item: NavItem; labelledBy: stri
                   <li key={link.id}>
                     <Link
                       href={link.href}
-                      className="hover:text-accent block text-sm transition-colors duration-150"
+                      // An underline, not a colour: the link is ink, and the
+                      // "accent" it turned on hover is ink as well.
+                      className="decoration-border-strong block text-sm underline-offset-[0.35em] hover:underline"
                     >
                       {link.label}
                     </Link>
@@ -73,24 +82,35 @@ export function MegaMenu({ item, labelledBy }: { item: NavItem; labelledBy: stri
         {item.feature && (
           <div className="w-full lg:w-96 lg:shrink-0">
             {/*
-             * `image` is unset everywhere today - the photography is TBD - so
-             * this renders the neutral placeholder surface. When a real asset
-             * arrives, the taxonomy entry gains an `image` and this becomes an
-             * <Image>. Nothing else changes.
+             * A PICTURE ONLY WHEN THERE IS ONE. `image` is unset everywhere
+             * today - the photography is TBD - and this used to draw a grey
+             * placeholder block in its place: the largest shape in the panel,
+             * captioned with the title printed directly beneath it, saying
+             * nothing. The feature is its words until a real asset is set on
+             * the taxonomy entry.
              *
              * Landscape, not square. A square at this width made the panel
              * ~560px tall - a menu that covers half the viewport stops being a
-             * menu and becomes a page. The wider crop fills the same width in
-             * two thirds of the height.
+             * menu and becomes a page.
              */}
-            <PlaceholderImage ratio="landscape" label={item.feature.title} />
+            {item.feature.image && (
+              <div className="relative mb-4 aspect-[3/2] overflow-hidden">
+                <Image
+                  src={item.feature.image.src}
+                  alt={item.feature.image.alt}
+                  fill
+                  sizes="24rem"
+                  className="object-cover"
+                />
+              </div>
+            )}
 
-            <h3 className="mt-4 text-sm font-medium">{item.feature.title}</h3>
+            <h3 className="text-sm font-medium">{item.feature.title}</h3>
             <p className="text-muted-foreground mt-1.5 text-xs">{item.feature.description}</p>
 
             <Link
               href={item.feature.href}
-              className="text-accent hover:text-foreground mt-3 inline-block text-xs underline underline-offset-4 transition-colors"
+              className="decoration-border-strong hover:decoration-foreground mt-3 inline-block text-xs underline underline-offset-[0.35em] transition-colors"
             >
               {item.feature.linkLabel}
             </Link>

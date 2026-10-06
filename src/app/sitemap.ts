@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 
+import { contactAvailable } from '@/lib/contact';
 import { prisma } from '@/lib/db';
 import { env } from '@/lib/env';
 
@@ -13,8 +14,8 @@ import { env } from '@/lib/env';
  * disagree with the site.
  *
  * WHAT IS EXCLUDED, AND WHY. Only pages that are useful to a search engine and
- * stable under a URL appear here. The cart, the wishlist and the account are
- * per-visitor and have nothing to index. `/search` is a query surface, not a
+ * stable under a URL appear here. The cart, the checkout, an order, the
+ * wishlist and the account are per-visitor and have nothing to index. `/search` is a query surface, not a
  * document. Archived and unpublished products are excluded by the same filters
  * the storefront applies, so an unlisted product cannot be discovered through
  * the sitemap after being pulled from the catalog.
@@ -48,7 +49,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/`, changeFrequency: 'weekly', priority: 1 },
     { url: `${base}/custom`, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${base}/faq`, changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${base}/contact`, changeFrequency: 'monthly', priority: 0.5 },
+    // Only while a contact channel exists; without one /contact is a 404.
+    ...(contactAvailable
+      ? [{ url: `${base}/contact`, changeFrequency: 'monthly' as const, priority: 0.5 }]
+      : []),
   ];
 
   return [

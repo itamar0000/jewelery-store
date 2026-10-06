@@ -15,3 +15,12 @@ next-env.d.ts
 /TBD.md
 
 /src/generated/
+
+# Impeccable decision-page state: a running server's scratch, not source.
+.impeccable/questions/
+
+# Impeccable inspection captures: build evidence, regenerated on demand.
+.impeccable/review/
+
+# Impeccable critique snapshots: dated audit records, kept exactly as written.
+.impeccable/critique/

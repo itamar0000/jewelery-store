@@ -62,14 +62,22 @@ export function CategoryDiscovery() {
     >
       <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
         <div>
+          {/*
+           * Also the target of the hero's "לכל הקטגוריות". The scroll margin
+           * clears the sticky masthead (4rem, then 8rem + its rule from lg), so
+           * the jump lands on the heading instead of underneath the bar.
+           */}
           <h2
             id="discovery-heading"
-            className="font-display text-2xl tracking-tight text-balance md:text-3xl"
+            className="font-display scroll-mt-[calc(var(--header-height)+1rem)] text-2xl font-bold tracking-tight text-balance md:text-3xl"
           >
             קטגוריות
           </h2>
           <p className="text-muted-foreground mt-3 max-w-md text-sm text-pretty">
-            נקודת הפתיחה לחיפוש. כל קטגוריה נפתחת לתת-קטגוריות ולסינון מלא.
+            {/* What the shopper gets, not how the site is built: both facts are
+                PRODUCT.md's - the workshop is the owner's, and every model can
+                be altered in these axes. */}
+            כל דגם בקטלוג מיוצר בסדנה שלנו, ואפשר להתאים אותו: קראט, גוון זהב, מידה וחריטה.
           </p>
         </div>
       </div>
@@ -84,47 +92,51 @@ export function CategoryDiscovery() {
           <li key={category.id} className={cn(category.lead && 'col-span-2 md:row-span-2')}>
             <Link href={category.href} className="group block h-full">
               {/*
+               * THE NAME SITS UNDER THE PICTURE, NOT ON IT.
+               *
+               * These were six photographs laid directly on the trade field
+               * with their names set over a darkening scrim. That is the
+               * arrangement this build removed from the closing banner for
+               * being the category default, surviving in the browse band - and
+               * it breaks the one rule OWN-WORLD is strictest about, that
+               * a photograph is never used as a background for type.
+               *
+               * So each tile is simply the picture with its name written on a rule
+               * beneath it. The scrim disappears with the overlay, and with it the
+               * contrast problem a scrim exists to paper over.
+               *
                * The ratio lives on the WRAPPER, not the image, because
                * EditorialImage fills its parent. That is what lets the lead
                * tile stretch to the grid row while the others stay square.
                */}
-              <div
-                className={cn(
-                  'relative h-full overflow-hidden',
-                  category.lead ? 'aspect-[3/4] md:aspect-auto' : 'aspect-square',
-                )}
-              >
-                <EditorialImage
-                  id={category.assetId}
-                  /*
-                   * Two columns on a phone, and at most half the container on
-                   * desktop for the lead tile, a quarter for the rest. Without
-                   * this every tile would ask for a full-width source.
-                   */
-                  sizes={
-                    category.lead
-                      ? '(max-width: 767px) 100vw, 45vw'
-                      : '(max-width: 767px) 50vw, 23vw'
-                  }
-                  placeholderLabel={category.label}
-                  className="transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-                />
-
-                {/*
-                 * The label sits ON the image rather than under it. With tiles
-                 * this large a caption below each one left five orphaned lines
-                 * of text floating in the gutter; overlaid, the name belongs to
-                 * its picture and the grid reads as one object per cell.
-                 */}
+              <div className="flex h-full flex-col">
                 <div
-                  aria-hidden="true"
-                  className="from-foreground/55 absolute inset-0 bg-gradient-to-t via-transparent to-transparent"
-                />
+                  className={cn(
+                    'relative w-full flex-1 overflow-hidden',
+                    category.lead ? 'aspect-[3/4] md:aspect-auto' : 'aspect-square',
+                  )}
+                >
+                  <EditorialImage
+                    id={category.assetId}
+                    /*
+                     * Two columns on a phone, and at most half the container on
+                     * desktop for the lead tile, a quarter for the rest. Without
+                     * this every tile would ask for a full-width source.
+                     */
+                    sizes={
+                      category.lead
+                        ? '(max-width: 767px) 100vw, 45vw'
+                        : '(max-width: 767px) 50vw, 23vw'
+                    }
+                    placeholderLabel={category.label}
+                    className="ease-settle transition-transform duration-(--duration-drift) group-hover:scale-[1.04] motion-reduce:group-hover:scale-100"
+                  />
+                </div>
 
                 <span
                   className={cn(
-                    'text-background absolute inset-x-0 bottom-0 p-4 font-medium',
-                    category.lead ? 'text-lg md:p-6 md:text-xl' : 'text-sm md:text-base',
+                    'border-border mt-2.5 block border-t pt-2.5 font-medium',
+                    category.lead ? 'text-base md:text-lg' : 'text-sm',
                   )}
                 >
                   {category.label}

@@ -157,11 +157,13 @@ describe('resolveEditorialAsset', () => {
   });
 
   it('turns the focal point into an object-position', () => {
-    // hero: desktop { x: 35, y: 40 }, mobile { x: 50, y: 32 }.
+    // hero: desktop { x: 70, y: 55 }, on the model in the right half of the
+    // wide master; mobile { x: 50, y: 40 }, centred on the portrait master's
+    // centred subject - see the registry note.
     const resolved = resolveEditorialAsset('hero');
 
-    expect(resolved.objectPosition).toBe('35% 40%');
-    expect(resolved.mobileObjectPosition).toBe('50% 32%');
+    expect(resolved.objectPosition).toBe('70% 55%');
+    expect(resolved.mobileObjectPosition).toBe('50% 40%');
   });
 
   it('falls back to the centre when an asset declares no focal point', () => {

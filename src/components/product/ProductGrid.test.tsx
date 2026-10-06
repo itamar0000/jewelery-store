@@ -110,3 +110,25 @@ describe('ProductGrid image loading', () => {
     expect(images(markup)[0]).not.toContain('loading="lazy"');
   });
 });
+
+/*
+ * The card's name is a heading one level below whatever heads the grid. On a
+ * listing page that is the page's h1, so the names are h2; a homepage band has
+ * its own h2, so its names are h3. Always-h3 left every category page jumping
+ * from h1 to h3.
+ */
+describe('ProductGrid heading level', () => {
+  const products = [product(1), product(2)];
+
+  it('sets names as h3 by default, under a section heading', () => {
+    const markup = renderToStaticMarkup(<ProductGrid products={products} />);
+    expect(markup.match(/<h3/g)).toHaveLength(2);
+    expect(markup).not.toContain('<h2');
+  });
+
+  it('sets names as h2 directly under a page title', () => {
+    const markup = renderToStaticMarkup(<ProductGrid products={products} headingLevel={2} />);
+    expect(markup.match(/<h2/g)).toHaveLength(2);
+    expect(markup).not.toContain('<h3');
+  });
+});

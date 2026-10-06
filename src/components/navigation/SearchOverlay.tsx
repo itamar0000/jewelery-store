@@ -8,6 +8,8 @@ import { Container } from '@/components/ui/Container';
 import { cn } from '@/components/ui/cn';
 import { CloseIcon, SearchIcon } from '@/components/ui/icons';
 import type { MenuAction, MenuState } from '@/lib/navigation/menu-state';
+import { CATEGORIES, PRODUCTS, countOf } from '@/lib/i18n/count';
+import { SEARCH_EXAMPLES, SEARCH_EXAMPLES_HEADING } from '@/lib/search/examples';
 
 /**
  * Search overlay with live suggestions.
@@ -59,6 +61,8 @@ export function SearchOverlay({
   const [term, setTerm] = useState('');
   const [products, setProducts] = useState<readonly SuggestProduct[]>([]);
   const [categories, setCategories] = useState<readonly SuggestCategory[]>([]);
+  /** "המחירים משוערים" from the server while prices are placeholders, else null. */
+  const [priceNote, setPriceNote] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [active, setActive] = useState(-1);
 
@@ -93,12 +97,21 @@ export function SearchOverlay({
 
     const timer = setTimeout(() => {
       fetch(`/api/search/suggest?q=${encodeURIComponent(query)}`, { signal: controller.signal })
-        .then((response) => (response.ok ? response.json() : { products: [], categories: [] }))
-        .then((data: { products: SuggestProduct[]; categories: SuggestCategory[] }) => {
-          setProducts(data.products);
-          setCategories(data.categories);
-          setActive(-1);
-        })
+        .then((response) =>
+          response.ok ? response.json() : { products: [], categories: [], priceNote: null },
+        )
+        .then(
+          (data: {
+            products: SuggestProduct[];
+            categories: SuggestCategory[];
+            priceNote: string | null;
+          }) => {
+            setProducts(data.products);
+            setCategories(data.categories);
+            setPriceNote(data.priceNote);
+            setActive(-1);
+          },
+        )
         .catch(() => {
           // An aborted request is the normal case on every keystroke, and a
           // failed one should leave the overlay usable rather than throw.
@@ -164,12 +177,18 @@ export function SearchOverlay({
   const activeId = active >= 0 ? items[active]?.id : undefined;
 
   return (
+    /*
+     * The overlay states its own foreground and focus ring: it is rendered
+     * inside the ink masthead, and inheriting that bar's paper type on this
+     * paper sheet once hid the query being typed, every suggestion and the
+     * close button. See MegaMenu for the same rule.
+     */
     <div
       role="dialog"
       aria-modal="true"
       aria-label="חיפוש באתר"
       onKeyDown={onKeyDown}
-      className="bg-background fixed inset-0 z-50 overflow-y-auto"
+      className="bg-background text-foreground fixed inset-0 z-50 overflow-y-auto [--focus-ring:var(--color-ring)]"
     >
       <Container className="py-6">
         <div className="flex items-start gap-4">
@@ -179,7 +198,7 @@ export function SearchOverlay({
               event.preventDefault();
               if (trimmed.length > 0) go(`/search?q=${encodeURIComponent(trimmed)}`);
             }}
-            className="border-border-strong focus-within:border-accent flex flex-1 items-center gap-3 border-b pb-3 transition-colors"
+            className="border-border-strong focus-within:border-accent flex flex-1 items-center gap-3 border-b pb-1 transition-colors"
           >
             <SearchIcon className="text-muted-foreground size-5 shrink-0" />
             <input
@@ -195,14 +214,14 @@ export function SearchOverlay({
               aria-activedescendant={activeId}
               placeholder="חיפוש תכשיטים"
               aria-label="חיפוש תכשיטים"
-              className="placeholder:text-muted-foreground w-full bg-transparent text-lg outline-none"
+              className="placeholder:text-muted-foreground h-11 w-full bg-transparent text-lg outline-none"
             />
           </form>
 
           <button
             type="button"
             onClick={() => dispatch({ type: 'CLOSE_SEARCH' })}
-            className="hover:bg-muted inline-flex size-10 shrink-0 items-center justify-center rounded-sm"
+            className="hover:bg-muted inline-flex size-11 shrink-0 items-center justify-center rounded-sm"
           >
             <CloseIcon className="size-5" />
             <span className="sr-only">סגירת החיפוש</span>
@@ -215,22 +234,23 @@ export function SearchOverlay({
           {loading
             ? 'טוען הצעות'
             : showAll
-              ? `${products.length} מוצרים, ${categories.length} קטגוריות`
+              ? `${countOf(products.length, PRODUCTS)}, ${countOf(categories.length, CATEGORIES)}`
               : ''}
         </p>
 
         <div id="search-suggestions" className="mt-8">
           {trimmed.length < MIN_QUERY ? (
-            <PopularSearches onPick={(value) => setTerm(value)} />
+            <SearchExamples onPick={(value) => setTerm(value)} />
           ) : (
             <>
               {products.length > 0 && (
                 <section aria-labelledby="suggest-products">
                   <h2
                     id="suggest-products"
-                    className="text-muted-foreground text-2xs mb-3 font-medium"
+                    className="text-muted-foreground mb-3 text-xs font-medium"
                   >
                     מוצרים
+                    {priceNote && <> · {priceNote}</>}
                   </h2>
 
                   <ul>
@@ -243,7 +263,7 @@ export function SearchOverlay({
                             href={`/product/${product.slug}`}
                             onClick={() => dispatch({ type: 'CLOSE_SEARCH' })}
                             className={cn(
-                              'flex items-center justify-between gap-4 rounded-sm px-3 py-2.5 text-sm transition-colors',
+                              'flex min-h-11 items-center justify-between gap-4 px-3 py-2.5 text-sm transition-colors',
                               activeId === id ? 'bg-muted' : 'hover:bg-muted',
                             )}
                           >
@@ -263,7 +283,7 @@ export function SearchOverlay({
                 <section aria-labelledby="suggest-categories" className="mt-6">
                   <h2
                     id="suggest-categories"
-                    className="text-muted-foreground text-2xs mb-3 font-medium"
+                    className="text-muted-foreground mb-3 text-xs font-medium"
                   >
                     קטגוריות
                   </h2>
@@ -278,7 +298,7 @@ export function SearchOverlay({
                             href={category.href}
                             onClick={() => dispatch({ type: 'CLOSE_SEARCH' })}
                             className={cn(
-                              'block rounded-sm px-3 py-2.5 text-sm transition-colors',
+                              'flex min-h-11 items-center px-3 py-2.5 text-sm transition-colors',
                               activeId === id ? 'bg-muted' : 'hover:bg-muted',
                             )}
                           >
@@ -303,7 +323,7 @@ export function SearchOverlay({
                   href={`/search?q=${encodeURIComponent(trimmed)}`}
                   onClick={() => dispatch({ type: 'CLOSE_SEARCH' })}
                   className={cn(
-                    'border-border mt-6 block rounded-sm border px-3 py-3 text-center text-sm transition-colors',
+                    'border-border mt-6 block border px-3 py-3 text-center text-sm transition-colors',
                     activeId === 'all' ? 'bg-muted' : 'hover:bg-muted',
                   )}
                 >
@@ -319,35 +339,26 @@ export function SearchOverlay({
 }
 
 /**
- * Popular searches, shown before anything is typed.
+ * Example searches, shown before anything is typed (src/lib/search/examples.ts).
  *
- * SAMPLE DATA, NOT BUSINESS LOGIC. These are the example queries from
- * MASTER_SPECIFICATION section 27; nothing branches on their values, and a
- * future provider replaces them with real popularity data. Clicking one fills
- * the field rather than navigating, so the shopper can refine it first.
+ * Headed as examples, because that is what they are: no search log exists to
+ * call anything popular. Clicking one fills the field rather than navigating,
+ * so the shopper can refine it first.
  */
-const POPULAR_SEARCHES: readonly string[] = [
-  'טבעת אירוסין',
-  'צמיד טניס',
-  'עגילי יהלום',
-  'שרשרת שם',
-  'זהב לבן',
-];
-
-function PopularSearches({ onPick }: { onPick: (value: string) => void }) {
+function SearchExamples({ onPick }: { onPick: (value: string) => void }) {
   return (
-    <section aria-labelledby="search-popular">
-      <h2 id="search-popular" className="text-muted-foreground text-2xs mb-4 font-medium">
-        חיפושים פופולריים
+    <section aria-labelledby="search-examples">
+      <h2 id="search-examples" className="text-muted-foreground mb-4 text-xs font-medium">
+        {SEARCH_EXAMPLES_HEADING}
       </h2>
 
       <ul className="flex flex-wrap gap-2">
-        {POPULAR_SEARCHES.map((suggestion) => (
+        {SEARCH_EXAMPLES.map((suggestion) => (
           <li key={suggestion}>
             <button
               type="button"
               onClick={() => onPick(suggestion)}
-              className="border-border hover:border-border-strong hover:bg-muted rounded-full border px-4 py-2 text-sm transition-colors"
+              className="border-border hover:border-border-strong hover:bg-muted touch-target border px-4 py-2 text-sm transition-colors"
             >
               {suggestion}
             </button>

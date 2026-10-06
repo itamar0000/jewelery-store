@@ -1,6 +1,11 @@
+import { cookies } from 'next/headers';
+
 import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { SkipLink } from '@/components/layout/SkipLink';
+import { getCartCount } from '@/lib/cart/store';
+import { CART_COOKIE } from '@/lib/cart/token';
+import { contactAvailable } from '@/lib/contact';
 
 /**
  * The storefront chrome.
@@ -16,12 +21,22 @@ import { SkipLink } from '@/components/layout/SkipLink';
  *
  * `<main id="main-content">` is the skip link's target and the single main
  * landmark on the page.
+ *
+ * THE CART COUNT IS READ HERE, per request, from the cart cookie. That makes
+ * every storefront page request-time rendered - which the catalogue pages
+ * already were (they read the database per request, see the homepage's note
+ * on `dynamic`) - and costs nothing for a visitor with no cart: no cookie, no
+ * query. The alternative, a count fetched after load, would paint every page
+ * without it first.
  */
-export default function StorefrontLayout({ children }: { children: React.ReactNode }) {
+export default async function StorefrontLayout({ children }: { children: React.ReactNode }) {
+  const cartCount = await getCartCount((await cookies()).get(CART_COOKIE)?.value);
+
   return (
     <>
       <SkipLink />
-      <Header />
+      {/* The Header is a client component; the server tells it what exists. */}
+      <Header contactAvailable={contactAvailable} cartCount={cartCount} />
       <main id="main-content">{children}</main>
       <Footer />
     </>
