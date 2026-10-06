@@ -157,12 +157,13 @@ describe('resolveEditorialAsset', () => {
   });
 
   it('turns the focal point into an object-position', () => {
-    // hero: desktop { x: 70, y: 55 }, on the model in the right half of the
-    // wide master; mobile { x: 50, y: 40 }, centred on the portrait master's
-    // centred subject - see the registry note.
+    // hero: desktop { x: 70, y: 24 }, on the model in the right half of the
+    // wide master and high enough to keep her eyes in a short, wide box;
+    // mobile { x: 50, y: 40 }, centred on the portrait master's centred
+    // subject - see the registry note.
     const resolved = resolveEditorialAsset('hero');
 
-    expect(resolved.objectPosition).toBe('70% 55%');
+    expect(resolved.objectPosition).toBe('70% 24%');
     expect(resolved.mobileObjectPosition).toBe('50% 40%');
   });
 

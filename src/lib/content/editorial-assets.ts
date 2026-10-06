@@ -159,11 +159,23 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     // The old 35% kept clear of copy that used to sit over the picture, and in
     // any box narrower than the photograph it cropped to the empty wall.
     //
-    // Below centre vertically because the desktop box is a wide band - 3:1 to
-    // 3.6:1 once the headline and its action share the first screen - so some
-    // of the frame's height always goes. 55% gives it up from the hair rather
-    // than from the pendants and bracelets.
-    focalPoint: { x: 70, y: 55 },
+    // VERTICALLY, THE FACE DECIDES. The desktop box is a wide band - the
+    // photograph takes whatever height the headline leaves - so part of the
+    // frame's height always goes, and on common laptop screens far more than
+    // the 3:1 to 3.6:1 this was first tuned for: 1366x768 is about 3.5:1, a
+    // 1920-wide browser 911px tall about 4.3:1, where the box shows barely
+    // half the picture's height. At 55% that half began below the eyes, and
+    // the hero opened on a face cut off at the nose.
+    //
+    // In the master the hair meets the top edge, the eyes sit at ~19% of the
+    // height, the chin ~39%, the diamond pendant ~65%, the coin ~72%, the
+    // bracelets ~85%. Measured in real browser windows (screen height less the
+    // tabs, address bar and taskbar), the band runs from 3:1 on a 2560x1440
+    // monitor to 5.3:1 on a 1366x768 laptop, where it bottoms out at its 256px
+    // minimum. 24% keeps the whole face, forehead included, across that whole
+    // range, and still shows the necklaces and pendants on ordinary desktops.
+    // Losing a bracelet reads as a crop; losing the eyes reads as a mistake.
+    focalPoint: { x: 70, y: 24 },
     // The portrait master is composed around a centred subject, so the window
     // stays centred across; 40% keeps the eyes in frame when a tablet's wider
     // box crops it hardest, with the necklaces, rings and bracelets beneath.
