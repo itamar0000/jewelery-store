@@ -19,6 +19,7 @@ const PARAM_BY_CODE: Readonly<Record<string, string>> = {
   gold_color: 'color',
   ring_size: 'size',
   length: 'length',
+  diamond_carat: 'carat',
 };
 
 export interface ChoiceOption {

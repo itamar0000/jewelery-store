@@ -5,6 +5,7 @@ import { FeatureBanner } from '@/components/storefront/FeatureBanner';
 import { FeaturedProducts } from '@/components/storefront/FeaturedProducts';
 import { FaqSection } from '@/components/storefront/FaqSection';
 import { Hero } from '@/components/storefront/Hero';
+import { OrderSteps } from '@/components/storefront/OrderSteps';
 import { BEST_SELLERS_SLUG, getBestSellers } from '@/lib/catalog/best-sellers';
 import { getCollections } from '@/lib/catalog/queries';
 
@@ -17,43 +18,18 @@ import { getCollections } from '@/lib/catalog/queries';
  * exist, and the newsletter block needs an email system and a consent decision
  * that is a legal question (section 52).
  *
- * COMPOSITION: PEAKS AND VALLEYS, NOT A STACK OF EQUALS.
+ * COMPOSITION (D4D.26, design A - the atelier). The order and the grammar
+ * are the owner's chosen design:
  *
- * The page is deliberately NOT a run of same-weight bands. Reviewed as rendered
- * output, its worst fault was that three consecutive sections - categories,
- * best sellers, collections - were built identically: a centred heading, one
- * row of things, captions underneath. Nothing was allowed to be the high point,
- * so nothing was.
- *
- * Each band states itself differently, and they alternate in weight:
- *
- *   hero          PEAK    one photograph edge to edge, the line beneath it
- *   categories    high    asymmetric grid, lead tile, names on a rule below
- *   best sellers  valley  centred heading, four products, captions below
- *   diamonds      mid     split editorial on a muted ground
- *   collections   high    wide alternating bands, name on a rule below
- *   atelier       mid     split editorial, mirrored from the diamonds panel
- *   bridal        PEAK    full-bleed campaign banner, the closing image
- *   FAQ           valley  three questions in a narrow column
- *
- * ORDER CHANGED IN THE EDITORIAL PASS. Bridal and the atelier panel swapped
- * places, and collections moved up between the two editorial panels. The
- * reason is that bridal is now a full-bleed campaign frame rather than another
- * split panel: as the last image before the FAQ it closes the page on its
- * strongest picture, where in the middle it competed with the hero. Collections
- * landing between the two split panels also stops those panels sitting back to
- * back, which was the mirrored-layout repetition the previous pass had been
- * trying to avoid by other means.
- *
- * Two sections were REMOVED rather than restyled. Reviews is gone entirely -
- * three empty testimonial cards read as broken product cards, and no real
- * reviews exist to put in them (see the git history of ReviewsSection.tsx for
- * why fabricating them was never an option). The FAQ band shrank from four
- * topics with a full section heading to three questions in a narrow column: the
- * homepage is a shopping experience, not a help centre.
- *
- * The resulting arc is: look - browse - understand - discover - commission -
- * aspire - reassure.
+ *   hero          two columns: the line and two pills; the photograph, curved
+ *   categories    five arches, names in the serif beneath
+ *   best sellers  four pieces on the ivory, packshots seated into it
+ *   workshop      the green field beside the atelier photograph
+ *   steps         four numbered steps over one rule
+ *   bridal        full-bleed photograph, square; statement and action below
+ *   diamonds      split editorial on the recessed ivory, mirrored
+ *   collections   two wide arches
+ *   FAQ           three questions, then the night footer closes the page
  *
  * ALL COPY HERE IS PROVISIONAL AND DESCRIPTIVE, NOT MARKETING. The brand name,
  * slogan and voice are TBD (section 2 and 57). Every string below states a
@@ -100,36 +76,25 @@ export default async function HomePage() {
   return (
     <>
       {/*
-       * THE PAGE OPENS ON THE JEWELLERY, NOT ON THE OFFER.
-       *
-       * An earlier version opened on the personalisation offer - the headline
-       * and the only action were both about altering a model. The owner's
-       * judgement was that this pushes the service before the visitor has seen
-       * a single piece, and the page now leads with the photography. The
-       * mechanism - their own workshop, any model alterable - has not been
-       * dropped; it moved to the custom band below, where a visitor arrives
-       * already interested.
-       *
-       * The line is the only claim in this viewport, and it claims one thing:
-       * what the shop sells and who makes it. No price, no stock, no urgency.
+       * The line claims one thing: each piece is made for the buyer, straight
+       * from the workshop (PRODUCT.md, manufacturer-direct). No price, no
+       * stock, no urgency. The body names the real axes of alteration; karat
+       * is altered through a custom request (D4D.25), which is still true.
        */}
       <Hero
-        title="תכשיטי זהב ויהלומים, ישר מהסדנה שלנו"
-        /*
-         * The label says where it goes. It read "לקטלוג המלא" and opened
-         * /rings: there is no all-products page, so the honest destination for
-         * "the catalogue" is the five categories directly below.
-         */
-        action={{ label: 'לכל הקטגוריות', href: '#discovery-heading' }}
+        lead="תכשיט שנוצר בשבילך,"
+        emphasis="ישירות"
+        tail="מהסדנה"
+        body="כל דגם אצלנו אפשר לשנות: קראט, גוון זהב, מידה, חריטה ואבן. בלי חנות באמצע, ובלי המרווח שלה במחיר."
+        primary={{ label: 'לצפייה בקטלוג', href: '#discovery-heading' }}
+        secondary={{ label: 'עיצוב בהתאמה אישית', href: '/custom' }}
         imageLabel="תמונת נושא"
       />
 
       <CategoryDiscovery />
 
       {/*
-       * "לצפייה בהכל" only when "all" is more than the rail already shows. The
-       * collection holds exactly the four on screen, so the link opened the
-       * same four on a page of their own.
+       * "לצפייה בהכל" only when "all" is more than the rail already shows.
        */}
       <FeaturedProducts
         id="best-sellers-heading"
@@ -140,11 +105,23 @@ export default async function HomePage() {
       />
 
       {/*
-       * BRIDAL IS FOURTH, NOT SEVENTH, and in the hero's grammar: the one
-       * occasion the catalogue is built around, given the page's second
-       * full-bleed photograph instead of a framed box near the end of the page
-       * (FeatureBanner).
+       * THE WORKSHOP, ON THE GREEN FIELD. Every fact is PRODUCT.md's: made
+       * after the order, in the owner's own workshop in Israel, which is why
+       * any detail can change and why no shop's margin is in the price.
        */}
+      <EditorialPanel
+        id="workshop-heading"
+        title="שום דבר לא יושב על מדף"
+        body="התכשיט מיוצר אחרי ההזמנה, בסדנה שלנו בישראל. לכן אפשר לשנות כל פרט, ולכן אתם משלמים על התכשיט ולא על חנות."
+        action={{ label: 'לעיצוב אישי', href: '/custom' }}
+        imageSide="end"
+        tone="field"
+        assetId="atelier"
+        imageLabel="עבודת צורף"
+      />
+
+      <OrderSteps />
+
       <FeatureBanner
         id="bridal-heading"
         title="אירוסין ונישואין"
@@ -156,9 +133,7 @@ export default async function HomePage() {
 
       <EditorialPanel
         id="diamonds-heading"
-        // LITERAL, NOT A CHOICE THE CATALOGUE CANNOT BACK. This said "natural
-        // or lab - your choice" while all but two pieces were lab-grown; it now
-        // says what the shelves hold and how to ask for the other (D4D.15).
+        // LITERAL, NOT A CHOICE THE CATALOGUE CANNOT BACK (D4D.15).
         title="יהלומי מעבדה, וטבעיים לפי בקשה"
         body="רוב התכשיטים בקטלוג משובצים ביהלומי מעבדה. יהלום מעבדה זהה ליהלום טבעי בהרכב הכימי, במבנה הגבישי ובתכונות האופטיות; ההבדל הוא במקור ההיווצרות ובמחיר."
         points={[
@@ -178,26 +153,6 @@ export default async function HomePage() {
       />
 
       <FaqSection />
-
-      {/*
-       * THE PAGE ENDS ON THE WORKSHOP. It used to end on three FAQ links and
-       * then the footer's line that prices are estimates - a disclaimer as the
-       * last word. The close is now the shop's one real advantage (PRODUCT.md:
-       * their own workshop, so any model can be made another way), at the
-       * finale spacing tier with the line a size up.
-       */}
-      <EditorialPanel
-        id="custom-heading"
-        title="תכשיט שנבנה לפי בקשה"
-        body="ניתן להזמין תכשיט בעיצוב אישי, לשנות דגם קיים או להוסיף חריטה ושמות. התהליך מתחיל בפנייה, וממשיך בשרטוט ובאישור לפני הייצור."
-        // The close leads straight to the request form: requests are saved
-        // with a number whether or not a contact channel exists (D4D.14).
-        action={{ label: 'לשליחת בקשה', href: '/custom/request' }}
-        imageSide="end"
-        assetId="atelier"
-        imageLabel="עבודת צורף"
-        finale
-      />
     </>
   );
 }

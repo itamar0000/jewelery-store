@@ -75,9 +75,9 @@ export function Pagination({
                 scroll
                 aria-current={entry === page ? 'page' : undefined}
                 className={cn(
-                  'inline-flex size-11 items-center justify-center border text-sm transition-colors',
+                  'inline-flex size-11 items-center justify-center rounded-full border text-sm transition-colors',
                   entry === page
-                    ? 'border-foreground bg-foreground text-background'
+                    ? 'border-accent bg-accent text-accent-foreground'
                     : 'border-border hover:border-border-strong hover:bg-muted',
                 )}
               >

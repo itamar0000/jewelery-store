@@ -301,16 +301,20 @@ model ProductImage {
 
   /// Storage key, never a URL — the storage provider is TBD (TBD.md I1) and
   /// keys survive a provider change.
-  storageKey String
+  storageKey   String
   /// Required: accessibility is not optional (spec section 47).
-  altHe      String
-  width      Int?
-  height     Int?
-  position   Int       @default(0)
-  isPrimary  Boolean   @default(false)
-  mediaType  MediaType @default(IMAGE)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  altHe        String
+  width        Int?
+  height       Int?
+  position     Int       @default(0)
+  isPrimary    Boolean   @default(false)
+  /// A generated image - a piece shown worn, composed from its own photograph
+  /// - rather than a photograph of the piece. The gallery labels it "הדמיה"
+  /// wherever it is shown (D4D.21).
+  isSimulation Boolean   @default(false)
+  mediaType    MediaType @default(IMAGE)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([productId, position])
   @@index([variantId, position])
@@ -578,6 +582,12 @@ model User {
 
   role UserRole @default(CUSTOMER)
 
+  /// How the admin shows this person in order and request history.
+  displayName String?
+  /// A staff member who should no longer sign in. Set instead of deleting the
+  /// row, so the history they wrote keeps its author (D4D.24).
+  disabledAt  DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -626,6 +636,22 @@ model Session {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+/// One sign-in attempt on the admin, kept to rate-limit guessing (ARCHITECTURE
+/// 6: authentication is rate-limited). The email is stored normalised and the
+/// address the attempt came from only as a hash. Rows older than a day carry
+/// no meaning and may be pruned.
+model LoginAttempt {
+  id              String   @id @default(cuid())
+  emailNormalized String
+  /// SHA-256 of the client address; null when the platform gives none.
+  ipHash          String?
+  succeeded       Boolean
+  createdAt       DateTime @default(now())
+
+  @@index([emailNormalized, createdAt])
+  @@index([ipHash, createdAt])
 }
 
 model VerificationToken {

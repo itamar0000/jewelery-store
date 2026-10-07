@@ -56,3 +56,7 @@ desktop.ini
 
 # Impeccable inspection captures: build evidence, regenerated on demand.
 .impeccable/review/
+photo-kit/
+
+# Local admin sign-in for development (scripts/admin-user.ts), never committed
+.admin-local.txt

@@ -35,7 +35,7 @@ export default function StorefrontError({
   return (
     <Container className="py-20">
       <div className="border-border mx-auto max-w-(--container-prose) rounded-sm border p-8 text-center">
-        <h1 className="font-display text-2xl font-bold tracking-tight md:text-3xl">משהו השתבש</h1>
+        <h1 className="font-display text-2xl font-normal tracking-tight md:text-3xl">משהו השתבש</h1>
 
         <p className="text-muted-foreground mt-4 text-sm text-pretty">
           לא הצלחנו לטעון את התוכן הזה כרגע. אפשר לנסות שוב, או לחזור לדף הבית.

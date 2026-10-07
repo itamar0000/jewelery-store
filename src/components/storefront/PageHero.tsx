@@ -76,7 +76,7 @@ export function PageHero({
 
         <h1
           className={cn(
-            'font-display leading-[1.05] font-bold tracking-tight text-balance',
+            'font-display leading-[1.05] font-normal tracking-tight text-balance',
             size === 'compact' ? 'text-3xl xl:text-4xl' : 'text-3xl md:text-5xl xl:text-6xl',
           )}
         >
@@ -84,7 +84,7 @@ export function PageHero({
         </h1>
 
         {description && (
-          <p className="text-muted-foreground mt-5 max-w-(--container-prose) text-base text-pretty">
+          <p className="text-muted-foreground mt-5 max-w-(--container-prose) text-base leading-[1.8] font-light text-pretty">
             {description}
           </p>
         )}

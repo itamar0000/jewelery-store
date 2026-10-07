@@ -52,7 +52,7 @@ export default function CustomPage() {
           <div>
             <h2
               id="process-heading"
-              className="font-display text-2xl font-bold tracking-tight md:text-3xl"
+              className="font-display text-2xl font-normal tracking-tight md:text-3xl"
             >
               איך זה עובד
             </h2>

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
 import { ChevronIcon } from '@/components/ui/icons';
 
@@ -34,19 +35,19 @@ export function FaqSection() {
       <div className="mx-auto max-w-(--container-narrow)">
         <h2
           id="faq-heading"
-          className="font-display text-2xl font-bold tracking-tight text-balance md:text-3xl"
+          className="font-display text-4xl leading-[1.1] font-normal text-balance md:text-5xl"
         >
           שאלות נפוצות
         </h2>
 
-        <ul className="border-border mt-6 border-t">
+        <ul className="border-border mt-10 border-t">
           {FAQ_TOPICS.map((topic) => (
             <li key={topic.id} className="border-border border-b">
               <Link
                 href={`/faq#${topic.id}`}
-                className="group flex items-center justify-between gap-4 py-4 transition-colors"
+                className="group flex items-center justify-between gap-4 py-5 transition-colors"
               >
-                <span className="decoration-border-strong text-sm underline-offset-[0.35em] group-hover:underline">
+                <span className="font-display group-hover:text-accent text-xl transition-colors">
                   {topic.title}
                 </span>
                 <ChevronIcon className="text-muted-foreground icon-directional size-4 shrink-0" />
@@ -55,12 +56,11 @@ export function FaqSection() {
           ))}
         </ul>
 
-        <Link
-          href="/faq"
-          className="decoration-border-strong hover:decoration-foreground touch-target mt-6 inline-block text-sm font-semibold underline underline-offset-[0.4em] transition-colors"
-        >
-          לכל השאלות
-        </Link>
+        <div className="mt-8">
+          <Button href="/faq" variant="secondary">
+            לכל השאלות
+          </Button>
+        </div>
       </div>
     </Container>
   );

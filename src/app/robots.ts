@@ -44,7 +44,16 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/cart', '/checkout', '/order', '/wishlist', '/account', '/search', '/api/'],
+      disallow: [
+        '/cart',
+        '/checkout',
+        '/order',
+        '/wishlist',
+        '/account',
+        '/search',
+        '/api/',
+        '/admin',
+      ],
     },
     sitemap: `${base}/sitemap.xml`,
   };

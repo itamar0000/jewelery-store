@@ -359,7 +359,7 @@ export function ProductDetailView({
          * than owning the width of the page. It was regular weight at 36px:
          * the one heading on the site that did not read as a heading.
          */}
-        <h1 className="font-display text-3xl font-bold tracking-tight text-balance xl:text-4xl">
+        <h1 className="font-display text-3xl font-normal tracking-tight text-balance xl:text-4xl">
           {product.nameHe}
         </h1>
 
@@ -493,9 +493,9 @@ export function ProductDetailView({
                       aria-pressed={active}
                       onClick={select}
                       className={cn(
-                        'touch-target inline-flex h-10 items-center border px-4 text-sm transition-colors',
+                        'touch-target inline-flex h-10 items-center rounded-full border px-4 text-sm transition-colors',
                         active
-                          ? 'border-foreground bg-foreground text-background'
+                          ? 'border-accent bg-accent text-accent-foreground'
                           : 'border-border hover:border-border-strong hover:bg-muted',
                       )}
                     >
@@ -504,6 +504,18 @@ export function ProductDetailView({
                   );
                 })}
               </div>
+
+              {/*
+               * ONE PHOTOGRAPH, SEVERAL SIZES. A piece offered in more than one
+               * diamond size is photographed once; the stone in the picture is
+               * one of them, not necessarily the one chosen (D4D.24). Said
+               * here, beside the choice, where the question arises.
+               */}
+              {option.code === 'diamond_carat' && (
+                <p className="text-muted-foreground mt-2.5 text-sm">
+                  התמונות להמחשת העיצוב. גודל היהלום לפי הבחירה, והמשקל המדויק מופיע במפרט.
+                </p>
+              )}
             </fieldset>
           ),
         )}
@@ -553,9 +565,9 @@ export function ProductDetailView({
                       }}
                       {...(index === 0 && { [PROBLEM_TARGET]: option.code })}
                       className={cn(
-                        'touch-target inline-flex h-10 min-w-12 items-center justify-center border px-3 text-sm transition-colors',
+                        'touch-target inline-flex h-10 min-w-12 items-center justify-center rounded-full border px-3 text-sm transition-colors',
                         active
-                          ? 'border-foreground bg-foreground text-background'
+                          ? 'border-accent bg-accent text-accent-foreground'
                           : 'border-border hover:border-border-strong hover:bg-muted',
                       )}
                     >
@@ -787,7 +799,7 @@ function DiamondSpecTable({ diamond }: { diamond: NonNullable<ProductDetail['dia
   const shapeHe = diamond.shape ? shapeNameHe(diamond.shape) : null;
   const rows: readonly { label: string; value: string; gloss?: string | null }[] = [
     ...(diamond.totalCaratWeight
-      ? [{ label: 'משקל כולל', value: `${diamond.totalCaratWeight} קראט` }]
+      ? [{ label: 'משקל כולל', value: `${Number(diamond.totalCaratWeight).toFixed(2)} קראט` }]
       : []),
     ...(diamond.stoneCount !== null
       ? [{ label: 'מספר אבנים', value: String(diamond.stoneCount) }]

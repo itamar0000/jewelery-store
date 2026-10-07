@@ -164,7 +164,7 @@ describe('resolveEditorialAsset', () => {
     const resolved = resolveEditorialAsset('hero');
 
     expect(resolved.objectPosition).toBe('70% 24%');
-    expect(resolved.mobileObjectPosition).toBe('50% 40%');
+    expect(resolved.mobileObjectPosition).toBe('50% 12%');
   });
 
   it('falls back to the centre when an asset declares no focal point', () => {

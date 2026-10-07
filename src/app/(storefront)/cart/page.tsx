@@ -41,7 +41,7 @@ export default async function CartPage() {
 
   return (
     <Container className="py-10 md:py-14">
-      <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">סל הקניות</h1>
+      <h1 className="font-display text-3xl font-normal tracking-tight md:text-4xl">סל הקניות</h1>
 
       <CartUndoArea restore={addToCartAction}>
         {empty ? (

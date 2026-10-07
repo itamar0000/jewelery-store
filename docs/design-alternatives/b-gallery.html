@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>B · גלריה – Jewelry for Less</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0e0e0e;--bg:#fff;--line:#0e0e0e}
+*{box-sizing:border-box;margin:0}body{background:var(--bg);color:var(--ink);font:400 16px/1.6 Heebo,sans-serif}
+img{display:block;width:100%;height:100%;object-fit:cover}a{color:inherit;text-decoration:none}
+.top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:18px 28px;border-bottom:2px solid var(--line);font-size:14px;font-weight:700}
+.top .logo{font-weight:900;font-size:20px;letter-spacing:-.02em;direction:ltr}.top .r{text-align:left}
+.hero{position:relative;height:92vh;overflow:hidden;border-bottom:2px solid var(--line)}
+.hero img{object-position:60% 22%}
+.hero h1{position:absolute;inset:auto 28px 20px 28px;font:900 clamp(60px,15vw,260px)/.82 Heebo;letter-spacing:-.06em;color:#fff;mix-blend-mode:difference}
+.hero .tag{position:absolute;top:24px;right:28px;background:#fff;padding:8px 14px;font-weight:700;font-size:14px}
+.ticker{display:flex;justify-content:space-between;padding:14px 28px;border-bottom:2px solid var(--line);font-weight:700;font-size:14px;gap:10px;flex-wrap:wrap}
+.index a{display:grid;grid-template-columns:70px 1fr 220px;align-items:center;border-bottom:2px solid var(--line);padding:0 28px;height:140px;overflow:hidden;transition:.25s}
+.index a b{font:900 clamp(44px,8vw,120px)/1 Heebo;letter-spacing:-.05em}.index a i{font-style:normal;font-size:14px;font-weight:700}
+.index a .th{height:100%;width:220px;justify-self:end;opacity:0;transition:.3s}.index a:hover{background:var(--ink);color:#fff}.index a:hover .th{opacity:1}
+.mos{display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:150px;gap:2px;background:var(--line);border-bottom:2px solid var(--line)}
+.mos>*{background:#fff;overflow:hidden;position:relative}.mos .a{grid-column:span 5;grid-row:span 4}.mos .b{grid-column:span 4;grid-row:span 2}.mos .c{grid-column:span 3;grid-row:span 3}.mos .d{grid-column:span 4;grid-row:span 2}.mos .e{grid-column:span 3;grid-row:span 1;display:flex;align-items:center;justify-content:center;font:900 28px/1 Heebo;padding:14px;text-align:center;background:var(--ink);color:#fff}
+.mos span{position:absolute;bottom:10px;right:10px;background:#fff;font-weight:700;font-size:13px;padding:4px 10px}
+.big{padding:100px 28px;border-bottom:2px solid var(--line);display:grid;grid-template-columns:1.4fr 1fr;gap:60px}
+.big h2{font:900 clamp(44px,7vw,110px)/.9 Heebo;letter-spacing:-.05em}.big p{font-size:19px;align-self:end;max-width:36ch}
+.btn{display:inline-block;margin-top:22px;border:2px solid var(--ink);padding:14px 30px;font-weight:700}.btn:hover{background:var(--ink);color:#fff}
+.cols{display:grid;grid-template-columns:repeat(3,1fr)}.cols>div{padding:40px 28px;border-left:2px solid var(--line)}.cols>div:last-child{border:0}.cols b{font:900 60px/1 Heebo;display:block;margin-bottom:10px}
+footer{background:var(--ink);color:#fff;padding:60px 28px 30px}footer .l{font:900 clamp(50px,14vw,220px)/.85 Heebo;letter-spacing:-.06em;direction:ltr;text-align:center;margin-bottom:30px}footer p{font-size:13px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+@media(max-width:800px){.top nav{display:none}.top{grid-template-columns:1fr auto}.index a{grid-template-columns:40px 1fr;height:100px}.index a .th{display:none}.mos{grid-auto-rows:90px}.mos .a{grid-column:span 12;grid-row:span 4}.mos .b,.mos .c,.mos .d{grid-column:span 6;grid-row:span 3}.mos .e{grid-column:span 12}.big{grid-template-columns:1fr}.cols{grid-template-columns:1fr}.cols>div{border:0;border-bottom:2px solid var(--line)}}
+</style></head><body>
+<header class="top"><div class="r"></div><span class="logo">JEWELRY FOR LESS</span><div class="r">סל (0) · חיפוש</div></header>
+<section class="hero"><img src="img/hero.jpg" alt=""><span class="tag">תכשיטי זהב ויהלומים · ישירות מהיצרן</span><h1>זהב<br>בלי מתווך</h1></section>
+<div class="ticker"><span>מיוצר בישראל</span><span>14K · 18K</span><span>משלוח חינם</span><span>כל דגם ניתן לשינוי</span></div>
+<section class="index">
+<a><i>01</i><b>טבעות</b><div class="th"><img src="img/cat-rings.jpg"></div></a>
+<a><i>02</i><b>שרשראות</b><div class="th"><img src="img/cat-necklaces.jpg"></div></a>
+<a><i>03</i><b>עגילים</b><div class="th"><img src="img/cat-earrings.jpg"></div></a>
+<a><i>04</i><b>צמידים</b><div class="th"><img src="img/cat-bracelets.jpg"></div></a>
+<a><i>05</i><b>סטים</b><div class="th"><img src="img/cat-sets.jpg"></div></a></section>
+<section class="mos">
+<a class="a"><img src="img/p-halo-ring-worn.jpg"><span>טבעת הילה</span></a>
+<a class="b"><img src="img/p-tennis-bracelet-worn.jpg"><span>צמיד טניס</span></a>
+<a class="c"><img src="img/p-name-necklace-worn.jpg"><span>שרשרת שם</span></a>
+<a class="e">הדגמים המבוקשים</a>
+<a class="d"><img src="img/p-diamond-hoops-worn.jpg"><span>חישוקי יהלומים</span></a>
+<a class="b"><img src="img/p-pear-solitaire-worn.jpg"><span>סוליטר אגס</span></a></section>
+<section class="big"><h2>שלנו.<br>לכן שלכם.</h2><div><p>הסדנה בישראל היא שלנו, ולכן כל תכשיט אפשר לשנות: קראט, צבע, מידה, חריטה ואבן. ואין חנות בשרשרת, אז אין מרווח חנות במחיר.</p><a class="btn">עיצוב בהתאמה אישית ←</a></div></section>
+<section class="cols"><div><b>01</b>בוחרים דגם</div><div><b>02</b>מתאימים אותו אליכם</div><div><b>03</b>מייצרים ושולחים, חינם</div></section>
+<footer><div class="l">JEWELRY<br>FOR LESS</div><p><span>תכשיטי זהב ויהלומים</span><span>שאלות נפוצות · תנאי שימוש · צור קשר</span></p></footer>
+</body></html>

@@ -32,7 +32,7 @@ export type PurchaseStatus =
 export const PROBLEM_TARGET = 'data-problem-target';
 
 const CHOICE_BUTTON =
-  'touch-target inline-flex h-10 min-w-12 items-center justify-center border px-3 text-sm transition-colors';
+  'touch-target inline-flex h-10 min-w-12 items-center justify-center rounded-full border px-3 text-sm transition-colors';
 
 export function PersonalizationFields({
   fields,
@@ -126,7 +126,7 @@ function PersonalizationField({
                 className={cn(
                   CHOICE_BUTTON,
                   active
-                    ? 'border-foreground bg-foreground text-background'
+                    ? 'border-accent bg-accent text-accent-foreground'
                     : 'border-border hover:border-border-strong hover:bg-muted',
                 )}
               >

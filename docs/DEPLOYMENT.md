@@ -95,6 +95,38 @@ string that decides which database is written, not where the command runs.
 
 ---
 
+## Who can sign in to the admin
+
+The admin lives at `/admin`. There is no sign-up page: the people who may
+enter are added from your machine, pointing at the production database, the
+same way as the seed above:
+
+```bash
+DATABASE_URL="<pooled Neon URL>" npm run admin:user -- add --email you@example.com --name "שם"
+```
+
+It prints a password **once**; hand it over and change it after the first
+sign-in (the name at the top of the admin → החלפת סיסמה). The same script
+lists people (`list`), issues a new password (`reset`), and removes or
+restores access (`disable`, `enable`). Nobody is deleted, so their name stays
+on the history they wrote. See the top of `scripts/admin-user.ts`.
+
+---
+
+## Selling 14K only
+
+The catalogue change of D4D.25 is data, not code, so it runs once against
+production after the deploy, from your machine:
+
+```bash
+DATABASE_URL="<pooled Neon URL>" node scripts/fourteen-karat-only.ts
+DATABASE_URL="<pooled Neon URL>" node scripts/fourteen-karat-only.ts --apply
+```
+
+The first prints the plan; the second applies it. Running it twice is safe.
+
+---
+
 ## What is deliberately not configured
 
 **Images.** No media bucket is provisioned (`MEDIA_S3_*` unset), so every image

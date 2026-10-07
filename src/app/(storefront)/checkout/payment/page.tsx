@@ -47,7 +47,7 @@ export default async function PaymentPage() {
 
   return (
     <Container className="py-10 md:py-14">
-      <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">השלמת ההזמנה</h1>
+      <h1 className="font-display text-3xl font-normal tracking-tight md:text-4xl">השלמת ההזמנה</h1>
 
       <div className="mt-8 grid gap-12 lg:grid-cols-12 lg:gap-16">
         <div className="lg:col-span-7">
@@ -56,7 +56,7 @@ export default async function PaymentPage() {
           <section aria-labelledby="payment-heading" className="mt-8">
             <h2
               id="payment-heading"
-              className="font-display text-2xl font-bold tracking-tight text-balance"
+              className="font-display text-2xl font-normal tracking-tight text-balance"
             >
               {!awaitingPayment
                 ? 'ההזמנה אינה ממתינה לתשלום'

@@ -338,6 +338,14 @@
     }
   }
 
+  /*
+   * Always the portrait crop, at its own focal point: for a box that is
+   * upright at every size, like the atelier hero's photograph column.
+   */
+  .editorial-focal-portrait {
+    object-position: var(--editorial-focal-mobile, 50% 50%);
+  }
+
   /* Cancels the flip inside an explicitly LTR subtree, so a directional icon
    * embedded in LTR content (a code sample, an English spec table) still
    * points the right way. */

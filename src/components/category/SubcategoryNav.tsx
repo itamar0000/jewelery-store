@@ -50,8 +50,8 @@ export function SubcategoryNav({
                 aria-current={active ? 'page' : undefined}
                 className={
                   active
-                    ? 'bg-foreground text-background touch-target inline-flex h-9 items-center px-4 text-sm'
-                    : 'border-border hover:border-border-strong hover:bg-muted touch-target inline-flex h-9 items-center border px-4 text-sm transition-colors'
+                    ? 'bg-accent text-accent-foreground touch-target inline-flex h-9 items-center rounded-full px-4 text-sm'
+                    : 'border-border hover:border-border-strong hover:bg-muted touch-target inline-flex h-9 items-center rounded-full border px-4 text-sm transition-colors'
                 }
               >
                 {link.label}

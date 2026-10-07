@@ -137,7 +137,7 @@ export function RequestForm({ model, submit }: { model: RequestModel | null; sub
 
   return (
     <form noValidate onSubmit={send} aria-labelledby="request-heading">
-      <h2 id="request-heading" className="font-display text-2xl font-bold tracking-tight">
+      <h2 id="request-heading" className="font-display text-2xl font-normal tracking-tight">
         {model ? 'מה לשנות בדגם' : 'מה להכין'}
       </h2>
 
@@ -329,9 +329,9 @@ function Choice({
       />
       <span
         className={cn(
-          'peer-focus-visible:outline-ring inline-flex h-10 items-center border px-4 text-sm transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2',
+          'peer-focus-visible:outline-ring inline-flex h-10 items-center rounded-full border px-4 text-sm transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2',
           checked
-            ? 'border-foreground bg-foreground text-background'
+            ? 'border-accent bg-accent text-accent-foreground'
             : 'border-border hover:border-border-strong hover:bg-muted',
           invalid && !checked && 'border-destructive',
         )}
@@ -445,7 +445,7 @@ function Receipt({
         id="request-saved-heading"
         ref={ref}
         tabIndex={-1}
-        className="font-display text-2xl font-bold tracking-tight outline-none md:text-3xl"
+        className="font-display text-2xl font-normal tracking-tight outline-none md:text-3xl"
       >
         הבקשה נשמרה
       </h2>

@@ -33,7 +33,7 @@ export default async function CheckoutPage() {
 
   return (
     <Container className="py-10 md:py-14">
-      <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">השלמת ההזמנה</h1>
+      <h1 className="font-display text-3xl font-normal tracking-tight md:text-4xl">השלמת ההזמנה</h1>
 
       <div className="mt-8">
         <CheckoutFlow

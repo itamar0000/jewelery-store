@@ -67,13 +67,13 @@
  * ---------------------------------------------------------------------- */
 :root {
   /* The page. Barely warm, never cream. */
-  --ref-paper: #fafaf8;
-  --ref-paper-deep: #f0efec;
+  --ref-paper: #f4efe6;
+  --ref-paper-deep: #ebe4d6;
 
   /* Ink. The primary action is a block of this with paper type on it. */
-  --ref-ink: #111110;
-  --ref-ink-soft: #46443f;
-  --ref-ink-muted: #6e6b64;
+  --ref-ink: #1d2a24;
+  --ref-ink-soft: #3b4640;
+  --ref-ink-muted: #5f6359;
 
   /* Hairlines. The whole structural vocabulary of the page is these two.
    *
@@ -81,8 +81,8 @@
    * an empty field, the square of a checkbox - so it holds 3:1 against both
    * grounds. It was #b9b6ae, 1.9:1: a field nobody could find on a bright
    * screen. The plain hairline stays light; it only divides. */
-  --ref-line: #dedcd6;
-  --ref-line-strong: #8c8881;
+  --ref-line: #d6cdbb;
+  --ref-line-strong: #837d6d;
 
   /* Status. Desaturated to near-ink, because a bright system colour on a page
    * this quiet reads as an error in the design rather than in the form. */
@@ -99,7 +99,13 @@
    * different layout from the one that will ship.
    *
    * Contrast measured: placeholder-ink on placeholder is 5.4:1. */
-  --ref-placeholder: #dcd9d2;
+  --ref-placeholder: #e3dccd;
+  /* The atelier green (D4D.26): the one colour of action and emphasis. */
+  --ref-green: #2f4a3c;
+  --ref-green-deep: #243a2f;
+  --ref-green-pale: #c4d3c6;
+  /* The footer and the night ground: ink is already green-black. */
+  --ref-night-foreground: #d3d7cc;
   --ref-placeholder-ink: #56534c;
 
   /* --- Motion curves ----------------------------------------------------
@@ -173,7 +179,7 @@
    * the jewellery cannot spend a hue on a hover state without making the hover
    * the most colourful thing on screen.
    */
-  --color-accent: var(--ref-ink);
+  --color-accent: var(--ref-green);
   --color-accent-foreground: var(--ref-paper);
   --color-accent-muted: var(--ref-paper-deep);
 
@@ -184,8 +190,8 @@
    * they were right: a saturated red block is the loudest thing on a quiet page
    * and it read as a sticker rather than as a considered control.
    */
-  --color-stamp: var(--ref-ink);
-  --color-stamp-hover: #2b2a27;
+  --color-stamp: var(--ref-green);
+  --color-stamp-hover: var(--ref-green-deep);
   --color-stamp-foreground: var(--ref-paper);
 
   /*
@@ -213,6 +219,13 @@
   --color-success-foreground: var(--ref-paper);
   --color-warning: var(--ref-warning);
   --color-warning-foreground: var(--ref-paper);
+
+  /* The green field band and the night footer (D4D.26). */
+  --color-field: var(--ref-green);
+  --color-field-foreground: var(--ref-paper);
+  --color-field-muted: var(--ref-green-pale);
+  --color-night: var(--ref-ink);
+  --color-night-foreground: var(--ref-night-foreground);
 }
 
 /* -------------------------------------------------------------------------
@@ -329,9 +342,7 @@
   --font-sans:
     var(--font-house-sans), 'Segoe UI', system-ui, -apple-system, 'Noto Sans Hebrew',
     'Arial Hebrew', Arial, sans-serif;
-  --font-display:
-    var(--font-house-display), var(--font-house-sans), 'Segoe UI', system-ui, -apple-system,
-    'Noto Sans Hebrew', 'Arial Hebrew', Arial, sans-serif;
+  --font-display: var(--font-house-display), 'David', 'Frank Ruehl CLM', 'Times New Roman', serif;
 
   /* Type scale. Line heights are generous - Hebrew has no ascender/descender
    * rhythm to lean on, and section 2 asks for generous whitespace.
@@ -433,11 +444,11 @@
    * affordance and not a hierarchy device; the few things that float carry one
    * are physical objects lying on a ground. Deliberately subtle: section 2
    * rejects noise. */
-  --shadow-xs: 0 1px 2px 0 rgb(6 20 34 / 0.05);
-  --shadow-sm: 0 1px 3px 0 rgb(6 20 34 / 0.06), 0 1px 2px -1px rgb(6 20 34 / 0.05);
-  --shadow-md: 0 4px 12px -2px rgb(6 20 34 / 0.08), 0 2px 4px -2px rgb(6 20 34 / 0.05);
-  --shadow-lg: 0 12px 28px -6px rgb(6 20 34 / 0.1), 0 4px 8px -4px rgb(6 20 34 / 0.06);
-  --shadow-xl: 0 24px 48px -12px rgb(6 20 34 / 0.13);
+  --shadow-xs: 0 1px 2px 0 rgb(29 42 36 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(29 42 36 / 0.06), 0 1px 2px -1px rgb(29 42 36 / 0.05);
+  --shadow-md: 0 4px 12px -2px rgb(29 42 36 / 0.08), 0 2px 4px -2px rgb(29 42 36 / 0.05);
+  --shadow-lg: 0 12px 28px -6px rgb(29 42 36 / 0.1), 0 4px 8px -4px rgb(29 42 36 / 0.06);
+  --shadow-xl: 0 24px 48px -12px rgb(29 42 36 / 0.13);
 
   /* --- Motion durations -------------------------------------------------
    * Speed is the loudest signal a site sends about what it thinks it is.

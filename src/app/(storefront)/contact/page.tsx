@@ -48,7 +48,7 @@ export default function ContactPage() {
           <section aria-labelledby="channels-heading">
             <h2
               id="channels-heading"
-              className="font-display text-2xl font-bold tracking-tight md:text-3xl"
+              className="font-display text-2xl font-normal tracking-tight md:text-3xl"
             >
               דרכי יצירת קשר
             </h2>

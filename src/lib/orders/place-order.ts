@@ -124,7 +124,7 @@ export async function placeOrder(
           statusEvents: {
             create: {
               toStatus: 'PENDING_PAYMENT',
-              note: 'Placed through checkout; awaiting payment.',
+              note: 'ההזמנה נשמרה באתר וממתינה לתשלום.',
             },
           },
         },

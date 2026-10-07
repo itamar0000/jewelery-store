@@ -36,7 +36,7 @@ export default async function OrderConfirmationPage() {
     <Container className="py-10 md:py-14">
       <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
         <div className="lg:col-span-7">
-          <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
+          <h1 className="font-display text-3xl font-normal tracking-tight md:text-4xl">
             ההזמנה התקבלה
           </h1>
           <p className="text-soft-foreground mt-3 max-w-(--measure-reading) text-base">

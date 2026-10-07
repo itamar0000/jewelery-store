@@ -144,7 +144,7 @@ export async function getPayableOrder(token: string | null | undefined): Promise
 }
 
 /** `OrderItem.selections` as frozen: `[{ optionLabelHe, valueLabelHe }]`. */
-function readSelections(value: unknown): { label: string; value: string }[] {
+export function readSelections(value: unknown): { label: string; value: string }[] {
   if (!Array.isArray(value)) return [];
 
   return value.flatMap((entry) => {

@@ -34,14 +34,21 @@ export function FeaturedProducts({
   if (products.length === 0) return null;
 
   return (
-    <Container as="section" aria-labelledby={id} className="py-section">
-      <SectionHeading id={id} title={title} description={description} href={href} />
-      <ProductGrid products={products.slice(0, limit)} compact />
+    /*
+     * On the page's own ivory, not the recessed band (D4D.26): the product
+     * photographs are shot on a near-white ground that sits quietly on the
+     * ivory and would read as white boxes on the darker band.
+     */
+    <section aria-labelledby={id} className="py-section md:py-feature">
+      <Container width="wide">
+        <SectionHeading id={id} title={title} description={description} href={href} />
+        <ProductGrid products={products.slice(0, limit)} compact />
 
-      {/* Said once for the row, not on each card; gone once prices are final. */}
-      {estimatedPricesNote && (
-        <p className="text-muted-foreground mt-10 text-xs">{estimatedPricesNote}</p>
-      )}
-    </Container>
+        {/* Said once for the row, not on each card; gone once prices are final. */}
+        {estimatedPricesNote && (
+          <p className="text-muted-foreground mt-10 text-xs">{estimatedPricesNote}</p>
+        )}
+      </Container>
+    </section>
   );
 }

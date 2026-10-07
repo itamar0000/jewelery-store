@@ -2352,3 +2352,188 @@ Still open from the critique, each waiting on something other than design:
 ring resizing ("לא בטוחים במידה?", owner), shipping and returns answers
 (owner), the bridal photograph's studio styling (photography), painted colour
 swatches (photographs of the metals), and thumbnails in instant search.
+
+## D4D.21 — Worn images may be generated, and say so
+
+The owner will generate worn images (a piece on a hand, an ear, a neck) with
+an AI tool rather than photograph them; every catalogue design is one the
+workshop makes, so the product images themselves stand.
+
+- **`ProductImage.isSimulation`** (migration `20261007090000_...`, default
+  false, no existing row changes) marks a generated image. The gallery labels
+  it "הדמיה" in the over-photograph chip, outside the zoom, whenever it is the
+  image shown; its alt text ends "(הדמיה)".
+- **A third slot.** `scripts/place-product-images.ts` takes role `worn`
+  (position 3, after main and detail), simulated by default; cards keep showing
+  the packshot and its close-up.
+- **The rules for generating them** are in `docs/photography/worn-image-prompts.md`:
+  the same piece exactly, true size from a carat-to-millimetre table (tools
+  enlarge stones), one natural-daylight look matching the category photographs,
+  no recognisable people. `photo-kit/` (not in git) holds each product's source
+  image and the site's style references.
+- **Not generated:** anything presented as the owner, the team, the workshop or
+  a customer.
+- The drop earrings' render shows ovals far larger than the listed 0.60 ct for
+  the pair; one of the two is wrong and is the owner's to check.
+
+## D4D.22 — Every menu panel has its photograph
+
+Only "טבעות" ended its mega-menu panel on a feature with a photograph; the
+owner asked for the same in every menu. Earrings, necklaces, bracelets and sets
+now end on one too, each leading to a real sub-category with products in it:
+diamond earrings, diamond necklaces, tennis bracelets, bridal sets.
+
+- **The photographs** (`public/images/editorial/menu/`, 3:2) are generated
+  still lifes in the look of the rings panel's own (ivory silk, window light),
+  each composed from that sub-category's actual pieces as reference.
+- **Necklaces lead to diamond necklaces, not name necklaces.** The name
+  necklace was the first choice, but the image tool could not cut Hebrew
+  letters correctly in two attempts ("רות" misspelled, the alef garbled), and
+  a misspelt name on the piece the panel is selling is worse than no panel.
+- The bridal photograph on the home page was replaced the same way (see the
+  `bridal` registry note).
+- Noted for the owner: the three-piece bridal set's description promises
+  earrings while its photographs show three rings.
+
+## D4D.23 — The owner's photo review, fixed image by image
+
+The owner went through every product page and listed 25 image problems:
+missing yellow-gold photographs, blurred or cropped close-ups, on-body images
+that showed a different piece (no earring back, the wrong gold, a visible
+clasp, a shorter drop), and missing on-body images. Each was answered with a
+generated image made from the product's own photograph, reviewed against it
+before it was kept.
+
+- **A yellow-gold option for six pieces** (`scripts/add-yellow-gold-variants.ts`,
+  dry run by default): pear solitaire, pavé band, emerald-cut ring, diamond
+  hoops, diamond cuff and the three-piece bridal set were listed in white (or
+  rose) only. Every model is made to order in any colour, so each yellow
+  variant mirrors its white one exactly: same karat, price, lead time, policy.
+  It adds only; no id, variant or photograph is touched. It is a catalogue
+  change and has to be run on production too.
+- **46 images placed** with `scripts/place-product-images.ts`. Packshots
+  recoloured to a new gold, and clean re-renders of blurred or cropped
+  close-ups, are product photographs and carry no label. Every image of the
+  piece on a hand, ear or neck is a simulation labelled "הדמיה", including
+  those that now fill position 2 where the seed's on-body photograph was wrong.
+- **The drop earrings keep their own on-ear photograph.** The simulation added
+  in D4D.21 was removed; it showed the drop shorter than the piece.
+- **The bangle needs no clasp**: it is a closed circle that slips over the
+  hand, and its new on-wrist images show it that way.
+- **The three-piece bridal set now shows what it sells.** Its description
+  promises an engagement ring, a wedding band and earrings; its photographs
+  showed three rings. New photographs (main and close-up, white and yellow)
+  show the engagement ring, the matching pavé band and a pair of studs.
+- Diamond size as a choice on the product page: built in D4D.24, priced by
+  the owner from the admin.
+
+## D4D.24 — The admin: sign-in, orders, requests, products and diamond sizes
+
+Orders were saved but nobody could see them; custom requests were read with a
+script; products changed only by scripts. The owner asked for an admin for a
+fixed list of people, signing in with email and password, and for every piece
+to be offered in more than one diamond size.
+
+- **Sign-in, not Auth.js.** ARCHITECTURE 7 named Auth.js with a Credentials
+  provider, which only supports signed-cookie sessions. The admin needs
+  sessions that end the moment someone is disabled or changes a password, so
+  it uses the schema's own `Session` table directly: a random token in an
+  httpOnly cookie, only its SHA-256 stored, seven days. Passwords are
+  Argon2id (`@node-rs/argon2`). Customer accounts, when they come, can still
+  adopt Auth.js; nothing here blocks it.
+- **Defence in depth, as ARCHITECTURE 6 asks.** Middleware sends any request
+  without the cookie to the sign-in page; every admin page and every admin
+  action then verifies the session in the database itself. Admin responses
+  are `noindex` and `no-store`, and `/admin` is disallowed in robots.txt.
+- **Guessing is capped in the database**: five wrong passwords per address
+  or thirty per network in fifteen minutes (`LoginAttempt`, addresses stored
+  only as hashes). Every refusal reads the same, and an unknown address takes
+  as long to refuse as a wrong password.
+- **People are added by script** (`npm run admin:user`), not by a sign-up
+  page: the list is short and fixed. `User.displayName` names them in the
+  history; `User.disabledAt` revokes them without deleting the history they
+  wrote. Migration `20261007120000_admin_auth` was written by hand: the
+  generated one also tried to drop the order and request number sequences.
+- **Orders**: list by status with search by number, name, phone (digit for
+  digit) or email; the order as it was placed, from its own snapshots; status
+  changes as history with author and note; cancelling releases the stock the
+  order held. Payment status is not editable: it belongs to the payment
+  provider's confirmations.
+- **Custom requests**: the specification's workflow, with the quote amount,
+  its details, the date it went out, internal notes and a WhatsApp link.
+- **Products**: words, visibility, archive and restore, and every variant's
+  price; the price range the shop filters on and the search document are
+  kept in step. Creating a new product and uploading photographs are not in
+  this pass.
+- **Diamond sizes.** A "גודל יהלום" option is a variant axis: the size a
+  piece is listed in becomes the base, and each added size mirrors every
+  base variant at the owner's price difference, with the same photographs,
+  made to order, and its own diamond record carrying the weight - so the
+  product page, the cart and the order all state the chosen size. The page
+  says the photographs illustrate the design. Withdrawing a size archives its
+  variants; offering it again brings them back. No sizes or prices were
+  invented: the owner adds them.
+
+## D4D.25 — 14 karat only; new products and photographs from the admin
+
+**14K only.** The owner's decision: every piece is sold in 14 karat, and 18
+karat is a custom request. `scripts/fourteen-karat-only.ts` (dry run by
+default) makes the catalogue say so:
+
+- Pieces offered in 14K and 18K: the 18K variants are archived, never
+  deleted, and the 18K values switched off.
+- Eight pieces were offered ONLY in 18K (three-piece bridal set, coloured
+  diamond ring, comfort band, rigid diamond bracelet, diamond hoops,
+  emerald-cut ring, pear solitaire, wide gold band). Archiving would have
+  left them unbuyable, so their variants were relabelled 14K in place - same
+  ids, photographs and diamonds - **at the price they had as 18K**. The
+  script prints them; the 14K price is the owner's to set in the admin.
+- The FAQ answer on 14K vs 18K now says the shop makes 14K and links to a
+  custom request for 18K; the one description offering "14 או 18 קראט" is
+  reworded. A filter with a single value is no longer drawn, which removes the
+  karat filter everywhere.
+- It is a catalogue change: run it on production too.
+
+**New products** (`/admin/products/new`): name, sub-category, gold colours,
+one price, lead time, descriptions, an optional diamond, an optional English
+address. Built like every catalogue product - 14K, one made-to-order variant
+per colour, ring sizes or lengths from the catalogue's own lists - and
+created hidden: it cannot be shown without at least one photograph.
+
+**Photographs**, in groups the owner thinks in: one per gold colour (rows on
+every live variant of that colour) and one for all colours (the product-level
+rows the card and the fallback use). Upload, order, mark as a simulation,
+remove. The browser downscales each photograph to 2400px and a JPEG under
+4MB - phone photographs are larger than Vercel's request ceiling - and the
+server checks the file's own first bytes before putting it to storage
+through the existing presigned path, so no bucket CORS is needed. Removing a
+photograph removes its rows only: orders keep the key they were sold with.
+
+## D4D.26 — The atelier: the whole site in design A
+
+The owner chose design A, "סטודיו" (Atelier), from five rendered alternatives
+(`docs/design-alternatives/a-atelier.html`) and asked for the whole site in it.
+It replaces the paper-and-ink world; DESIGN.md was rewritten from the build.
+
+- **Palette:** ivory `#f4efe6` and a recessed `#ebe4d6`, green-black ink
+  `#1d2a24`, forest green `#2f4a3c` as the one colour of action and emphasis,
+  a green field band and a night footer.
+- **Type:** Frank Ruhl Libre for every heading, at regular weight; Heebo light
+  for reading.
+- **Shapes:** pill actions and chips; arches on the category and collection
+  photographs; one sweeping curve, on the hero photograph only.
+- **Home page in A's order:** split hero (line, two pills, curved photograph),
+  five arches, best sellers, the workshop on the green field, four order steps,
+  bridal, diamonds, collections, FAQ.
+- **Kept from A, deliberately not copied:** its small tracked labels above
+  headings (dropped: a heading carries itself, and positive tracking breaks
+  Hebrew), and its "עבודת יד" (handmade), which is not an established fact.
+  Its "14K / 18K" product lines were never data; cards show the catalogue.
+- **Photographs:** the existing editorial photographs fit A, which was drawn
+  around them; the hero now shows the wide master in an upright column. The
+  product packshots are seated into the ivory with `mix-blend-darken`, so no
+  cool-white tile shows. Every editorial raster now carries its provenance.
+- Reviewed by an independent finish review: seven of eight findings fixed. The
+  open one is the best-seller line, kept by the owner's earlier instruction;
+  its description ("הדגמים המבוקשים ביותר בקטלוג") is a demand claim while no
+  orders exist, flagged for the owner.

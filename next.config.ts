@@ -44,6 +44,17 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
 
+  // Argon2 ships as a native binary per platform; bundling it breaks the
+  // binary lookup, so the server loads it from node_modules as-is.
+  serverExternalPackages: ['@node-rs/argon2'],
+
+  experimental: {
+    // Admin photographs reach a server action already downscaled in the
+    // browser (src/components/admin/ImageManager.tsx), under 4MB each; the
+    // default 1MB would refuse most of them.
+    serverActions: { bodySizeLimit: '5mb' },
+  },
+
   images: {
     remotePatterns: mediaRemotePatterns(),
 

@@ -38,13 +38,13 @@ export function SectionHeading({
           a level of its own. */}
       <h2
         id={id}
-        className="font-display text-accent text-2xl font-bold tracking-tight text-balance md:text-3xl"
+        className="font-display text-4xl leading-[1.1] font-normal text-balance md:text-5xl"
       >
         {title}
       </h2>
 
       {description && (
-        <p className="text-muted-foreground mt-4 max-w-(--container-prose) text-sm text-pretty">
+        <p className="text-muted-foreground mt-4 max-w-(--container-prose) text-base leading-[1.8] font-light text-pretty">
           {description}
         </p>
       )}

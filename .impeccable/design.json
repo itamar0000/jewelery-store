@@ -1,502 +1,526 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-30T00:00:00.000Z",
+  "generatedAt": "2026-10-07T19:23:32.753Z",
   "title": "Design System: Jewelry for Less",
   "extensions": {
     "colorMeta": {
       "paper": {
         "role": "neutral",
-        "displayName": "Barely Warm Paper",
-        "canonical": "#fafaf8",
+        "displayName": "Atelier Ivory",
+        "canonical": "#f4efe6",
+        "oklch": "oklch(95.4% 0.013 82.4)",
         "tonalRamp": [
-          "#1f1f1c",
-          "#3b3a35",
-          "#57554e",
-          "#767369",
-          "#9a978d",
-          "#c2bfb5",
-          "#e6e4dd",
-          "#fafaf8"
+          "#0e0b06",
+          "#27241d",
+          "#433f38",
+          "#615d55",
+          "#848078",
+          "#a9a49c",
+          "#cfcac1",
+          "#f3eee5"
         ]
       },
       "paper-deep": {
         "role": "neutral",
-        "displayName": "Recessed Paper",
-        "canonical": "#f0efec",
+        "displayName": "Recessed Ivory",
+        "canonical": "#ebe4d6",
+        "oklch": "oklch(92.1% 0.020 84.6)",
         "tonalRamp": [
-          "#1d1c19",
-          "#383731",
-          "#54524a",
-          "#726f65",
-          "#969287",
-          "#bdbab0",
-          "#dedcd4",
-          "#f0efec"
+          "#0f0a03",
+          "#292319",
+          "#453f34",
+          "#635d51",
+          "#867f73",
+          "#aaa497",
+          "#d1cabc",
+          "#f5eee0"
         ]
       },
       "ink": {
-        "role": "primary",
-        "displayName": "Ink",
-        "canonical": "#111110",
+        "role": "neutral",
+        "displayName": "Green-Black Ink",
+        "canonical": "#1d2a24",
+        "oklch": "oklch(27.1% 0.021 164.8)",
         "tonalRamp": [
-          "#111110",
-          "#232220",
-          "#35342f",
-          "#46443f",
-          "#5a5750",
-          "#6e6b64",
-          "#8e8b83",
-          "#b1aea6"
+          "#040e09",
+          "#1a2721",
+          "#36433d",
+          "#53625b",
+          "#75847d",
+          "#99a9a1",
+          "#bfcfc7",
+          "#e2f3eb"
         ]
       },
       "ink-soft": {
-        "role": "primary",
+        "role": "neutral",
         "displayName": "Soft Ink",
-        "canonical": "#46443f",
+        "canonical": "#3b4640",
+        "oklch": "oklch(38.2% 0.018 161.7)",
         "tonalRamp": [
-          "#141312",
-          "#242320",
-          "#35342f",
-          "#46443f",
-          "#5d5a54",
-          "#767269",
-          "#9d998f",
-          "#c9c6bd"
+          "#050d09",
+          "#1d2721",
+          "#38433d",
+          "#55615a",
+          "#77847d",
+          "#9ba8a1",
+          "#c1cec7",
+          "#e5f2eb"
         ]
       },
       "ink-muted": {
-        "role": "primary",
+        "role": "neutral",
         "displayName": "Muted Ink",
-        "canonical": "#6e6b64",
+        "canonical": "#5f6359",
+        "oklch": "oklch(49.3% 0.016 124.8)",
         "tonalRamp": [
-          "#171614",
-          "#2a2926",
-          "#3f3d38",
-          "#56534c",
-          "#6e6b64",
-          "#8f8c84",
-          "#b4b1a8",
-          "#dcd9d2"
+          "#0a0c06",
+          "#22251d",
+          "#3e4138",
+          "#5b5f55",
+          "#7e8278",
+          "#a2a79c",
+          "#c8cdc1",
+          "#ecf1e5"
         ]
       },
       "line": {
         "role": "neutral",
         "displayName": "Hairline",
-        "canonical": "#dedcd6",
+        "canonical": "#d6cdbb",
+        "oklch": "oklch(85.1% 0.026 84.6)",
         "tonalRamp": [
-          "#1c1b18",
-          "#35342f",
-          "#504e47",
-          "#6d6a62",
-          "#8f8c84",
-          "#b3b0a8",
-          "#dedcd6",
-          "#f3f2ee"
+          "#100a01",
+          "#2a2315",
+          "#463f30",
+          "#655d4d",
+          "#887f6f",
+          "#aca492",
+          "#d3cab8",
+          "#f7eedb"
         ]
       },
       "line-strong": {
         "role": "neutral",
         "displayName": "Strong Hairline",
-        "canonical": "#8c8881",
+        "canonical": "#837d6d",
+        "oklch": "oklch(59.0% 0.025 89.9)",
         "tonalRamp": [
-          "#1a1917",
-          "#31302c",
-          "#4a4842",
-          "#66635b",
-          "#878479",
-          "#a3a098",
-          "#8c8881",
-          "#dedcd6"
+          "#0f0b02",
+          "#292416",
+          "#453f31",
+          "#635d4e",
+          "#868070",
+          "#aba493",
+          "#d1cab9",
+          "#f5eedc"
         ]
       },
-      "stamp-hover": {
+      "green": {
         "role": "primary",
-        "displayName": "Ink Hover",
-        "canonical": "#2b2a27",
+        "displayName": "Atelier Forest Green",
+        "canonical": "#2f4a3c",
+        "oklch": "oklch(38.3% 0.041 161.1)",
         "tonalRamp": [
-          "#111110",
-          "#1d1c1a",
-          "#2b2a27",
-          "#3c3a36",
-          "#4f4d47",
-          "#67645c",
-          "#8b887f",
-          "#b5b2aa"
+          "#001006",
+          "#102a1e",
+          "#2c4739",
+          "#496556",
+          "#6b8878",
+          "#8fad9c",
+          "#b4d3c2",
+          "#d8f8e6"
+        ]
+      },
+      "green-deep": {
+        "role": "primary",
+        "displayName": "Workshop Shadow Green",
+        "canonical": "#243a2f",
+        "oklch": "oklch(32.6% 0.034 162.0)",
+        "tonalRamp": [
+          "#000f07",
+          "#14291f",
+          "#2f463a",
+          "#4d6458",
+          "#6f877a",
+          "#92ac9e",
+          "#b8d2c4",
+          "#dbf6e8"
+        ]
+      },
+      "green-pale": {
+        "role": "primary",
+        "displayName": "Sage Wash",
+        "canonical": "#c4d3c6",
+        "oklch": "oklch(85.2% 0.024 149.3)",
+        "tonalRamp": [
+          "#050e06",
+          "#1c271e",
+          "#374339",
+          "#556256",
+          "#778479",
+          "#9ba99d",
+          "#c0cfc2",
+          "#e4f3e6"
+        ]
+      },
+      "night-foreground": {
+        "role": "neutral",
+        "displayName": "Night Fog",
+        "canonical": "#d3d7cc",
+        "oklch": "oklch(87.3% 0.015 123.1)",
+        "tonalRamp": [
+          "#0a0c06",
+          "#22251d",
+          "#3e4138",
+          "#5c5f56",
+          "#7e8278",
+          "#a3a69c",
+          "#c8ccc1",
+          "#ecf0e5"
         ]
       },
       "danger": {
-        "role": "tertiary",
-        "displayName": "Desaturated Danger",
+        "role": "status",
+        "displayName": "Danger",
         "canonical": "#8c2f22",
+        "oklch": "oklch(44.1% 0.129 30.8)",
         "tonalRamp": [
-          "#210b08",
-          "#3a130e",
-          "#521c14",
-          "#6b241a",
-          "#8c2f22",
-          "#a84a3a",
-          "#c9776b",
-          "#e7b8b1"
+          "#2f0000",
+          "#520000",
+          "#75180d",
+          "#993b2d",
+          "#c15f4f",
+          "#ea8472",
+          "#ffaa97",
+          "#ffcdba"
         ]
       },
       "success": {
-        "role": "tertiary",
-        "displayName": "Desaturated Success",
+        "role": "status",
+        "displayName": "Success",
         "canonical": "#2a5c46",
+        "oklch": "oklch(43.3% 0.066 162.9)",
         "tonalRamp": [
-          "#0a1710",
-          "#12271c",
-          "#1b3b2b",
-          "#234c38",
-          "#2a5c46",
-          "#437a60",
-          "#7aa895",
-          "#bcd5c9"
+          "#001304",
+          "#002d1a",
+          "#174a35",
+          "#386953",
+          "#5a8d75",
+          "#7eb299",
+          "#a4d9be",
+          "#c7fde2"
         ]
       },
       "warning": {
-        "role": "tertiary",
-        "displayName": "Desaturated Warning",
+        "role": "status",
+        "displayName": "Warning",
         "canonical": "#7a5c1f",
+        "oklch": "oklch(49.4% 0.086 81.7)",
         "tonalRamp": [
-          "#1d1607",
-          "#33260c",
-          "#4a3712",
-          "#614918",
-          "#7a5c1f",
-          "#9d7a34",
-          "#c1a878",
-          "#e3d5b8"
-        ]
-      },
-      "placeholder": {
-        "role": "neutral",
-        "displayName": "Development Placeholder (temporary)",
-        "canonical": "#dcd9d2",
-        "tonalRamp": [
-          "#1b1a17",
-          "#33312c",
-          "#4c4a43",
-          "#56534c",
-          "#807d74",
-          "#a8a59c",
-          "#dcd9d2",
-          "#f2f0ea"
-        ]
-      },
-      "placeholder-ink": {
-        "role": "neutral",
-        "displayName": "Placeholder Ink (temporary)",
-        "canonical": "#56534c",
-        "tonalRamp": [
-          "#161513",
-          "#282622",
-          "#3b3933",
-          "#56534c",
-          "#726f66",
-          "#96938a",
-          "#bfbcb3",
-          "#e4e2db"
+          "#1c0300",
+          "#381d00",
+          "#563a00",
+          "#76581a",
+          "#9a7b40",
+          "#c09f64",
+          "#e7c589",
+          "#ffeaac"
         ]
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "The home page's one line, set beneath the hero photograph. Steps 3rem / 4.5rem / 5.75rem; a 7.5rem step exists in the scale above anything currently shipped."
+        "purpose": "The hero line only, from lg; one word may be green."
+      },
+      "display-mobile": {
+        "displayName": "Display (phone)",
+        "purpose": "The hero line below sm (4.5rem from sm)."
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "The single h1 on an inner page, set typographically over a hairline rule."
+        "purpose": "Section headings from md."
+      },
+      "headline-mobile": {
+        "displayName": "Headline (phone)",
+        "purpose": "Section headings below md."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Order-step numbers, in green."
+      },
+      "title-lg": {
+        "displayName": "Title Large",
+        "purpose": "Collection names under wide arches."
       },
       "title": {
         "displayName": "Title",
-        "purpose": "Section headings and collection names, in the display face."
+        "purpose": "Category names under arches; FAQ questions."
+      },
+      "title-sm": {
+        "displayName": "Title Small",
+        "purpose": "Product names on cards."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "Hero sentence and feature prose."
       },
       "body": {
         "displayName": "Body",
-        "purpose": "Prose meant to be read, at the 30em reading measure (about 74 Hebrew characters a line)."
+        "purpose": "Intros and prose, Heebo light."
       },
-      "body-small": {
+      "body-sm": {
         "displayName": "Body Small",
-        "purpose": "The working size of the UI: product names, prices, navigation, filters, footer."
+        "purpose": "Button labels, prices, list items, step descriptions."
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Badges and the smallest metadata. Sentence case, never uppercase, never positively tracked."
+        "purpose": "Nav, chips, footer heads, small buttons."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Metadata, badges, legal; the 0.75rem floor."
       }
     },
     "shadows": [
       {
-        "name": "xs",
-        "value": "0 1px 2px 0 rgb(6 20 34 / 0.05)",
-        "purpose": "Faintest separation. Effectively unused on a pale ground."
-      },
-      {
-        "name": "sm",
-        "value": "0 1px 3px 0 rgb(6 20 34 / 0.06), 0 1px 2px -1px rgb(6 20 34 / 0.05)",
-        "purpose": "Faint separation. Effectively unused."
-      },
-      {
-        "name": "md",
+        "name": "header-lift",
         "value": "0 4px 12px -2px rgb(6 20 34 / 0.08), 0 2px 4px -2px rgb(6 20 34 / 0.05)",
-        "purpose": "The sticky masthead once the page has scrolled past 8px."
+        "purpose": "Sticky header once scrolled."
       },
       {
-        "name": "lg",
+        "name": "menu",
         "value": "0 12px 28px -6px rgb(6 20 34 / 0.1), 0 4px 8px -4px rgb(6 20 34 / 0.06)",
-        "purpose": "Drawers and overlays that genuinely float above the sheet."
+        "purpose": "Mega menu."
       },
       {
-        "name": "xl",
+        "name": "drawer",
         "value": "0 24px 48px -12px rgb(6 20 34 / 0.13)",
-        "purpose": "Dialogs. The deepest lift in the system."
+        "purpose": "Mobile navigation drawer."
       }
     ],
     "motion": [
       {
         "name": "ease-settle",
         "value": "cubic-bezier(0.4, 0.9, 0.3, 1)",
-        "purpose": "The house curve, installed as Tailwind's default timing function so every existing transition inherits it. Asymmetric on purpose: leaves fast, arrives slowly."
+        "purpose": "House curve; default for every transition."
       },
       {
         "name": "ease-exit",
         "value": "cubic-bezier(0.45, 0, 0.9, 0.35)",
-        "purpose": "Departures only: a closing drawer, a dismissed overlay. Only arrivals earn the long tail."
+        "purpose": "Departures only."
       },
       {
         "name": "duration-default",
         "value": "240ms",
-        "purpose": "UI feedback with the pointer still on the element: a link changing value, a border darkening, a button filling."
+        "purpose": "UI feedback."
       },
       {
         "name": "duration-settle",
         "value": "500ms",
-        "purpose": "Something the eye follows: a panel opening, an image crossfading, a menu descending."
+        "purpose": "Things the eye follows."
       },
       {
         "name": "duration-reveal",
         "value": "700ms",
-        "purpose": "Entrances: copy arriving on first paint, a gallery changing frame."
+        "purpose": "Entrances, gallery frames, hover cross-fade."
       },
       {
         "name": "duration-drift",
         "value": "1400ms",
-        "purpose": "Ambient motion with no interaction to keep pace with: the slow push on a product image under the cursor."
+        "purpose": "Arch and card image zoom on hover."
       },
       {
-        "name": "animate-rise-in",
-        "value": "rise-in 700ms cubic-bezier(0.4, 0.9, 0.3, 1) both",
-        "purpose": "Copy fading up 0.75rem on first paint. `both` is load-bearing: without it a staggered element paints at its end state for the length of its own delay."
+        "name": "hero-settle",
+        "value": "2000ms ease-out, scale(1.04) to none",
+        "purpose": "Hero photograph coming to rest; the one atmospheric motion."
       },
       {
-        "name": "animate-frame-in",
-        "value": "frame-in 700ms cubic-bezier(0.4, 0.9, 0.3, 1) both",
-        "purpose": "A new gallery frame fading up from a 1.2% over-scale, so the swap settles rather than substitutes."
-      },
-      {
-        "name": "animate-hero-settle",
-        "value": "hero-settle 2000ms ease-out both",
-        "purpose": "The hero photograph releasing from a 4% over-scale over two seconds. The one purely atmospheric movement on the site."
+        "name": "rise-in",
+        "value": "700ms settle, translateY(0.75rem) fade-up, 80ms stagger",
+        "purpose": "Hero copy on first paint."
       }
     ],
     "breakpoints": [
       {
         "name": "sm",
-        "value": "40rem"
+        "value": "640px"
       },
       {
         "name": "md",
-        "value": "48rem"
+        "value": "768px"
       },
       {
         "name": "lg",
-        "value": "64rem"
+        "value": "1024px"
       },
       {
         "name": "xl",
-        "value": "80rem"
+        "value": "1280px"
       },
       {
         "name": "2xl",
-        "value": "96rem"
-      }
-    ],
-    "containers": [
-      {
-        "name": "prose",
-        "value": "40rem"
+        "value": "1536px"
       },
       {
-        "name": "narrow",
-        "value": "48rem"
-      },
-      {
-        "name": "content",
-        "value": "72rem"
-      },
-      {
-        "name": "wide",
-        "value": "90rem"
+        "name": "short",
+        "value": "height < 800px (hero only)"
       }
     ]
   },
   "components": [
     {
-      "name": "Primary Action",
+      "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The one high-emphasis action in a view: a block of ink with paper-coloured type and a paper hairline set inside it.",
-      "html": "<button class=\"ds-btn-primary\">לקטלוג המלא</button>",
-      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 2.75rem; padding: 0 1.5rem; border: none; border-radius: 0; background: var(--color-stamp, #111110); color: var(--color-stamp-foreground, #fafaf8); box-shadow: inset 0 0 0 1px rgb(250 250 248 / 0.25); font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background-color 240ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-btn-primary:hover { background: var(--color-stamp-hover, #2b2a27); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-ring, #111110); outline-offset: 2px; } .ds-btn-primary:active { background: #111110; }"
+      "description": "The one high-emphasis action in a view: green pill, ivory type.",
+      "html": "<div dir=\"rtl\" style=\"background:#f4efe6;padding:24px\"><button class=\"ds-btn-primary\">לקטלוג המלא</button></div>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:3rem;padding:0 1.75rem;border-radius:9999px;font-family:Heebo, 'Segoe UI', system-ui, Arial, sans-serif;font-size:0.9375rem;font-weight:500;transition:background-color 240ms cubic-bezier(0.4,0.9,0.3,1);cursor:pointer;background:#2f4a3c;color:#f4efe6;border:none}.ds-btn-primary:hover{background:#243a2f}.ds-btn-primary:focus-visible{outline:2px solid #1d2a24;outline-offset:2px;}"
     },
     {
-      "name": "Secondary Action",
+      "name": "Secondary Button",
       "kind": "button",
       "refersTo": "button-secondary",
-      "description": "The default action: a ruled field on whatever ground it sits on. The foreground is inherited, never named, so it survives an inverted surface.",
-      "html": "<button class=\"ds-btn-secondary\">לפרטים ולפנייה</button>",
-      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 2.75rem; padding: 0 1.5rem; border: 1px solid var(--color-border-field, #8c8881); border-radius: 0; background: transparent; color: inherit; font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: border-color 240ms cubic-bezier(0.4, 0.9, 0.3, 1), background-color 240ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-btn-secondary:hover { border-color: var(--color-accent, #111110); background: var(--color-muted, #f0efec); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--color-ring, #111110); outline-offset: 2px; }"
+      "description": "Default action: 1px outline pill in the colour of its surface.",
+      "html": "<div dir=\"rtl\" style=\"background:#f4efe6;color:#1d2a24;padding:24px\"><button class=\"ds-btn-secondary\">עיצוב בהתאמה אישית</button></div>",
+      "css": ".ds-btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:3rem;padding:0 1.75rem;border-radius:9999px;font-family:Heebo, 'Segoe UI', system-ui, Arial, sans-serif;font-size:0.9375rem;font-weight:500;transition:background-color 240ms cubic-bezier(0.4,0.9,0.3,1);cursor:pointer;background:transparent;color:inherit;border:1px solid currentColor}.ds-btn-secondary:hover{background:rgb(29 42 36 / 0.05)}.ds-btn-secondary:focus-visible{outline:2px solid #1d2a24;outline-offset:2px;}"
     },
     {
-      "name": "Underlined Action",
+      "name": "Inverse Button",
       "kind": "button",
-      "refersTo": "button-link",
-      "description": "The editorial action: the hero's call to the catalogue and a collection's 'view'. A rule, not a button, so it does not pull the eye off the photograph.",
-      "html": "<a class=\"ds-action-rule\" href=\"#\">לקטלוג המלא</a>",
-      "css": ".ds-action-rule { display: inline-block; color: var(--color-foreground, #111110); font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 1rem; font-weight: 600; text-decoration: underline; text-decoration-color: var(--color-border-strong, #8c8881); text-underline-offset: 0.45em; transition: text-decoration-color 500ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-action-rule:hover { text-decoration-color: var(--color-foreground, #111110); } .ds-action-rule:focus-visible { outline: 2px solid var(--color-ring, #111110); outline-offset: 4px; }"
+      "refersTo": "button-inverse",
+      "description": "The action on the green field: ivory pill, green type.",
+      "html": "<div dir=\"rtl\" style=\"background:#2f4a3c;padding:24px\"><button class=\"ds-btn-inverse\">לסיפור שלנו</button></div>",
+      "css": ".ds-btn-inverse{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:3rem;padding:0 1.75rem;border-radius:9999px;font-family:Heebo, 'Segoe UI', system-ui, Arial, sans-serif;font-size:0.9375rem;font-weight:500;transition:background-color 240ms cubic-bezier(0.4,0.9,0.3,1);cursor:pointer;background:#f4efe6;color:#2f4a3c;border:none}.ds-btn-inverse:hover{background:rgb(244 239 230 / 0.9)}.ds-btn-inverse:focus-visible{outline:2px solid #f4efe6;outline-offset:2px;}"
     },
     {
-      "name": "Over-Image Badge",
+      "name": "Chips",
       "kind": "chip",
-      "refersTo": "badge-neutral",
-      "description": "Product state, set over a photograph in paper at 85%. At most one per card, and only 'new' qualifies today: stacked badges, or two badge colours, read as stickers on the photograph.",
-      "html": "<span class=\"ds-badge-on-image\">חדש</span>",
-      "css": ".ds-badge-on-image { display: inline-flex; align-items: center; padding: 0.125rem 0.5rem; border: 1px solid transparent; border-radius: 0.125rem; background: rgb(250 250 248 / 0.85); backdrop-filter: blur(4px); color: var(--color-card-foreground, #111110); font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 0.75rem; line-height: 1.45; font-weight: 500; letter-spacing: -0.01em; }"
+      "refersTo": "chip",
+      "description": "Pill chips for subcategories, filters and options; selected is solid green.",
+      "html": "<div dir=\"rtl\" class=\"ds-chips\"><a class=\"ds-chip ds-chip-on\" href=\"#\">הכל</a><a class=\"ds-chip\" href=\"#\">טבעות אירוסין</a><a class=\"ds-chip\" href=\"#\">טבעות נישואין</a></div>",
+      "css": ".ds-chips{display:flex;gap:8px;background:#f4efe6;padding:24px;font-family:Heebo, 'Segoe UI', system-ui, Arial, sans-serif}.ds-chip{display:inline-flex;align-items:center;height:2.25rem;padding:0 1rem;border-radius:9999px;border:1px solid #d6cdbb;color:#1d2a24;font-size:0.875rem;text-decoration:none;transition:border-color 240ms,background-color 240ms}.ds-chip:hover{border-color:#837d6d;background:#ebe4d6}.ds-chip-on,.ds-chip-on:hover{background:#2f4a3c;color:#f4efe6;border-color:#2f4a3c}.ds-chip:focus-visible{outline:2px solid #1d2a24;outline-offset:2px;}"
     },
     {
-      "name": "Search Field",
+      "name": "Underline Field",
       "kind": "input",
-      "refersTo": "input-search",
-      "description": "Every field in the system is an underline, not a box: one strong hairline that darkens to ink on focus.",
-      "html": "<div class=\"ds-field\"><svg class=\"ds-field-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"7\"></circle><path d=\"m20 20-3.5-3.5\"></path></svg><input class=\"ds-field-input\" type=\"search\" placeholder=\"חיפוש בקטלוג\" dir=\"rtl\" /></div>",
-      "css": ".ds-field { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--color-border-strong, #8c8881); transition: border-color 240ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-field:focus-within { border-color: var(--color-accent, #111110); } .ds-field-icon { width: 1.25rem; height: 1.25rem; flex-shrink: 0; color: var(--color-muted-foreground, #6e6b64); } .ds-field-input { flex: 1; min-width: 0; border: none; background: transparent; color: var(--color-foreground, #111110); font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 1rem; line-height: 1.7; } .ds-field-input:focus { outline: none; } .ds-field-input::placeholder { color: var(--color-muted-foreground, #6e6b64); }"
+      "refersTo": "input",
+      "description": "Strong-hairline underline on a transparent ground; turns green on focus.",
+      "html": "<label dir=\"rtl\" class=\"ds-field-wrap\">שם מלא<input class=\"ds-field\" placeholder=\"ישראלה ישראלי\"></label>",
+      "css": ".ds-field-wrap{display:block;background:#f4efe6;padding:24px;font-family:Heebo, 'Segoe UI', system-ui, Arial, sans-serif;font-size:0.875rem;color:#5f6359}.ds-field{display:block;width:100%;margin-top:6px;height:2.75rem;border:none;border-bottom:1px solid #837d6d;background:transparent;font:inherit;font-size:1rem;color:#1d2a24;transition:border-color 240ms}.ds-field:focus{border-bottom-color:#2f4a3c}.ds-field:focus-visible{outline:2px solid #1d2a24;outline-offset:2px;}"
     },
     {
-      "name": "Masthead",
+      "name": "Header Navigation",
       "kind": "nav",
-      "refersTo": "masthead",
-      "description": "The one inversion in the system: an ink bar across a very light page. Everything drawn on it states its light value explicitly, because accent resolves to ink.",
-      "html": "<header class=\"ds-masthead\"><a class=\"ds-masthead-mark\" href=\"#\"><bdi>Jewelry for Less</bdi></a><nav class=\"ds-masthead-nav\"><a href=\"#\">טבעות</a><a href=\"#\">עגילים</a><a href=\"#\">שרשראות</a></nav></header>",
-      "css": ".ds-masthead { display: flex; align-items: center; gap: 1.5rem; height: 4rem; padding: 0 1.5rem; background: var(--color-foreground, #111110); color: var(--color-background, #fafaf8); direction: rtl; } .ds-masthead-mark { display: inline-block; padding: 0.25rem 0.75rem; border: 1px solid rgb(250 250 248 / 0.5); color: var(--color-background, #fafaf8); font-family: var(--font-display, 'Miriam Libre', sans-serif); font-size: 1.125rem; font-weight: 700; line-height: 1; letter-spacing: -0.02em; white-space: nowrap; text-decoration: none; transition: border-color 500ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-masthead-mark:hover { border-color: var(--color-background, #fafaf8); } .ds-masthead-nav { display: flex; align-items: center; gap: 0.75rem; } .ds-masthead-nav a { color: rgb(250 250 248 / 0.65); font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 0.875rem; text-decoration: none; white-space: nowrap; transition: color 150ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-masthead-nav a:hover { color: var(--color-background, #fafaf8); } .ds-masthead-nav a:focus-visible { outline: 2px solid var(--color-background, #fafaf8); outline-offset: 2px; }"
+      "refersTo": "header",
+      "description": "Ivory ruled header; muted nav items with a green underline when active.",
+      "html": "<nav dir=\"rtl\" class=\"ds-nav\"><span class=\"ds-wordmark\">Jewelry for Less</span><a class=\"ds-nav-item ds-on\" href=\"#\">טבעות</a><a class=\"ds-nav-item\" href=\"#\">עגילים</a><a class=\"ds-nav-item\" href=\"#\">שרשראות</a></nav>",
+      "css": ".ds-nav{display:flex;align-items:center;gap:4px;background:#f4efe6;border-bottom:1px solid #d6cdbb;padding:0 24px;height:4rem;font-family:Heebo, 'Segoe UI', system-ui, Arial, sans-serif}.ds-wordmark{font-family:'Frank Ruhl Libre', David, 'Times New Roman', serif;font-size:1.375rem;font-weight:500;letter-spacing:0.02em;color:#1d2a24;margin-inline-end:24px}.ds-nav-item{position:relative;display:inline-flex;align-items:center;height:2.75rem;padding:0 12px;font-size:0.875rem;color:#5f6359;text-decoration:none;transition:color 150ms}.ds-nav-item::after{content:'';position:absolute;inset-inline:12px;bottom:0;height:1px;background:#2f4a3c;transform:scaleX(0);transition:transform 200ms}.ds-nav-item:hover{color:#1d2a24}.ds-nav-item:hover::after,.ds-on::after{transform:scaleX(1)}.ds-on{color:#1d2a24}.ds-nav-item:focus-visible{outline:2px solid #1d2a24;outline-offset:2px;}"
     },
     {
       "name": "Product Card",
       "kind": "card",
-      "refersTo": "button-link",
-      "description": "Not a card: no background, no border, no shadow, no radius. A photograph flush on the paper, then the name and the approximate price on the open sheet.",
-      "html": "<article class=\"ds-product\"><div class=\"ds-product-frame\"><div class=\"ds-product-img\"></div></div><h3 class=\"ds-product-name\"><a href=\"#\">טבעת זהב 14K משובצת יהלום</a></h3><p class=\"ds-product-price\"><span aria-hidden=\"true\">≈ </span><bdi>₪4,200</bdi></p></article>",
-      "css": ".ds-product { display: flex; flex-direction: column; width: 16rem; direction: rtl; } .ds-product-frame { position: relative; overflow: hidden; aspect-ratio: 4 / 5; } .ds-product-img { width: 100%; height: 100%; background: var(--color-placeholder, #dcd9d2); transition: transform 1400ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-product:hover .ds-product-img { transform: scale(1.04); } .ds-product-name { margin: 1rem 0 0; font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 0.875rem; font-weight: 400; line-height: 1.4; } .ds-product-name a { color: inherit; text-decoration: none; text-decoration-color: var(--color-border-strong, #8c8881); text-underline-offset: 0.35em; } .ds-product-name a:hover { text-decoration: underline; } .ds-product-price { margin: 0.375rem 0 0; font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 0.875rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--color-foreground, #111110); }"
+      "refersTo": "card",
+      "description": "Frameless card: packshot seated on ivory, accent badge, serif name, tabular price.",
+      "html": "<a dir=\"rtl\" class=\"ds-card\" href=\"#\"><span class=\"ds-card-img\"><span class=\"ds-badge\">חדש</span></span><span class=\"ds-card-name\">טבעת אירוסין סוליטר</span><span class=\"ds-card-meta\">זהב צהוב 14K</span><span class=\"ds-card-price\">₪ 4,890</span></a>",
+      "css": ".ds-card{display:flex;flex-direction:column;gap:6px;width:240px;background:#f4efe6;padding:16px;color:#1d2a24;text-decoration:none;font-family:Heebo, 'Segoe UI', system-ui, Arial, sans-serif}.ds-card-img{position:relative;display:block;aspect-ratio:1;background:#ebe4d6;margin-bottom:10px}.ds-badge{position:absolute;inset-inline-start:12px;top:12px;padding:2px 8px;border-radius:0.125rem;background:#ebe4d6;color:#2f4a3c;font-size:0.75rem;font-weight:500}.ds-card-name{font-family:'Frank Ruhl Libre', David, 'Times New Roman', serif;font-size:1.25rem;font-weight:400;line-height:1.375;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:0.35em;transition:text-decoration-color 240ms}.ds-card:hover .ds-card-name{text-decoration-color:#837d6d}.ds-card-meta{font-size:0.75rem;color:#5f6359}.ds-card-price{font-size:0.9375rem;font-weight:500;font-variant-numeric:tabular-nums}.ds-card:focus-visible{outline:2px solid #1d2a24;outline-offset:2px;}"
     },
     {
-      "name": "Ruled Caption",
+      "name": "Category Arch",
       "kind": "custom",
-      "refersTo": "title",
-      "description": "The signature pattern of the system: a photograph's name sits on a hairline rule beneath the image, never over it. Used by categories, collections and page headers.",
-      "html": "<a class=\"ds-ruled\" href=\"#\"><div class=\"ds-ruled-img\"></div><div class=\"ds-ruled-caption\"><h3>אוסף כלה</h3><span class=\"ds-ruled-action\">לצפייה</span></div></a>",
-      "css": ".ds-ruled { display: block; width: 22rem; text-decoration: none; color: inherit; direction: rtl; } .ds-ruled-img { aspect-ratio: 3 / 2; width: 100%; background: var(--color-placeholder, #dcd9d2); overflow: hidden; transition: transform 1400ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-ruled:hover .ds-ruled-img { transform: scale(1.03); } .ds-ruled-caption { display: flex; align-items: baseline; gap: 1.5rem; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--color-border, #dedcd6); } .ds-ruled-caption h3 { margin: 0; font-family: var(--font-display, 'Miriam Libre', sans-serif); font-size: 1.75rem; font-weight: 700; line-height: 1.3; letter-spacing: -0.02em; } .ds-ruled-action { margin-inline-start: auto; font-family: var(--font-sans, 'Assistant', system-ui, sans-serif); font-size: 0.875rem; font-weight: 600; text-decoration: underline; text-decoration-color: var(--color-border-strong, #8c8881); text-underline-offset: 0.4em; transition: text-decoration-color 500ms cubic-bezier(0.4, 0.9, 0.3, 1); } .ds-ruled:hover .ds-ruled-action { text-decoration-color: var(--color-foreground, #111110); }"
+      "refersTo": "arch",
+      "description": "Round-topped 3:4 photograph frame with a centred serif name.",
+      "html": "<a dir=\"rtl\" class=\"ds-arch\" href=\"#\"><span class=\"ds-arch-img\"></span><span class=\"ds-arch-name\">טבעות</span></a>",
+      "css": ".ds-arch{display:block;width:180px;background:#f4efe6;padding:16px;color:#1d2a24;text-decoration:none}.ds-arch-img{display:block;aspect-ratio:3/4;border-radius:9999px 9999px 0 0;background:linear-gradient(160deg,#e9dcc6,#c9b593)}.ds-arch-name{display:block;margin-top:16px;text-align:center;font-family:'Frank Ruhl Libre', David, 'Times New Roman', serif;font-size:1.375rem;line-height:1.25;transition:color 240ms}.ds-arch:hover .ds-arch-name{color:#2f4a3c}.ds-arch:focus-visible{outline:2px solid #1d2a24;outline-offset:2px;}"
+    },
+    {
+      "name": "Field Band",
+      "kind": "custom",
+      "refersTo": "field-band",
+      "description": "The green field: ivory serif headline, sage bullets, inverse pill.",
+      "html": "<section dir=\"rtl\" class=\"ds-fieldband\"><h2>שום דבר לא יושב על מדף</h2><p><span class=\"ds-dot\"></span>כל תכשיט נוצר בהזמנה</p><button class=\"ds-fb-btn\">לסיפור שלנו</button></section>",
+      "css": ".ds-fieldband{background:#2f4a3c;color:#f4efe6;padding:48px;font-family:Heebo, 'Segoe UI', system-ui, Arial, sans-serif}.ds-fieldband h2{font-family:'Frank Ruhl Libre', David, 'Times New Roman', serif;font-weight:400;font-size:3rem;line-height:1.1;margin:0 0 20px}.ds-fieldband p{display:flex;align-items:center;gap:12px;font-size:0.9375rem;font-weight:300;color:rgb(244 239 230 / 0.9)}.ds-dot{width:6px;height:6px;border-radius:9999px;background:#c4d3c6}.ds-fb-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:3rem;padding:0 1.75rem;border-radius:9999px;font-family:Heebo, 'Segoe UI', system-ui, Arial, sans-serif;font-size:0.9375rem;font-weight:500;transition:background-color 240ms cubic-bezier(0.4,0.9,0.3,1);cursor:pointer;margin-top:28px;background:#f4efe6;color:#2f4a3c;border:none}.ds-fb-btn:hover{background:rgb(244 239 230 / 0.9)}.ds-fb-btn:focus-visible{outline:2px solid #f4efe6;outline-offset:2px;}"
+    },
+    {
+      "name": "Night Footer",
+      "kind": "custom",
+      "refersTo": "footer",
+      "description": "Green-black footer with Night Fog type and ivory headings.",
+      "html": "<footer dir=\"rtl\" class=\"ds-footer\"><p class=\"ds-ft-mark\">Jewelry for Less</p><p class=\"ds-ft-col\">שירות</p><a href=\"#\">משלוחים והחזרות</a></footer>",
+      "css": ".ds-footer{background:#1d2a24;color:#d3d7cc;padding:48px;font-family:Heebo, 'Segoe UI', system-ui, Arial, sans-serif;display:flex;flex-direction:column;gap:10px}.ds-ft-mark{font-family:'Frank Ruhl Libre', David, 'Times New Roman', serif;font-size:2rem;line-height:1;letter-spacing:0.02em;color:#f4efe6;margin:0 0 16px}.ds-ft-col{font-size:0.875rem;font-weight:500;color:#f4efe6;margin:0}.ds-footer a{font-size:0.875rem;color:rgb(211 215 204 / 0.8);text-decoration:none;transition:color 240ms}.ds-footer a:hover{color:#f4efe6}.ds-footer a:focus-visible{outline:2px solid #f4efe6;outline-offset:2px;}"
     }
   ],
   "narrative": {
-    "northStar": "The Only Colour Is the Jewellery",
-    "overview": "The site is paper and ink, and nothing else. There is no accent hue, no field colour, no stamp colour, and — deliberately — no gold token anywhere in the palette. Every warm note on every page comes out of a photograph, which is the whole point: gold reads as gold because it is the only gold there is. This is a position, not a restriction, and it is the load-bearing decision of the system.\n\nBecause the palette spends nothing, the distinction is carried by four things that are not colours: type at scale, photography that runs edge to edge, hairline rules, and the amount of paper left empty. That is what keeps a near-white page from collapsing back into \"cream plus a serif\" — the generic light shop this site wore once already. The paper (#fafaf8) is a hair off neutral, warm enough that gold photography does not go cold on it, and well short of ivory stationery. Nothing is boxed, shadowed or framed: photographs sit directly on the sheet, and the only things that ever separate two pieces of content are a hairline and empty space.\n\nTwo earlier worlds were rejected by the owner and must not be revived. The first was a saturated trade blue owning the viewport — \"does not read as a jewellery house\". The second went pale but kept a blue ink and a red stamp, and landed as the same generic light shop it was meant to replace; the paper label with its red button was \"hideous\". Both are gone from the code. The product's name makes a price claim (\"for less\"), and the design answer to a value name is restraint rather than discount signalling: no burst, no sticker, no shout.",
+    "northStar": "The Quiet Atelier",
+    "overview": "The storefront is a small jewellery workshop seen in daylight: warm ivory walls, one deep forest green used the way a jeweller uses a single good ink, and a Hebrew book serif set large and at regular weight. The lettering does the talking, so the headings never go bold. Photographs carry all the warmth the gold needs. They sit in arches and under one sweeping curve, never in boxes.\n\nDensity is low and the pacing is editorial. Each band of the home page is a full-width statement: hero, arches, best sellers, a green field, steps on a recessed band, a wide photograph, collections, questions. Bands get their rhythm from named section tiers and a change of ground (ivory, recessed ivory, green field), not from cards or shadows. The page closes on a green-black night footer.\n\nThe world rejects two things by name. One is the black-and-gold \"luxury\" shorthand. The other is the cold paper-and-ink storefront this world replaced.",
     "keyCharacteristics": [
-      "Paper and ink only; every warm tone on the page is photographic",
-      "Type at scale as the primary expressive device (display to 5.75rem)",
-      "Photography full-bleed and flush — never boxed, never scrimmed, never labelled over",
-      "Hairlines carry the entire structure; no panels, no fills",
-      "One inversion: an ink masthead across a very light page",
-      "Emphasis is a darker value, never a hue",
-      "Hebrew-first RTL, with both faces carrying Hebrew and Latin"
+      "Warm ivory ground, green-black ink, and forest green as the only hue of action and emphasis.",
+      "Frank Ruhl Libre for every heading, always at regular weight; Heebo light for reading.",
+      "Pills for every action and every chip.",
+      "Arches frame category and collection photographs. The hero carries the page's single curve.",
+      "One green field band with ivory type; a green-black night footer.",
+      "Flat surfaces with hairline rules. A shadow appears only on what floats."
     ],
     "rules": [
       {
-        "name": "The Only Colour Is the Jewellery Rule",
-        "body": "No hue enters the interface. If a new surface seems to need a colour, it needs a photograph, a larger size, or more empty paper instead. A gold, brass or champagne token is specifically excluded: gold appears only as photographed metal.",
+        "name": "The One Hue Rule",
+        "body": "Green is the only hue of action and emphasis. Hover, active, selected, link and primary all resolve to green or ink, never to a second colour. Any other warmth on a page comes from the photographs.",
         "section": "colors"
       },
       {
-        "name": "The Darker, Not Different Rule",
-        "body": "Every emphasis state — hover, active nav item, link, primary action — is a change in value, never in hue. `accent` resolves to ink by design.",
+        "name": "The Field Rule",
+        "body": "The green field is a band of forest green with ivory type. The action on it is the inverse pill (ivory, green type), never a green pill.",
         "section": "colors"
       },
       {
-        "name": "The State Your Value Rule",
-        "body": "Because `accent` resolves to ink, anything drawn on the ink masthead must name its light value explicitly (paper-coloured type at full or 65% strength). Inheriting or reaching for `accent` there ships ink on ink, which has already happened once.",
+        "name": "The Night Rule",
+        "body": "The footer is the night ground (ink) with Night Fog type. No other band uses the night ground.",
         "section": "colors"
       },
       {
-        "name": "The Display-First Fallback Rule",
-        "body": "The display face must stay ahead of Assistant in `--font-display` and the order cannot be reversed. Font fallback is per glyph: Assistant covers Latin as well as Hebrew, so listing it first wins every character and the display face silently never renders — a failure that looks exactly like the font failing to load.",
+        "name": "The Regular Serif Rule",
+        "body": "Serif headings are set at regular weight (400), never bold or semibold. If a heading needs more weight, make it larger.",
         "section": "typography"
       },
       {
-        "name": "The No Positive Tracking Rule",
-        "body": "Hebrew is never letter-spaced positively; it breaks glyph joins and legibility. The tracking scale runs tight-to-normal only (-0.02em, -0.01em, 0). There is no uppercase, wide-tracked type anywhere in the system.",
+        "name": "The Untracked Hebrew Rule",
+        "body": "Hebrew never takes positive letter-spacing. Tracking runs from tight (-0.02em) to normal only. The Latin wordmark is the single exception (0.02em).",
         "section": "typography"
       },
       {
-        "name": "The Two Weights Rule",
-        "body": "Miriam Libre ships 400 and 700 and nothing between. Hierarchy comes from size and from the difference between the struck display face and the written body face — not from weight steps. A layout that needs a third weight has an undecided hierarchy.",
+        "name": "The No Kicker Rule",
+        "body": "No eyebrow or kicker labels above headings. A section opens with its serif headline.",
         "section": "typography"
       },
       {
-        "name": "The Isolated Wordmark Rule",
-        "body": "\"Jewelry for Less\" is Latin on a Hebrew page and is wrapped in `<bdi>` in both the masthead and the footer, so the bidi algorithm cannot reorder it. Any Latin name, price or copyright line mixed into an RTL line gets the same treatment.",
-        "section": "typography"
-      },
-      {
-        "name": "The First Viewport Rule",
-        "body": "The home page opens on one photograph, full bleed, with nothing laid over it, and the display line begins where the image ends. Every height is measured from the real sticky header (`--header-height`). From 64rem the first screen holds the photograph, the line and its action together: the photograph takes whatever height the line leaves, down to about 620px of screen. Under 50rem of height (`short:`) the rhythm tightens and the display steps down one size. Below 64rem the photograph fills the screen but for 7rem, and the top of the line breaks the fold. The photograph switches crops by orientation, not width.",
-        "section": "layout"
-      },
-      {
-        "name": "The Shadow Means Floating Rule",
-        "body": "A shadow is never an interactive affordance and never a hierarchy device. A shadow under a product image is how a gallery turns into a template.",
+        "name": "The Flush Photograph Rule",
+        "body": "No shadow, frame or card under a photograph. A product image sits directly on the ivory.",
         "section": "elevation"
       },
       {
-        "name": "The Underlined Action Rule",
-        "body": "The highest-value actions on the editorial surfaces — the hero's call to the catalogue, a collection's \"view\" — are an underlined line of type, not a filled block. A filled block next to a photograph pulls the eye off the thing it is meant to serve.",
-        "section": "components"
-      },
-      {
-        "name": "The No Scrim Rule",
-        "body": "A photograph is never darkened, tinted or overlaid to make type legible on it. The type goes on the paper beneath.",
-        "section": "components"
+        "name": "The One Curve Rule",
+        "body": "A page carries one sweeping curve, and on the home page that is the hero. Arches are a separate device and do not count as curves. They belong to categories and collections.",
+        "section": "shapes"
       }
     ],
     "dos": [
-      "Do let every warm tone on a page come out of a photograph. Paper (#fafaf8) and ink (#111110) are the only materials the interface itself owns.",
-      "Do express emphasis as a darker value — `accent` resolves to ink and is meant to.",
-      "Do state the light value explicitly (paper, or paper at 65%) on anything drawn on the ink masthead.",
-      "Do run photography edge to edge and flush on the paper, with its label on a hairline rule beneath it.",
-      "Do reach for size and empty paper when a surface needs more presence. The scale goes to 7.5rem for exactly this reason.",
-      "Do keep the display face ahead of Assistant in `--font-display`.",
-      "Do wrap Latin names, prices and mixed-script lines in `<bdi>`.",
-      "Do pick a named rhythm tier (tight / section / feature / finale) by the band's role, so the page reads as a composition rather than a list.",
-      "Do use logical properties for every inset, margin and border side."
+      "**Do** use forest green (green) as the only hue of action and emphasis, and green-deep for its hover.",
+      "**Do** set every heading in Frank Ruhl Libre at weight 400 and let size carry the hierarchy.",
+      "**Do** make every action and every chip a pill (9999px).",
+      "**Do** frame category and collection photographs in arches, and keep the sweeping curve for the hero alone.",
+      "**Do** put ivory type and the inverse pill on the green field, and Night Fog type on the night footer.",
+      "**Do** pace bands with the named section tiers (3 / 4.5 / 7 / 9rem) and changes of ground, not with boxes.",
+      "**Do** seat packshots into the ivory with a darken blend."
     ],
     "donts": [
-      "Don't introduce an accent hue, a field colour, or a gold/champagne token. There is no gold in the palette on purpose.",
-      "Don't box, frame, tint or shadow a photograph, and don't lay type or a scrim over one.",
-      "Don't add a shadow to convey interactivity or hierarchy; a shadow means the element genuinely floats (drawer, dialog, scrolled masthead).",
-      "Don't letter-space Hebrew positively, and don't set uppercase wide-tracked type — neither the language nor the scale supports it.",
-      "Don't put a filled button beside a hero or collection photograph where an underlined line of type does the job.",
-      "Don't reintroduce a high-contrast display serif over the light ground; that pairing is the shape this redesign exists to escape.",
-      "Don't ship a grey placeholder rectangle as a page header or band. A typographic header is a finished state; a stand-in is not.",
-      "Don't name a raw `--ref-*` value or a literal hex in a component. Components consume the semantic layer only, so the palette stays a single-file change.",
-      "Don't give an action a rounded corner. Radius is for the few surfaces that earn one (badge, drawer control, editorial image), never for a button."
+      "**Don't** add eyebrow or kicker labels above headings.",
+      "**Don't** letter-space Hebrew positively or set it in uppercase-style tracking.",
+      "**Don't** bold a serif heading.",
+      "**Don't** introduce a second accent hue, gold type, or black-and-gold \"luxury\" styling.",
+      "**Don't** put a second sweeping curve on a page.",
+      "**Don't** place a shadow, frame or card behind a product photograph.",
+      "**Don't** set type below 0.75rem."
     ]
   }
 }

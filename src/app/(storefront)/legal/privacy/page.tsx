@@ -134,7 +134,7 @@ export default function PrivacyPage() {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-y-3">
-      <h2 className="font-display text-foreground text-xl font-bold tracking-tight md:text-2xl">
+      <h2 className="font-display text-foreground text-xl font-normal tracking-tight md:text-2xl">
         {title}
       </h2>
       {children}

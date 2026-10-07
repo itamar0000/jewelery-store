@@ -58,8 +58,17 @@ interface Entry {
   /** Filename inside `--dir`. */
   readonly file: string;
   readonly slug: string;
-  /** `main` fills position 1, `detail` fills position 2. */
-  readonly role: 'main' | 'detail';
+  /**
+   * `main` fills position 1, `detail` position 2, `worn` position 3 - the
+   * piece as it looks on a hand, an ear or a neck.
+   */
+  readonly role: 'main' | 'detail' | 'worn';
+  /**
+   * A generated image rather than a photograph of the piece. Labelled
+   * "הדמיה" on the site. Defaults to true for `worn`: the owner's worn
+   * images are generated from the product's own photograph (D4D.21).
+   */
+  readonly simulated?: boolean;
   /** Gold colour this photograph shows, matching ProductOptionValue.value. */
   readonly colour: string;
   /**
@@ -152,7 +161,7 @@ async function main(): Promise<void> {
         '  --dry-run   Report what would change, upload and write nothing.',
         '',
         'Manifest is a JSON array of:',
-        '  { "file", "slug", "role": "main"|"detail", "colour", "productLevel"? }',
+        '  { "file", "slug", "role": "main"|"detail"|"worn", "colour", "productLevel"?, "simulated"? }',
       ].join('\n'),
     );
     return;
@@ -231,7 +240,8 @@ async function main(): Promise<void> {
        * The slots this photograph belongs in. `null` is the product-level slot
        * that the catalog card and the gallery fallback read.
        */
-      const wantedPosition = entry.role === 'main' ? 1 : 2;
+      const wantedPosition = entry.role === 'main' ? 1 : entry.role === 'detail' ? 2 : 3;
+      const simulated = entry.simulated ?? entry.role === 'worn';
       const slots: (string | null)[] = [
         ...(entry.productLevel === true ? [null] : []),
         ...variantIds,
@@ -292,7 +302,8 @@ async function main(): Promise<void> {
       const meta = await sharp(bytes).metadata();
       const altHe =
         `${product.nameHe}, ${COLOUR_HE[entry.colour] ?? entry.colour}` +
-        (entry.role === 'detail' ? ' — תקריב' : '');
+        (entry.role === 'detail' ? ' — תקריב' : entry.role === 'worn' ? ' — ענוד' : '') +
+        (simulated ? ' (הדמיה)' : '');
 
       for (const variantId of slots) {
         const existing = product.images.find(
@@ -302,7 +313,12 @@ async function main(): Promise<void> {
         if (existing) {
           await prisma.productImage.update({
             where: { id: existing.id },
-            data: { storageKey: target.key, width: meta.width, height: meta.height },
+            data: {
+              storageKey: target.key,
+              width: meta.width,
+              height: meta.height,
+              isSimulation: simulated,
+            },
           });
           rowsUpdated += 1;
         } else {
@@ -314,6 +330,7 @@ async function main(): Promise<void> {
               altHe,
               position: wantedPosition,
               isPrimary: wantedPosition === 1,
+              isSimulation: simulated,
               width: meta.width,
               height: meta.height,
             },
