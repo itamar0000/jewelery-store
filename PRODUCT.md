@@ -56,9 +56,10 @@ makes "we can make any of these your way" true rather than marketing.
 - **Made to order is the norm, not an upsell.** Pieces are manufactured after
   the order, so lead time is a real part of the purchase and stock scarcity
   mostly is not.
-- **Customisation axes that genuinely exist:** gold karat (14K / 18K), gold
-  colour (yellow / white / rose), ring size, chain length, engraving, and stone
-  choice.
+- **Customisation axes that genuinely exist:** gold colour (yellow / white /
+  rose), ring size, chain length, engraving, diamond size, and stone choice.
+  **The catalogue is 14K only** (owner, 2026-10-07); 18K is made as a custom
+  request, not offered as a choice on the product page.
 - **Both natural and lab-grown diamonds are sold.** The catalogue carries both,
   so no site-level text may position the shop as exclusively one or the other.
   Stone type is a per-product fact.

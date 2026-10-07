@@ -103,9 +103,9 @@ export function FilterBar({
             aria-controls={panelId}
             onClick={() => setOpen((value) => !value)}
             className={cn(
-              'inline-flex h-11 items-center gap-2 border px-4 text-sm transition-colors',
+              'inline-flex h-11 items-center gap-2 rounded-full border px-5 text-sm transition-colors',
               open || activeCount > 0
-                ? 'border-foreground bg-foreground text-background'
+                ? 'border-accent bg-accent text-accent-foreground'
                 : 'border-border-strong hover:bg-muted',
             )}
           >
@@ -235,7 +235,7 @@ export function FilterBar({
                 onClick={closeDrawer}
                 aria-busy={pending || undefined}
                 className={cn(
-                  'bg-foreground text-background hover:bg-foreground/90 inline-flex h-12 flex-1 items-center justify-center text-sm font-medium transition-[background-color,opacity]',
+                  'bg-stamp text-stamp-foreground hover:bg-stamp-hover inline-flex h-12 flex-1 items-center justify-center rounded-full text-sm font-medium transition-[background-color,opacity]',
                   pending && 'opacity-70',
                 )}
               >
@@ -388,7 +388,7 @@ function FilterGroup({
                         className={cn(
                           'flex size-4 shrink-0 items-center justify-center rounded-sm border',
                           active
-                            ? 'border-foreground bg-foreground text-background'
+                            ? 'border-accent bg-accent text-accent-foreground'
                             : 'border-border-strong group-hover:border-foreground',
                         )}
                       >

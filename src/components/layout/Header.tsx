@@ -102,27 +102,13 @@ export function Header({
   return (
     <header
       /*
-       * THE MASTHEAD IS INK, NOT PAPER.
-       *
-       * The owner asked for the bar to be a different colour from the page. It
-       * is a different VALUE rather than a different hue: the world's position
-       * is that the only colour on the site is the jewellery, so a coloured bar
-       * would be the one non-product colour on every screen, and two attempts
-       * at introducing a hue have already been rejected.
-       *
-       * Ink gives the bar its own presence, anchors the top of a very light
-       * page, and makes the wordmark read as a mark rather than as a line of
-       * text. Swapping it for an actual colour later is a single token.
-       *
-       * THE FOCUS RING IS STATED HERE TOO. The global ring is ink, which on
-       * this bar is invisible - the State Your Value Rule (DESIGN.md) applies
-       * to focus exactly as it does to type. `--focus-ring` carries the paper
-       * value to every control on the bar; the paper panels this header owns
-       * (mega menu, drawer, search) set it back to ink, and set their own ink
-       * foreground, because they inherit this bar's paper type otherwise.
+       * THE MASTHEAD IS IVORY, RULED (D4D.26). The atelier's header is the
+       * page's own ground with one hairline under it, so the photographs and
+       * the green actions stay the only weight at the top of the screen. It
+       * was an ink bar in the paper-and-ink world this one replaces.
        */
       className={cn(
-        'bg-foreground text-background sticky top-0 z-30 transition-shadow duration-200 [--focus-ring:var(--color-background)]',
+        'bg-background text-foreground border-border sticky top-0 z-30 border-b transition-shadow duration-200',
         scrolled ? 'shadow-md' : '',
       )}
     >
@@ -143,7 +129,7 @@ export function Header({
        * than by text-align: they balance each other, so the name sits in the
        * true middle of the container whatever the icons do.
        */}
-      <Container className="flex h-16 items-center gap-4 lg:h-16">
+      <Container width="wide" className="flex h-16 items-center gap-4 lg:h-16">
         {/*
          * THE HOUSE MARK LEADS THE ROW, at the inline start - the RIGHT of this
          * RTL page - which is where FIRST VIEWPORT places it and where a
@@ -154,21 +140,10 @@ export function Header({
          */}
         <div className="flex flex-1 items-center justify-start gap-2">
           {/*
-           * THE HOUSE MARK.
-           *
-           * A keyline box in the display face, on the ink bar. It is the one
-           * piece of identity on the page, and on a site whose whole position
-           * is that the only colour is the jewellery, a mark has to be carried
-           * by weight and a rule rather than by a logo or a colour.
-           *
-           * STILL TYPOGRAPHIC, because no drawn logo exists (PRODUCT.md). When
-           * one lands it replaces the text inside this same box.
+           * THE HOUSE MARK: the name in the display serif, no box. No drawn
+           * logo exists (PRODUCT.md); when one lands it replaces this text.
            */}
-          <Link
-            href="/"
-            className="ease-settle group border-background/50 hover:border-background touch-target shrink-0 border px-3 py-1 transition-[border-color] duration-(--duration-settle)"
-            aria-label="לדף הבית"
-          >
+          <Link href="/" className="touch-target shrink-0 py-1" aria-label="לדף הבית">
             {/*
              * `bdi` ISOLATES THE NAME. The wordmark is Latin inside a Hebrew
              * RTL document, and a bare Latin run in RTL text lets the bidi
@@ -176,7 +151,7 @@ export function Header({
              * words around it. Isolating it means the mark always reads
              * left-to-right as written, wherever it is placed.
              */}
-            <bdi className="font-display block text-lg leading-none font-bold tracking-tight whitespace-nowrap lg:text-2xl">
+            <bdi className="font-display block text-[1.375rem] leading-none font-medium tracking-[0.02em] whitespace-nowrap lg:text-[1.625rem]">
               {SITE_NAME}
             </bdi>
           </Link>
@@ -188,7 +163,7 @@ export function Header({
             type="button"
             aria-expanded={state.mobileMenuOpen}
             onClick={() => dispatch({ type: 'TOGGLE_MOBILE_MENU' })}
-            className="text-background/65 hover:text-background -ms-2 inline-flex size-11 items-center justify-center transition-colors lg:hidden"
+            className="text-muted-foreground hover:text-foreground -ms-2 inline-flex size-11 items-center justify-center transition-colors lg:hidden"
           >
             <MenuIcon className="size-5" />
             <span className="sr-only">פתיחת תפריט הניווט</span>
@@ -205,7 +180,7 @@ export function Header({
           <button
             type="button"
             onClick={() => dispatch({ type: 'OPEN_SEARCH' })}
-            className="text-background/65 hover:text-background inline-flex size-11 items-center justify-center transition-colors"
+            className="text-muted-foreground hover:text-foreground inline-flex size-11 items-center justify-center transition-colors"
           >
             <SearchIcon className="size-5" />
             <span className="sr-only">חיפוש</span>
@@ -225,14 +200,11 @@ export function Header({
            */}
           <Link
             href="/cart"
-            className="text-background/65 hover:text-background -me-2 inline-flex h-11 min-w-11 items-center justify-center gap-1.5 px-1 transition-colors"
+            className="text-muted-foreground hover:text-foreground -me-2 inline-flex h-11 min-w-11 items-center justify-center gap-1.5 px-1 transition-colors"
           >
             <BagIcon className="size-5" />
             {cartCount > 0 && (
-              <span
-                aria-hidden="true"
-                className="text-background text-sm font-semibold tabular-nums"
-              >
+              <span aria-hidden="true" className="text-foreground text-sm font-medium tabular-nums">
                 {cartCount}
               </span>
             )}
@@ -249,8 +221,8 @@ export function Header({
        * anchoring it to this row is what makes it open under the whole header
        * instead of through the middle of it.
        */}
-      <div className="border-border/70 relative hidden border-t lg:block">
-        <Container>
+      <div className="border-border relative hidden border-t lg:block">
+        <Container width="wide">
           <DesktopNav items={navItems} state={state} dispatch={dispatch} pathname={pathname} />
         </Container>
       </div>

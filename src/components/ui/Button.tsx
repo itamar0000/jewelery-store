@@ -16,25 +16,23 @@ import { cn } from './cn';
  * button. Every variant keeps the global `:focus-visible` ring from globals.css.
  */
 /*
- * SQUARE, NOT ROUNDED. Everything in this world is struck, printed or ruled,
- * and none of those processes produce a soft corner. The radius tokens stay in
- * the scale for surfaces that earn one; an action is not one of them.
+ * PILLS (D4D.26). The atelier's actions are rounded the whole way, like a
+ * jeweller's label tag: the only fully round shape on the page besides the
+ * colour swatches, so an action is recognisable as one at a glance. Medium
+ * weight, not bold: the serif headings carry the emphasis.
  */
 const BASE =
-  'inline-flex items-center justify-center gap-2 font-semibold ' +
+  'inline-flex items-center justify-center gap-2 rounded-full font-medium ' +
   'transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50';
 
 const VARIANTS = {
   /**
-   * THE ONE HIGH-EMPHASIS ACTION IN A VIEW: a block of ink with the paper
-   * colour as its type. It was a saturated red block, which on a page this
-   * quiet was the loudest thing on screen and read as a sticker. A view with
-   * two of these has not decided what it wants the visitor to do.
+   * THE ONE HIGH-EMPHASIS ACTION IN A VIEW: a green pill with ivory type. A
+   * view with two of these has not decided what it wants the visitor to do.
    */
-  primary:
-    'bg-stamp text-stamp-foreground ring-1 ring-stamp-foreground/25 ring-inset hover:bg-stamp-hover',
+  primary: 'bg-stamp text-stamp-foreground hover:bg-stamp-hover',
   /**
-   * Default for most actions: a ruled field on the ground it sits on.
+   * Default for most actions: an outlined pill in the colour of its surface.
    *
    * THE FOREGROUND IS INHERITED, NOT NAMED, and that is load-bearing. It read
    * `text-foreground`, which is bare metal - correct on the trade field and
@@ -46,7 +44,12 @@ const VARIANTS = {
    * Inheriting means the button takes the colour of the surface it is on, and
    * every surface in this system states its own foreground.
    */
-  secondary: 'border border-border-field text-inherit hover:border-accent hover:bg-muted',
+  secondary: 'border border-current text-inherit hover:bg-foreground/5',
+  /**
+   * The primary action ON THE GREEN FIELD: an ivory pill with green type, the
+   * field's colours reversed. Only for the field band.
+   */
+  inverse: 'bg-field-foreground text-field hover:bg-field-foreground/90',
   /** Low emphasis, sits inside dense UI. Inherits, for the same reason. */
   ghost: 'text-inherit hover:bg-muted',
   /** Text link styled as an action. */
@@ -55,8 +58,8 @@ const VARIANTS = {
 
 const SIZES = {
   sm: 'h-9 px-4 text-sm',
-  md: 'h-11 px-6 text-sm',
-  lg: 'h-13 px-8 text-base',
+  md: 'h-12 px-7 text-[0.9375rem]',
+  lg: 'h-14 px-9 text-base',
 } as const;
 
 export type ButtonVariant = keyof typeof VARIANTS;

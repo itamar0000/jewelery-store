@@ -176,12 +176,13 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     // range, and still shows the necklaces and pendants on ordinary desktops.
     // Losing a bracelet reads as a crop; losing the eyes reads as a mistake.
     focalPoint: { x: 70, y: 24 },
-    // The portrait master is composed around a centred subject, so the window
-    // stays centred across; 40% keeps the eyes in frame when a tablet's wider
-    // box crops it hardest, with the necklaces, rings and bracelets beneath.
-    // (It replaced a master with the model hard against the left edge, which
-    // this point used to pull the window toward with x: 0.)
-    mobileFocalPoint: { x: 50, y: 40 },
+    // THE ATELIER HERO (D4D.26) puts the photograph in an upright column. On a
+    // phone that column is the portrait master, 60vh tall; the face sits in the
+    // top fifth of it, so the window is held near the top - 12% keeps hair,
+    // face, necklaces and rings, and lets the bracelets go first. From 48rem the
+    // wide master fills the column by its height, and the x of 70% above holds
+    // the model, her necklaces and rings in it.
+    mobileFocalPoint: { x: 50, y: 12 },
     aspect: 'desktop ~21:9 full-bleed · mobile ~4:5 portrait',
     // 21:9. The hero box runs between roughly 2:1 and 3:1 across real
     // desktops; 21:9 sits in the middle, so neither extreme crops hard.
@@ -330,29 +331,22 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
     desktopSrc: `${BASE}/bridal/bridal-desktop.jpg`,
     mobileSrc: `${BASE}/bridal/bridal-mobile.jpg`,
     alt: '',
-    focalPoint: { x: 40, y: 40 },
     /*
-     * FAR to the inline start, and that is not a typo.
+     * THE PHOTOGRAPH CHANGED (D4D.21). The studio portrait of a bride - a
+     * different brand's glamour, against the natural light of every other
+     * photograph on the site - is replaced by a quiet close view: a hand
+     * resting on ivory silk, a solitaire and its band. Generated, like the
+     * worn images, and in their look.
      *
-     * The banner is a 2.5:1 landscape and the phone crop is 4:5 portrait, so
-     * cover keeps the full height and only 768px of a 2400px width - less than
-     * a third of the frame. WHERE that third is taken from is entirely this
-     * value's decision, and at the old 50% it was taken from x816-1584: the
-     * empty studio background the desktop composition deliberately reserves
-     * for the headline. The phone banner rendered as a blank cream rectangle
-     * with a corner of lace in it.
-     *
-     * The subject sits at roughly x0-840 (face ~300-600, ring ~480-840), so 5%
-     * takes x82-850 and frames her and the ring. The number looks extreme only
-     * because it is compensating for a deliberately off-centre composition.
-     *
-     * IT IS COUPLED TO THE PHOTOGRAPH. Re-shoot the bridal frame with the
-     * subject centred and this has to move back. That coupling is the cost of
-     * deriving the phone crop from the desktop file; a separately art-directed
-     * portrait master - which `mobileSrc` is documented to be - would not have
-     * it, and would also avoid the 1.67x upscale this crop currently needs.
+     * The desktop master keeps the hand in the right third and leaves the
+     * left as calm silk; the ring sits at about x77% and y50%, so the banner,
+     * whatever its height, crops around it. The phone master is its own
+     * portrait crop with the hand centred, so its focal point is the centre -
+     * the far-left 5% the old portrait needed, and the comment that explained
+     * it, went with that photograph.
      */
-    mobileFocalPoint: { x: 5, y: 35 },
+    focalPoint: { x: 72, y: 50 },
+    mobileFocalPoint: { x: 50, y: 55 },
     aspect: 'full-bleed campaign banner',
     // 2.5:1. The banner is `55vh` clamped between 26rem and 34rem, which is
     // a wider, shorter box than the hero at every viewport.

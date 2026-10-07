@@ -554,6 +554,7 @@ const imageSelect = {
   width: true,
   height: true,
   isPrimary: true,
+  isSimulation: true,
   variantId: true,
 } as const;
 
@@ -827,6 +828,7 @@ function toResolvedImage(row: {
   width: number | null;
   height: number | null;
   isPrimary: boolean;
+  isSimulation?: boolean;
   variantId: string | null;
 }): ResolvedImage {
   return {
@@ -836,6 +838,7 @@ function toResolvedImage(row: {
     width: row.width,
     height: row.height,
     isPrimary: row.isPrimary,
+    isSimulation: row.isSimulation ?? false,
     variantId: row.variantId,
   };
 }

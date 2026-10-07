@@ -108,10 +108,10 @@ export function DesktopNav({
                   href={item.href}
                   aria-current={ariaCurrent(item.href, pathname)}
                   className={cn(
-                    'after:bg-background relative inline-flex h-11 items-center px-3 text-sm whitespace-nowrap transition-colors duration-150 after:absolute after:inset-x-3 after:bottom-0 after:h-px after:transition-transform after:duration-200',
+                    'after:bg-accent relative inline-flex h-11 items-center px-3 text-sm whitespace-nowrap transition-colors duration-150 after:absolute after:inset-x-3 after:bottom-0 after:h-px after:transition-transform after:duration-200',
                     current
-                      ? 'text-background after:scale-x-100'
-                      : 'text-background/65 hover:text-background after:scale-x-0',
+                      ? 'text-foreground after:scale-x-100'
+                      : 'text-muted-foreground hover:text-foreground after:scale-x-0',
                   )}
                 >
                   {item.label}
@@ -153,10 +153,10 @@ export function DesktopNav({
                   // source and invisible on the screen. Anything drawn on this
                   // bar states the light value explicitly.
                   'relative inline-flex h-11 items-center gap-1.5 px-3 text-sm whitespace-nowrap transition-colors duration-150',
-                  'after:bg-background after:absolute after:inset-x-3 after:bottom-0 after:h-px after:origin-center after:transition-transform after:duration-200',
+                  'after:bg-accent after:absolute after:inset-x-3 after:bottom-0 after:h-px after:origin-center after:transition-transform after:duration-200',
                   isOpen || current
-                    ? 'text-background after:scale-x-100'
-                    : 'text-background/65 hover:text-background after:scale-x-0 hover:after:scale-x-100',
+                    ? 'text-foreground after:scale-x-100'
+                    : 'text-muted-foreground hover:text-foreground after:scale-x-0 hover:after:scale-x-100',
                 )}
               >
                 {item.label}

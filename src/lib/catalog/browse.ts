@@ -132,7 +132,9 @@ async function buildFacet(code: FacetCode, scope: Prisma.ProductWhereInput): Pro
       distinct: ['value'],
     });
 
-    if (values.length === 0) return null;
+    // One value filters nothing: every product in scope already has it. Since
+    // the shop sells 14K only (D4D.25), that is the karat facet everywhere.
+    if (values.length < 2) return null;
 
     return {
       code,

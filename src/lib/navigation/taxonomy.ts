@@ -155,6 +155,13 @@ export const PRIMARY_NAV: readonly NavItem[] = [
       },
       discoveryColumn('earrings'),
     ],
+    feature: {
+      title: 'עגילי יהלום',
+      description: 'עגילים צמודים וחישוקים משובצים ביהלומים. סוג היהלום מצוין בכל דגם.',
+      href: '/earrings/diamond-earrings',
+      linkLabel: 'לעגילי היהלום',
+      image: { src: '/images/editorial/menu/earrings.jpg', alt: '' },
+    },
   },
   {
     id: 'necklaces',
@@ -179,6 +186,13 @@ export const PRIMARY_NAV: readonly NavItem[] = [
       },
       discoveryColumn('necklaces'),
     ],
+    feature: {
+      title: 'שרשראות יהלומים',
+      description: 'תליונים ושרשראות טניס משובצים ביהלומים. סוג היהלום מצוין בכל דגם.',
+      href: '/necklaces/diamond-necklaces',
+      linkLabel: 'לשרשראות היהלומים',
+      image: { src: '/images/editorial/menu/necklaces.jpg', alt: '' },
+    },
   },
   {
     id: 'bracelets',
@@ -203,6 +217,13 @@ export const PRIMARY_NAV: readonly NavItem[] = [
       },
       discoveryColumn('bracelets'),
     ],
+    feature: {
+      title: 'צמידי טניס',
+      description: 'שורה רציפה של יהלומים סביב פרק היד, בזהב צהוב או לבן.',
+      href: '/bracelets/tennis-bracelets',
+      linkLabel: 'לצמידי הטניס',
+      image: { src: '/images/editorial/menu/bracelets.jpg', alt: '' },
+    },
   },
   {
     id: 'sets',
@@ -226,6 +247,13 @@ export const PRIMARY_NAV: readonly NavItem[] = [
       },
       discoveryColumn('sets'),
     ],
+    feature: {
+      title: 'סטים לכלה',
+      description: 'טבעת אירוסין עם טבעות או עגילים תואמים, מעוצבים להיענד יחד.',
+      href: '/sets/bridal-sets',
+      linkLabel: 'לסטים לכלה',
+      image: { src: '/images/editorial/menu/sets.jpg', alt: '' },
+    },
   },
   { id: 'custom', label: 'עיצוב אישי', href: '/custom' },
   { id: 'faq', label: 'שאלות ותשובות', href: '/faq' },

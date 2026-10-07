@@ -52,7 +52,12 @@ export function CollectionsSection({
   if (shown.length === 0) return null;
 
   return (
-    <Container as="section" aria-labelledby="collections-heading" className="py-section">
+    <Container
+      as="section"
+      aria-labelledby="collections-heading"
+      width="wide"
+      className="py-section md:py-feature"
+    >
       <SectionHeading
         id="collections-heading"
         title="אוספים"
@@ -84,7 +89,7 @@ export function CollectionsSection({
             <li key={collection.id}>
               <Link href={collection.href} className="group block">
                 {assetId && (
-                  <div className="relative aspect-[3/2] w-full overflow-hidden">
+                  <div className="relative aspect-[3/2] w-full overflow-hidden rounded-t-[10rem] md:rounded-t-[14rem]">
                     <EditorialImage
                       id={assetId}
                       sizes="(min-width: 768px) 45vw, 100vw"
@@ -94,18 +99,18 @@ export function CollectionsSection({
                   </div>
                 )}
 
-                <div className="border-border mt-5 flex flex-wrap items-baseline gap-x-6 gap-y-2 border-t pt-5">
-                  <h3 className="font-display text-2xl font-bold tracking-tight">
+                <div className="mt-6 flex flex-wrap items-baseline gap-x-6 gap-y-2">
+                  <h3 className="font-display group-hover:text-accent text-[1.75rem] leading-tight font-normal transition-colors">
                     {collection.nameHe}
                   </h3>
 
                   {collection.descriptionHe && (
-                    <p className="text-muted-foreground max-w-md text-sm text-pretty">
+                    <p className="text-muted-foreground max-w-md text-[0.9375rem] font-light text-pretty">
                       {collection.descriptionHe}
                     </p>
                   )}
 
-                  <span className="decoration-border-strong group-hover:decoration-foreground ms-auto text-sm font-semibold underline underline-offset-[0.4em]">
+                  <span className="text-accent decoration-accent/40 group-hover:decoration-accent ms-auto text-sm font-medium underline underline-offset-[0.4em]">
                     לצפייה
                   </span>
                 </div>

@@ -29,6 +29,8 @@ export interface ResolvedImage {
   readonly width: number | null;
   readonly height: number | null;
   readonly isPrimary: boolean;
+  /** A generated image of the piece worn, labelled "הדמיה" (D4D.21). */
+  readonly isSimulation?: boolean;
   /** `null` for a product-level asset shared by every variant. */
   readonly variantId: string | null;
 }

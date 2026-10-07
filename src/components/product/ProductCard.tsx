@@ -114,7 +114,15 @@ export function ProductCard({
            * the site and deliberately below the threshold of looking like a
            * response - the image settles rather than reacts.
            */
+          /*
+           * mix-blend-darken SEATS THE PACKSHOT IN THE PAGE (D4D.26). The
+           * product photographs are shot on a cool near-white that read as
+           * white tiles on the atelier's ivory; darken keeps every pixel of
+           * the jewellery and lets the ground show through where the studio
+           * backdrop was lighter than the page.
+           */
           imageClassName={cn(
+            'mix-blend-darken',
             hoverImageAlt === undefined &&
               'ease-settle transition-transform duration-(--duration-drift) group-hover:scale-[1.04] motion-reduce:group-hover:scale-100',
           )}
@@ -130,14 +138,14 @@ export function ProductCard({
            * fades in over the badge and it disappears under the cursor, which
            * reads as a rendering fault rather than as a design.
            */
-          <Badge tone="onImage" className="absolute start-3 top-3 z-10">
+          <Badge tone="accent" className="absolute start-3 top-3 z-10">
             {BADGE_LABELS[badge]}
           </Badge>
         )}
       </div>
 
       <div className="flex flex-1 flex-col gap-1.5 pt-4">
-        <Heading className="text-sm leading-snug">
+        <Heading className="font-display text-[1.25rem] leading-snug font-normal">
           {/* `before:` overlay makes the card clickable without wrapping it. */}
           <Link
             href={`/product/${slug}`}
@@ -212,7 +220,7 @@ export function ProductCard({
            * `bdi` isolates the figure, so the prefix stays in the Hebrew run at
            * the visual start instead of being pulled after the digits.
            */}
-          <span className="text-sm font-semibold tabular-nums">
+          <span className="text-[0.9375rem] font-medium tabular-nums">
             {product.priceFrom && PRICE_FROM}
             <bdi>{formatPrice(price)}</bdi>
           </span>

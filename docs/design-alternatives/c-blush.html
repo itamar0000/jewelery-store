@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>C · ורוד אבק – Jewelry for Less</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600&family=Suez+One&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fbf3ee;--rose:#e9c6bb;--terra:#b4573f;--plum:#4a2a33;--cream:#fffaf6;--muted:#7c6a66}
+*{box-sizing:border-box;margin:0}body{background:var(--bg);color:var(--plum);font:400 17px/1.7 Rubik,sans-serif}
+img{display:block;width:100%;height:100%;object-fit:cover}a{color:inherit;text-decoration:none}
+.promo{background:var(--plum);color:var(--cream);text-align:center;padding:9px;font-size:14px}
+.top{display:flex;justify-content:space-between;align-items:center;padding:20px 5vw}.logo{font:400 28px 'Suez One',serif;direction:ltr;color:var(--terra)}
+.top nav{display:flex;gap:26px;font-weight:500}.pill{background:var(--plum);color:var(--cream);padding:10px 22px;border-radius:999px;font-size:15px}
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:10px 5vw 60px;align-items:center}
+.hero h1{font:400 clamp(44px,6vw,88px)/1.02 'Suez One',serif}.hero h1 em{font-style:normal;color:var(--terra)}
+.hero p{margin:22px 0 30px;max-width:34ch;color:var(--muted);font-size:19px}
+.arch{aspect-ratio:4/5;border-radius:999px 999px 28px 28px;overflow:hidden;background:var(--rose);max-height:78vh;margin-inline:auto;width:min(100%,520px)}.arch img{object-position:72% 20%}
+.btn{display:inline-block;background:var(--terra);color:#fff;padding:16px 34px;border-radius:999px;font-weight:500}.btn.g{background:none;color:var(--plum);border:2px solid var(--plum);margin-inline-start:10px}
+.occ{padding:20px 5vw 80px}.occ h2,.sec h2{font:400 clamp(32px,4vw,52px)/1.1 'Suez One',serif;margin-bottom:30px}
+.occg{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{border-radius:28px;overflow:hidden;position:relative;aspect-ratio:4/5;display:flex;align-items:flex-end}
+.card img{position:absolute;inset:0}.card div{position:relative;margin:14px;background:var(--cream);border-radius:20px;padding:18px 22px;width:calc(100% - 28px)}
+.card b{font:400 26px 'Suez One',serif;display:block}.card small{color:var(--muted)}
+.sec{padding:70px 5vw;background:var(--rose)}
+.pr{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.pr .p{background:var(--cream);border-radius:24px;padding:12px;transition:.25s}.pr .p:hover{transform:translateY(-6px)}
+.pr .im{aspect-ratio:1;border-radius:16px;overflow:hidden}.pr h3{font-weight:600;margin:12px 6px 0}.pr small{margin:0 6px 6px;display:block;color:var(--muted);font-size:14px}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:26px}.chips span{background:var(--cream);padding:8px 18px;border-radius:999px;font-size:14px;font-weight:500}.chips span:first-child{background:var(--plum);color:var(--cream)}
+.gift{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:50px;padding:90px 5vw}
+.gift .im{aspect-ratio:1;border-radius:50%;overflow:hidden;max-width:480px;width:100%}
+.gift h2{font:400 clamp(32px,4vw,54px)/1.1 'Suez One',serif;margin-bottom:16px}.gift ul{list-style:none;padding:0;margin:20px 0 28px}.gift li{padding:10px 0;border-bottom:1px dashed #d8b9ae}.gift li:before{content:'✦';color:var(--terra);margin-inline-end:12px}
+footer{background:var(--plum);color:#e9d6d0;padding:60px 5vw;display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap;font-size:15px}footer .logo{color:var(--rose);font-size:32px}
+@media(max-width:800px){.hero,.gift{grid-template-columns:1fr}.occg{grid-template-columns:1fr}.pr{grid-template-columns:repeat(2,1fr)}.top nav{display:none}}
+</style></head><body>
+<div class="promo">משלוח חינם לכל הארץ · כל תכשיט מיוצר בשבילכם</div>
+<header class="top"><span class="logo">Jewelry for Less</span><nav><a>טבעות</a><a>שרשראות</a><a>עגילים</a><a>צמידים</a><a>מתנות</a></nav><a class="pill">סל (0)</a></header>
+<section class="hero"><div><h1>המתנה שהיא<br><em>בדיוק בשבילה</em></h1><p>תכשיטי זהב ויהלומים שאפשר להתאים אישית: שם, אות, אבן, צבע זהב. מיוצרים בישראל ומגיעים עד הבית.</p><a class="btn">למצוא מתנה</a><a class="btn g">עיצוב אישי</a></div>
+<div class="arch"><img src="img/hero.jpg"></div></section>
+<section class="occ"><h2>למי מחפשים?</h2><div class="occg">
+<a class="card"><img src="img/bridal.jpg"><div><b>לטבעת אירוסין</b><small>סוליטר, הילה, שלוש אבנים</small></div></a>
+<a class="card"><img src="img/personalized.jpg"><div><b>למתנה אישית</b><small>שם, אות, תמונה</small></div></a>
+<a class="card"><img src="img/cat-earrings.jpg"><div><b>לעצמי</b><small>לכל יום ולרגעים מיוחדים</small></div></a></div></section>
+<section class="sec"><h2>הכי אהובים</h2><div class="chips"><span>הכל</span><span>טבעות</span><span>שרשראות</span><span>עגילים</span><span>צמידים</span></div>
+<div class="pr">
+<a class="p"><div class="im"><img src="img/p-solitaire-pendant-worn.jpg"></div><h3>תליון סוליטר</h3><small>14K / 18K</small></a>
+<a class="p"><div class="im"><img src="img/p-drop-earrings-worn.jpg"></div><h3>עגילי טיפה</h3><small>14K / 18K</small></a>
+<a class="p"><div class="im"><img src="img/p-three-stone-ring-worn.jpg"></div><h3>טבעת שלוש אבנים</h3><small>3 צבעי זהב</small></a>
+<a class="p"><div class="im"><img src="img/p-name-necklace-worn.jpg"></div><h3>שרשרת שם</h3><small>חריטה אישית</small></a></div></section>
+<section class="gift"><div class="im"><img src="img/personalized.jpg"></div><div><h2>לא יודעים מה לבחור?</h2><p style="color:var(--muted)">לא צריך להבין ביהלומים. נסביר כל מונח במקום שבו הוא מופיע.</p><ul><li>בוחרים רגש, אנחנו מציעים דגמים</li><li>חריטה אישית בכל תכשיט</li><li>משלוח חינם</li></ul><a class="btn">להתחיל</a></div></section>
+<footer><div><div class="logo">Jewelry for Less</div><p>תכשיטי זהב ויהלומים, ישירות מהיצרן.</p></div><div>שאלות נפוצות<br>תנאי שימוש<br>צור קשר</div></footer>
+</body></html>

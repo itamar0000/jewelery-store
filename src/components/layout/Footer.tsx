@@ -30,12 +30,24 @@ export function Footer() {
   })).filter((column) => column.links.length > 0);
 
   return (
-    <footer className="border-border bg-muted/40 mt-24 border-t">
-      <Container className="py-section">
+    /*
+     * THE NIGHT FOOTER (D4D.26): the atelier closes on its green-black, with
+     * the name set large in the serif. Every colour on it is named for this
+     * ground (night-foreground at full or muted strength, the focus ring in
+     * ivory), because the page's own ink would vanish here.
+     */
+    <footer className="bg-night text-night-foreground mt-24 [--focus-ring:var(--color-background)]">
+      <Container width="wide" className="py-feature">
+        <div className="mb-14 max-w-sm">
+          <p className="font-display text-background text-[2rem] leading-none tracking-[0.02em]">
+            <bdi>{SITE_NAME}</bdi>
+          </p>
+          <p className="mt-4 text-[0.9375rem] font-light">תכשיטי זהב ויהלומים, ישירות מהסדנה.</p>
+        </div>
         <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-3 lg:grid-cols-5">
           {columns.map((column) => (
             <nav key={column.id} aria-labelledby={`footer-${column.id}`}>
-              <h2 id={`footer-${column.id}`} className="mb-4 text-sm font-medium">
+              <h2 id={`footer-${column.id}`} className="text-background mb-4 text-sm font-medium">
                 {column.title}
               </h2>
 
@@ -51,7 +63,7 @@ export function Footer() {
                   <li key={link.id}>
                     <Link
                       href={link.href}
-                      className="text-muted-foreground hover:text-foreground text-sm transition-colors pointer-coarse:flex pointer-coarse:min-h-11 pointer-coarse:items-center"
+                      className="text-night-foreground/80 hover:text-background text-sm transition-colors pointer-coarse:flex pointer-coarse:min-h-11 pointer-coarse:items-center"
                     >
                       {link.label}
                     </Link>
@@ -63,17 +75,17 @@ export function Footer() {
 
           {contactAvailable && (
             <section aria-labelledby="footer-contact">
-              <h2 id="footer-contact" className="mb-4 text-sm font-medium">
+              <h2 id="footer-contact" className="text-background mb-4 text-sm font-medium">
                 יצירת קשר
               </h2>
 
               <ul className="space-y-2.5 pointer-coarse:space-y-0">
                 {contactChannels.map((channel) => (
-                  <li key={channel.id} className="text-muted-foreground text-sm">
+                  <li key={channel.id} className="text-sm">
                     {channel.label}:{' '}
                     <a
                       href={channel.href}
-                      className="hover:text-foreground underline-offset-4 transition-colors hover:underline pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center"
+                      className="hover:text-background underline-offset-4 transition-colors hover:underline pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center"
                     >
                       <bdi>{channel.display}</bdi>
                     </a>
@@ -84,7 +96,7 @@ export function Footer() {
           )}
         </div>
 
-        <div className="border-border text-muted-foreground mt-12 flex flex-col gap-2 border-t pt-6 text-xs md:flex-row md:items-center md:justify-between">
+        <div className="border-night-foreground/20 mt-14 flex flex-col gap-2 border-t pt-6 text-xs md:flex-row md:items-center md:justify-between">
           {/* Isolated for the same reason as the masthead: a Latin name in an
               RTL line reorders without it, and "© 2026 Jewelry for Less" is
               exactly the mix of digits, symbol and Latin that goes wrong. */}

@@ -53,7 +53,7 @@ export interface EditorialImageProps {
   readonly className?: string;
 }
 
-export type ArtDirection = 'width' | 'orientation';
+export type ArtDirection = 'width' | 'orientation' | 'portrait';
 
 /**
  * Above the library default of 75.
@@ -84,6 +84,8 @@ const QUALITY = 82;
 const ART_DIRECTION: Readonly<Record<ArtDirection, { media: string; focalClass: string }>> = {
   width: { media: '(width < 48rem)', focalClass: 'editorial-focal' },
   orientation: { media: '(orientation: portrait)', focalClass: 'editorial-focal-orientation' },
+  // The portrait crop everywhere: for a box that is upright at every size.
+  portrait: { media: 'all', focalClass: 'editorial-focal-portrait' },
 };
 
 export function EditorialImage({

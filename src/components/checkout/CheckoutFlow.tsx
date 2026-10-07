@@ -307,7 +307,7 @@ export function CheckoutFlow({
           <h2
             ref={headingRef}
             tabIndex={-1}
-            className="font-display scroll-mt-[calc(var(--header-height)+1.5rem)] text-2xl font-bold tracking-tight outline-none"
+            className="font-display scroll-mt-[calc(var(--header-height)+1.5rem)] text-2xl font-normal tracking-tight outline-none"
           >
             {step === 1 ? 'פרטים ליצירת קשר' : step === 2 ? 'כתובת למשלוח' : 'בדיקה לפני שמירה'}
           </h2>

@@ -65,6 +65,9 @@ const eslintConfig = [
       // Prisma's generated client. Not ours to lint, and regenerated on every
       // install.
       'src/generated/**',
+      // The owner's local photo workbench (gitignored): source images and
+      // throwaway helper scripts, not part of the app.
+      'photo-kit/**',
     ],
   },
 

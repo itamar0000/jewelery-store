@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 
 import { cn } from '@/components/ui/cn';
 import { ProductPhoto } from './ProductPhoto';
+import { Badge } from '@/components/ui/Badge';
 import type { ResolvedImage } from '@/lib/catalog/images';
 
 /**
@@ -164,7 +165,18 @@ export function ProductGallery({
        * `md:` only. Below that the column is not sticky and the frame is not
        * competing with anything for height.
        */}
-      <div className="min-w-0 flex-1 md:max-w-[calc(100svh-var(--header-height)-3rem)]">
+      <div className="relative min-w-0 flex-1 md:max-w-[calc(100svh-var(--header-height)-3rem)]">
+        {/*
+         * A GENERATED IMAGE SAYS SO. A piece shown worn is composed from its
+         * own photograph, not photographed on a person, and the frame states
+         * it in words - over the image, outside the zoom so it never scales,
+         * in the over-photograph chip tone (DESIGN.md, Chips; D4D.21).
+         */}
+        {active?.isSimulation && (
+          <Badge tone="onImage" className="pointer-events-none absolute start-3 top-3 z-10">
+            הדמיה
+          </Badge>
+        )}
         <Zoomable>
           <div
             /*

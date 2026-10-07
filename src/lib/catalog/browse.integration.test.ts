@@ -191,7 +191,13 @@ describe('facets', () => {
     const necklaceFacets = await getCategoryFacets([necklacesId], NECKLACE_CONFIG);
     // The category-awareness requirement, at the source.
     expect(necklaceFacets.map((facet) => facet.code)).not.toContain('ring_size');
-    expect(necklaceFacets.map((facet) => facet.code)).toContain('length');
+  });
+
+  it('drops a facet with a single value, which would filter nothing', async () => {
+    // The fixture necklaces all come in one length (D4D.25: as every piece now
+    // comes in one karat).
+    const necklaceFacets = await getCategoryFacets([necklacesId], NECKLACE_CONFIG);
+    expect(necklaceFacets.map((facet) => facet.code)).not.toContain('length');
   });
 
   it('offers only values that exist in the category', async () => {
