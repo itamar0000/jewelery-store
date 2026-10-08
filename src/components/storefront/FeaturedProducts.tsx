@@ -39,7 +39,7 @@ export function FeaturedProducts({
      * photographs are shot on a near-white ground that sits quietly on the
      * ivory and would read as white boxes on the darker band.
      */
-    <section aria-labelledby={id} className="py-section md:py-feature">
+    <section aria-labelledby={id} className="pb-section md:pb-feature">
       <Container width="wide">
         <SectionHeading id={id} title={title} description={description} href={href} />
         <ProductGrid products={products.slice(0, limit)} compact />

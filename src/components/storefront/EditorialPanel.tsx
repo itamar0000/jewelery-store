@@ -25,6 +25,8 @@ export interface EditorialPanelProps {
   /** Short facts set as a list under the body. */
   points?: readonly string[];
   action?: { label: string; href: string };
+  /** A help or reference link takes the outlined pill; the default is the primary. */
+  actionVariant?: 'primary' | 'secondary';
   /** Which half the photograph takes, in reading order. */
   imageSide?: 'start' | 'end';
   imageLabel?: string;
@@ -38,6 +40,7 @@ export function EditorialPanel({
   body,
   points,
   action,
+  actionVariant = 'primary',
   imageSide = 'start',
   imageLabel,
   assetId,
@@ -108,7 +111,7 @@ export function EditorialPanel({
 
         {action && (
           <div className="mt-9">
-            <Button href={action.href} variant={field ? 'inverse' : 'primary'}>
+            <Button href={action.href} variant={field ? 'inverse' : actionVariant}>
               {action.label}
             </Button>
           </div>

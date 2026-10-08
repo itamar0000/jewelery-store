@@ -36,7 +36,7 @@ import path from 'node:path';
 
 /** Where in the page an asset belongs. Documentation, and a grouping key. */
 export type EditorialSection =
-  'hero' | 'category' | 'collection' | 'atelier' | 'bridal' | 'diamonds';
+  'hero' | 'category' | 'collection' | 'atelier' | 'bridal' | 'diamonds' | 'men';
 
 /**
  * The point that must survive every crop, in percent.
@@ -124,7 +124,10 @@ export type EditorialAssetId =
   | 'collection-personalized'
   | 'atelier'
   | 'bridal'
-  | 'diamonds';
+  | 'diamonds'
+  | 'men-hero'
+  | 'men-wedding'
+  | 'men-engraving';
 
 const BASE = '/images/editorial';
 
@@ -370,6 +373,56 @@ export const EDITORIAL_ASSETS: Readonly<Record<EditorialAssetId, EditorialAsset>
       'refraction rather than CGI sparkle. MUST NOT imply the stone is lab-grown: ' +
       'the section explains that the catalog carries both natural and lab-grown, ' +
       'so the image has to stay neutral. No laboratory or "technology" imagery.',
+  },
+
+  /*
+   * THE MEN'S DEPARTMENT (D4D.34). Three worn images, to be generated like
+   * the bridal photograph (D4D.21) and in the same daylight look: a man's
+   * hand, hands, or a still life - NEVER a recognisable face - and the piece
+   * as the catalogue makes it. Generated with `scripts/generate-editorial.ts`
+   * (its COMPOSITION entries carry the framing); a better frame, or a real
+   * photograph, is a file replaced at the same path.
+   */
+  'men-hero': {
+    id: 'men-hero',
+    section: 'men',
+    desktopSrc: `${BASE}/men/hero.jpg`,
+    alt: '',
+    focalPoint: { x: 50, y: 50 },
+    aspect: 'the hero photograph column: tall on desktop, 46% of a phone screen',
+    master: { desktop: { width: 1600, height: 1600 } },
+    brief:
+      "A man's hand resting on a dark wool or linen surface, wearing a plain oval " +
+      '14K yellow-gold signet ring on the little or ring finger. Hand only, from the ' +
+      'wrist; no face. Soft daylight from one side, warm and natural. The ring is ' +
+      'the polished signet of the catalogue - no engraving, no stone.',
+  },
+  'men-wedding': {
+    id: 'men-wedding',
+    section: 'men',
+    desktopSrc: `${BASE}/men/wedding.jpg`,
+    alt: '',
+    focalPoint: { x: 50, y: 50 },
+    aspect: '4:5 portrait beside the copy',
+    master: { desktop: { width: 1400, height: 1750 } },
+    brief:
+      "Two hands, a man's and a woman's, lightly together, each wearing a plain " +
+      '14K gold wedding band - his wider, hers narrower. Hands only, no faces, no ' +
+      'flowers or venue. Ivory linen behind, soft daylight.',
+  },
+  'men-engraving': {
+    id: 'men-engraving',
+    section: 'men',
+    desktopSrc: `${BASE}/men/engraving.jpg`,
+    alt: '',
+    focalPoint: { x: 50, y: 50 },
+    aspect: '4:5 portrait beside the copy',
+    master: { desktop: { width: 1400, height: 1750 } },
+    brief:
+      'Close still life: an oval 14K yellow-gold signet ring lying on its side on ' +
+      'warm ivory paper, its face engraved with two Latin initials in a classic ' +
+      "serif, the engraving cut into the gold. A goldsmith's burin beside it. No " +
+      'other text anywhere in the frame.',
   },
 };
 

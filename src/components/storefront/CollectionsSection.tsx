@@ -49,7 +49,8 @@ export function CollectionsSection({
   limit?: number;
 }) {
   const shown = collections.slice(0, limit);
-  if (shown.length === 0) return null;
+  // Two or more: one collection alone is a band with nothing to compare.
+  if (shown.length < 2) return null;
 
   return (
     <Container

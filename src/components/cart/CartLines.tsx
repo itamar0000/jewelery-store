@@ -183,6 +183,17 @@ function CartLine({
           }}
         />
 
+        {/* On sale: the sale named, and the unit's regular price struck (D4D.33). */}
+        {line.promotionNameHe && line.regularUnitPrice && (
+          <p className="text-accent mt-1 text-sm">
+            מבצע: {line.promotionNameHe}{' '}
+            <span className="text-muted-foreground line-through">
+              <span className="sr-only">במקום </span>
+              <bdi>{formatPrice(add(line.regularUnitPrice, line.personalizationPrice))}</bdi>
+            </span>
+          </p>
+        )}
+
         {/* Per unit as the line charges it - engraving included - so the
             figure times the quantity is the line total beside it. */}
         {line.quantity > 1 && (

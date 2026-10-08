@@ -4,6 +4,7 @@ import { ProductGrid } from '@/components/product/ProductGrid';
 import { Button } from '@/components/ui/Button';
 import { ProductGridSkeleton, Skeleton } from '@/components/ui/Skeleton';
 import { getCatalogPage, getCategoryFacets, getFacetCounts } from '@/lib/catalog/browse';
+import { forMenDepartment } from '@/lib/catalog/men-worn';
 import { estimatedPricesNote } from '@/lib/catalog/price-disclosure';
 import {
   buildCatalogHref,
@@ -53,6 +54,7 @@ export async function CategoryResults({
   rawQuery,
   rankedIds,
   emptyState,
+  department,
 }: {
   /** The category and its descendants. */
   categoryIds: readonly string[];
@@ -69,13 +71,16 @@ export async function CategoryResults({
   rankedIds?: readonly string[];
   /** Replaces the empty state entirely, for search's "no results" copy. */
   emptyState?: ReactNode;
+  /** The men's department shows unisex pieces worn by a man (D4D.34). */
+  department?: 'men';
 }) {
   const facets = await getCategoryFacets(categoryIds, filterConfig);
   const query = normalizeCatalogQuery(rawQuery, facets);
-  const [{ products, total, page, totalPages, pageSize }, counts] = await Promise.all([
+  const [{ products: found, total, page, totalPages, pageSize }, counts] = await Promise.all([
     getCatalogPage(categoryIds, query, rankedIds),
     getFacetCounts(categoryIds, query, facets, rankedIds),
   ]);
+  const products = department === 'men' ? found.map(forMenDepartment) : found;
 
   const filtered = hasActiveFilters(query);
 

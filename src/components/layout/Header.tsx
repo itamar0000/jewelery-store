@@ -151,7 +151,7 @@ export function Header({
              * words around it. Isolating it means the mark always reads
              * left-to-right as written, wherever it is placed.
              */}
-            <bdi className="font-display block text-[1.375rem] leading-none font-medium tracking-[0.02em] whitespace-nowrap lg:text-[1.625rem]">
+            <bdi className="font-display block text-[1.375rem] leading-none font-normal tracking-[0.02em] whitespace-nowrap lg:text-[1.625rem]">
               {SITE_NAME}
             </bdi>
           </Link>

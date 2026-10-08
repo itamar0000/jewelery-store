@@ -19,6 +19,9 @@
  *     stays what it was and is listed at the end for the owner to review:
  *     a 14K price is the owner's to set, not this script's to guess.
  *
+ *   - Offered with NO karat at all (seven starter pieces): a 14K option is
+ *     added, holding the one value, and linked to every live variant.
+ *
  * Then the price range and the search document are rebuilt, and the one
  * product description that offered "14 או 18 קראט" is reworded.
  *
@@ -55,6 +58,57 @@ try {
 
   await prisma.$transaction(
     async (tx) => {
+      /*
+       * PIECES WITH NO KARAT AT ALL. Seven starter products were created with
+       * no gold_karat option, so the product page, the cart and the order said
+       * nothing about the gold. They get a 14K option holding the one value,
+       * linked to every live variant (whose option signature is recomputed),
+       * so the page states "14 קראט" as a fact like every other piece.
+       */
+      const unstated = await tx.product.findMany({
+        where: { archivedAt: null, options: { none: { code: 'gold_karat' } } },
+        orderBy: { slug: 'asc' },
+        select: {
+          id: true,
+          slug: true,
+          variants: {
+            where: { archivedAt: null },
+            select: { id: true, optionValues: { select: { valueId: true } } },
+          },
+        },
+      });
+      for (const product of unstated) {
+        console.log(`${product.slug.padEnd(22)} add 14K (had no karat)`);
+        touched.push(product.id);
+        if (!APPLY) continue;
+        const option = await tx.productOption.create({
+          data: {
+            productId: product.id,
+            code: 'gold_karat',
+            type: 'GOLD_KARAT',
+            nameHe: 'קראט זהב',
+            isVariantAxis: true,
+            isRequired: true,
+            position: 0,
+            values: { create: { value: KEEP, labelHe: '14 קראט', position: 0 } },
+          },
+          include: { values: true },
+        });
+        const valueId = option.values[0]!.id;
+        for (const variant of product.variants) {
+          await tx.variantOptionValue.create({ data: { variantId: variant.id, valueId } });
+          await tx.productVariant.update({
+            where: { id: variant.id },
+            data: {
+              optionSignature: computeOptionSignature([
+                ...variant.optionValues.map((link) => link.valueId),
+                valueId,
+              ]),
+            },
+          });
+        }
+      }
+
       const products = await tx.product.findMany({
         where: { options: { some: { code: 'gold_karat' } } },
         orderBy: { slug: 'asc' },

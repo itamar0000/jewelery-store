@@ -44,6 +44,8 @@ export default async function CheckoutPage() {
             shipping: cart.shipping,
             total: cart.total,
             vat: includedVat(cart.total, env.VAT_RATE_BPS),
+            discount: cart.discount,
+            couponCode: cart.coupon?.applied ? cart.coupon.code : null,
           }}
           priceNote={estimatedPricesNote}
           paymentAvailable={getPaymentProvider() !== null}

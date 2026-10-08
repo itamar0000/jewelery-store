@@ -107,7 +107,7 @@ export default async function NewProductPage() {
               name="prepDays"
               inputMode="numeric"
               dir="ltr"
-              defaultValue="21"
+              defaultValue="10"
               className={`${INPUT} mt-1.5`}
             />
           </div>
@@ -194,33 +194,36 @@ export default async function NewProductPage() {
             </div>
             <div>
               <label htmlFor="color" className={LABEL}>
-                צבע <span className="text-muted-foreground font-normal">(למשל G)</span>
+                צבע <span className="text-muted-foreground font-normal">(הסטנדרט: D-F)</span>
               </label>
               <input
                 id="color"
                 name="color"
                 dir="ltr"
                 maxLength={10}
+                defaultValue="D-F"
                 className={`${INPUT} mt-1.5`}
               />
             </div>
             <div>
               <label htmlFor="clarity" className={LABEL}>
-                ניקיון <span className="text-muted-foreground font-normal">(למשל VS1)</span>
+                ניקיון <span className="text-muted-foreground font-normal">(הסטנדרט: IF-VS1)</span>
               </label>
               <input
                 id="clarity"
                 name="clarity"
                 dir="ltr"
                 maxLength={10}
+                defaultValue="IF-VS1"
                 className={`${INPUT} mt-1.5`}
               />
             </div>
             <div>
               <label htmlFor="cut" className={LABEL}>
-                ליטוש <span className="text-muted-foreground font-normal">(למשל Excellent)</span>
+                חיתוך וליטוש{' '}
+                <span className="text-muted-foreground font-normal">(ריק = הסטנדרט לפי הצורה)</span>
               </label>
-              <input id="cut" name="cut" dir="ltr" maxLength={20} className={`${INPUT} mt-1.5`} />
+              <input id="cut" name="cut" dir="ltr" maxLength={30} className={`${INPUT} mt-1.5`} />
             </div>
           </div>
         </fieldset>

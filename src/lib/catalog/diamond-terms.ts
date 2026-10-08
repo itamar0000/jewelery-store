@@ -41,8 +41,19 @@ export function shapeNameHe(shape: string): string | null {
  * shopper can be told in words.
  */
 export function colorGloss(grade: string): string | null {
-  const letter = grade.trim().toUpperCase();
-  if (!/^[D-Z]$/.test(letter)) return null;
+  const value = grade.trim().toUpperCase();
+  // A range, as the shop states its stones ("D-F", D4D.30): glossed when
+  // both ends fall in the same group, since then the group is the fact.
+  const range = /^([D-Z])\s*[-–]\s*([D-Z])$/.exec(value);
+  if (range) {
+    const from = colorGroup(range[1]!);
+    return from === colorGroup(range[2]!) ? from : null;
+  }
+  if (!/^[D-Z]$/.test(value)) return null;
+  return colorGroup(value);
+}
+
+function colorGroup(letter: string): string {
   if (letter <= 'F') return 'חסר צבע';
   if (letter <= 'J') return 'כמעט חסר צבע';
   if (letter <= 'M') return 'גוון צהבהב קלוש';
@@ -63,9 +74,35 @@ const CLARITY: Readonly<Record<string, string>> = {
   I3: 'פגמים שנראים בעין',
 };
 
-/** Clarity, FL to I3: how few inclusions, and how hard they are to see. */
+/** The same scale, in the short form a range is read in. */
+const CLARITY_SHORT: Readonly<Record<string, string>> = {
+  FL: 'ללא פגמים',
+  IF: 'ללא פגמים פנימיים',
+  VVS1: 'פגמים זעירים מאוד',
+  VVS2: 'פגמים זעירים מאוד',
+  VS1: 'פגמים זעירים שנראים רק בהגדלה',
+  VS2: 'פגמים זעירים שנראים רק בהגדלה',
+  SI1: 'פגמים קלים',
+  SI2: 'פגמים קלים',
+  I1: 'פגמים שנראים בעין',
+  I2: 'פגמים שנראים בעין',
+  I3: 'פגמים שנראים בעין',
+};
+
+/**
+ * Clarity, FL to I3: how few inclusions, and how hard they are to see. A
+ * range, as the shop states its standard ("IF-VS1", D4D.31), reads from its
+ * best end to its worst.
+ */
 export function clarityGloss(grade: string): string | null {
-  return CLARITY[grade.trim().toUpperCase().replace(/\s+/g, '')] ?? null;
+  const value = grade.trim().toUpperCase().replace(/\s+/g, '');
+  const range = /^([A-Z0-9]+)[-–]([A-Z0-9]+)$/.exec(value);
+  if (range) {
+    const from = CLARITY_SHORT[range[1]!];
+    const to = CLARITY_SHORT[range[2]!];
+    return from && to ? `${from} עד ${to}` : null;
+  }
+  return CLARITY[value] ?? null;
 }
 
 const CUT: Readonly<Record<string, string>> = {
@@ -76,9 +113,24 @@ const CUT: Readonly<Record<string, string>> = {
   poor: 'חלש',
 };
 
+/**
+ * The shop's stated finish ranges (D4D.31): a round stone graded on cut,
+ * polish and symmetry together ("Triple"), a fancy shape on polish and
+ * symmetry, which is all a fancy shape is graded on.
+ */
+const FINISH_RANGES: Readonly<Record<string, string>> = {
+  'triple vg – triple ex': 'חיתוך, ליטוש וסימטריה: טוב מאוד עד מצוין',
+  'vg/vg – ex/ex': 'ליטוש וסימטריה: טוב מאוד עד מצוין',
+};
+
 /** Cut, Excellent to Poor: how well the stone returns light. */
 export function cutGloss(grade: string): string | null {
-  return CUT[grade.trim().toLowerCase().replace(/\s+/g, ' ')] ?? null;
+  const value = grade
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/\s*[-–]\s*/, ' – ');
+  return FINISH_RANGES[value] ?? CUT[value] ?? null;
 }
 
 /**

@@ -40,7 +40,7 @@ export function CategoryDiscovery() {
       className="py-section md:py-feature"
       width="wide"
     >
-      <div className="mb-12 max-w-xl">
+      <div className="mb-10 max-w-xl">
         {/*
          * Also the target of the hero's catalogue action. The scroll margin
          * clears the sticky header, so the jump lands on the heading.
@@ -51,11 +51,7 @@ export function CategoryDiscovery() {
         >
           מה מחפשים היום?
         </h2>
-        <p className="text-muted-foreground mt-4 text-base leading-[1.8] font-light text-pretty">
-          {/* Both facts are PRODUCT.md's: the workshop is the owner's, and
-              every model can be altered in these axes. */}
-          כל דגם בקטלוג מיוצר בסדנה שלנו, ואפשר להתאים אותו: גוון זהב, מידה, חריטה ואבן.
-        </p>
+        {/* No intro line: the alteration axes are said once, in the hero (D4D.27). */}
       </div>
 
       {/*

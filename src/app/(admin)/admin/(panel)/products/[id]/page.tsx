@@ -12,11 +12,12 @@ import {
   addDiamondSizeAction,
   archiveProductAction,
   removeDiamondSizeAction,
+  saveMenDepartmentAction,
   savePricesAction,
   saveProductDetailsAction,
 } from '@/lib/admin/product-actions';
 import { listImageGroups } from '@/lib/admin/images';
-import { getProductForAdmin } from '@/lib/admin/products';
+import { getMenDepartment, getProductForAdmin } from '@/lib/admin/products';
 import { getAdminUser, requireAdminPage } from '@/lib/admin/session';
 import { notFoundMetadata } from '@/lib/seo/not-found';
 
@@ -49,6 +50,7 @@ export default async function AdminProductPage({
     images: group.images.map((image) => ({ ...image, url: resolveImageUrl(image.storageKey) })),
   }));
 
+  const men = await getMenDepartment(product.id);
   const image = product.images[0] ? resolveImageUrl(product.images[0].storageKey) : null;
   const baseCarat = product.diamondSpec?.totalCaratWeight
     ? Number(product.diamondSpec.totalCaratWeight).toFixed(2)
@@ -282,6 +284,37 @@ export default async function AdminProductPage({
                 </p>
               </div>
             </div>
+          </ActionForm>
+        </section>
+      )}
+
+      {men.choices.length > 0 && (
+        <section aria-labelledby="men-heading" className="mt-12 max-w-xl">
+          <h2 id="men-heading" className="text-lg font-bold">
+            מחלקת גברים
+          </h2>
+          <p className="text-muted-foreground mt-1 text-sm">
+            הדגם יופיע גם בעמודי הגברים, בקטגוריה שתבחרו. הקטגוריה הראשית שלו, הכתובת והתמונות לא
+            משתנות.
+          </p>
+          <ActionForm action={saveMenDepartmentAction} submitLabel="שמירה" className="mt-3">
+            {hidden}
+            <label htmlFor="menCategory" className={LABEL}>
+              קטגוריה במחלקת הגברים
+            </label>
+            <select
+              id="menCategory"
+              name="menCategory"
+              defaultValue={men.currentId ?? ''}
+              className={`${INPUT} mt-1.5`}
+            >
+              <option value="">לא מופיע במחלקת הגברים</option>
+              {men.choices.map((choice) => (
+                <option key={choice.id} value={choice.id}>
+                  {choice.nameHe}
+                </option>
+              ))}
+            </select>
           </ActionForm>
         </section>
       )}

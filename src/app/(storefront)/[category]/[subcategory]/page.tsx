@@ -7,6 +7,7 @@ import { CategoryPageShell } from '@/components/category/CategoryPageShell';
 import { CategoryResults, CategoryResultsSkeleton } from '@/components/category/CategoryResults';
 import { descendantCategoryIds, getCategoryBySlug } from '@/lib/catalog/queries';
 import { canonicalFor, parseCatalogSearchParams, type SearchParams } from '@/lib/catalog/filters';
+import { allInCategoryLabel } from '@/lib/catalog/category-labels';
 import { notFoundMetadata } from '@/lib/seo/not-found';
 
 /**
@@ -87,7 +88,7 @@ export default async function SubcategoryPage({
       subcategories={[
         {
           id: `${parent.slug}-all`,
-          label: `כל ה${parentCategory?.nameHe ?? parent.nameHe}`,
+          label: allInCategoryLabel(parent.slug, parentCategory?.nameHe ?? parent.nameHe),
           href: parent.href,
         },
         ...siblings.map((sibling) => ({
@@ -104,6 +105,7 @@ export default async function SubcategoryPage({
           filterConfig={category.filterConfig}
           basePath={category.href}
           rawQuery={parseCatalogSearchParams(rawSearchParams)}
+          department={parent.slug === 'men' ? 'men' : undefined}
         />
       </Suspense>
     </CategoryPageShell>

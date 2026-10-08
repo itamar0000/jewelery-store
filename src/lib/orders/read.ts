@@ -42,6 +42,9 @@ export interface PlacedOrderView {
   /** Units across the lines. */
   readonly itemCount: number;
   readonly subtotal: Money;
+  /** The coupon's discount, and its code as typed (D4D.33). */
+  readonly discount: Money;
+  readonly couponCode: string | null;
   readonly shipping: Money;
   readonly total: Money;
   readonly vat: Money | null;
@@ -62,6 +65,8 @@ export async function getOrderByAccessToken(
       paymentStatus: true,
       email: true,
       subtotalAgorot: true,
+      discountAgorot: true,
+      couponCodeUsed: true,
       shippingAgorot: true,
       totalAgorot: true,
       vatRateBps: true,
@@ -112,6 +117,8 @@ export async function getOrderByAccessToken(
     })),
     itemCount: order.items.reduce((count, item) => count + item.quantity, 0),
     subtotal: fromAgorot(order.subtotalAgorot),
+    discount: fromAgorot(order.discountAgorot),
+    couponCode: order.couponCodeUsed,
     shipping: fromAgorot(order.shippingAgorot),
     total: fromAgorot(order.totalAgorot),
     vat: order.vatAmountAgorot === null ? null : fromAgorot(order.vatAmountAgorot),

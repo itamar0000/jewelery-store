@@ -3,12 +3,15 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 
 import { CartLines, CartUndoArea } from '@/components/cart/CartLines';
+import { CouponForm } from '@/components/cart/CouponForm';
 import { SummaryTotalsTable } from '@/components/checkout/OrderSummary';
 import { Button } from '@/components/ui/Button';
 import { EditorialImage } from '@/components/ui/EditorialImage';
 import { Container } from '@/components/ui/Container';
 import {
   addToCartAction,
+  applyCouponAction,
+  removeCouponAction,
   removeCartItemAction,
   updateCartQuantityAction,
 } from '@/lib/cart/actions';
@@ -66,8 +69,19 @@ export default async function CartPage() {
 
               <SummaryTotalsTable
                 className="mt-4"
-                totals={{ ...cart, vat: includedVat(cart.total, env.VAT_RATE_BPS) }}
+                totals={{
+                  ...cart,
+                  vat: includedVat(cart.total, env.VAT_RATE_BPS),
+                  couponCode: cart.coupon?.applied ? cart.coupon.code : null,
+                }}
                 priceNote={estimatedPricesNote}
+              />
+
+              <CouponForm
+                coupon={cart.coupon}
+                apply={applyCouponAction}
+                remove={removeCouponAction}
+                className="border-border mt-5 border-t pt-5"
               />
 
               {unavailableCount > 0 ? (

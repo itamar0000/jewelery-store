@@ -1,4 +1,5 @@
 import { CategoryDiscovery } from '@/components/storefront/CategoryDiscovery';
+import { ClosingBand } from '@/components/storefront/ClosingBand';
 import { CollectionsSection } from '@/components/storefront/CollectionsSection';
 import { EditorialPanel } from '@/components/storefront/EditorialPanel';
 import { FeatureBanner } from '@/components/storefront/FeatureBanner';
@@ -24,12 +25,14 @@ import { getCollections } from '@/lib/catalog/queries';
  *   hero          two columns: the line and two pills; the photograph, curved
  *   categories    five arches, names in the serif beneath
  *   best sellers  four pieces on the ivory, packshots seated into it
+ *   gifts         personalised pieces, split beside their photograph
  *   workshop      the green field beside the atelier photograph
  *   steps         four numbered steps over one rule
  *   bridal        full-bleed photograph, square; statement and action below
  *   diamonds      split editorial on the recessed ivory, mirrored
- *   collections   two wide arches
- *   FAQ           three questions, then the night footer closes the page
+ *   collections   wide arches, when two or more remain
+ *   FAQ           three questions
+ *   close         the workshop line and the catalogue, then the night footer
  *
  * ALL COPY HERE IS PROVISIONAL AND DESCRIPTIVE, NOT MARKETING. The brand name,
  * slogan and voice are TBD (section 2 and 57). Every string below states a
@@ -67,7 +70,7 @@ const RAIL = 4;
  * Collections that have a band of their own on this page, so the collections
  * row does not list them a second time.
  */
-const OWN_BAND = new Set([BEST_SELLERS_SLUG, 'bridal']);
+const OWN_BAND = new Set([BEST_SELLERS_SLUG, 'bridal', 'personalized']);
 
 export default async function HomePage() {
   const [ranking, collections] = await Promise.all([getBestSellers(), getCollections()]);
@@ -85,8 +88,8 @@ export default async function HomePage() {
         lead="תכשיט שנוצר בשבילך,"
         emphasis="ישירות"
         tail="מהסדנה"
-        body="כל דגם אצלנו אפשר לשנות: קראט, גוון זהב, מידה, חריטה ואבן. בלי חנות באמצע, ובלי המרווח שלה במחיר."
-        primary={{ label: 'לצפייה בקטלוג', href: '#discovery-heading' }}
+        body="כל דגם אצלנו אפשר לשנות: גוון זהב, מידה, חריטה, וסוג וגודל היהלום. בלי חנות באמצע, ובלי המרווח שלה במחיר."
+        primary={{ label: 'לכל הקטגוריות', href: '#discovery-heading' }}
         secondary={{ label: 'עיצוב בהתאמה אישית', href: '/custom' }}
         imageLabel="תמונת נושא"
       />
@@ -99,9 +102,26 @@ export default async function HomePage() {
       <FeaturedProducts
         id="best-sellers-heading"
         title="רבי מכר"
-        description="הדגמים המבוקשים ביותר בקטלוג."
+        description="דגמים נבחרים מהקטלוג."
         href={ranking.length > bestSellers.length ? `/collections/${BEST_SELLERS_SLUG}` : undefined}
         products={bestSellers}
+      />
+
+      {/*
+       * THE GIFT DOOR (D4D.27). Gift buyers are a third of the audience
+       * (PRODUCT.md) and had no way in; personalised pieces - the name, the
+       * initial, the engraving, the photograph - are the natural gift and the
+       * shop's most specific photograph. Every claim is the product line's
+       * own: the name necklace shows its letters before ordering.
+       */}
+      <EditorialPanel
+        id="gift-heading"
+        title="מתנה עם שם"
+        body="שרשרת שם, אות ראשונה, צמיד בחריטה או תליון עם תמונה: התכשיט נעשה עם השם, האות או התמונה שלכם, ובשרשרת השם רואים את האותיות לפני ההזמנה."
+        action={{ label: 'לתכשיטים האישיים', href: '/collections/personalized' }}
+        imageSide="start"
+        assetId="collection-personalized"
+        imageLabel="תכשיטים אישיים"
       />
 
       {/*
@@ -125,23 +145,26 @@ export default async function HomePage() {
       <FeatureBanner
         id="bridal-heading"
         title="אירוסין ונישואין"
-        body="טבעות אירוסין, טבעות נישואין וסטים תואמים. כל דגם ניתן להתאמה לפי משקל קראט, גוון זהב ומידה."
+        body="טבעות אירוסין, טבעות נישואין וסטים תואמים. כל דגם ניתן להתאמה לפי גודל היהלום, גוון הזהב והמידה."
         action={{ label: 'לאוסף הכלה', href: '/collections/bridal' }}
+        help={{ label: 'איך יודעים מידת טבעת?', href: '/faq#ring-size' }}
         assetId="bridal"
         imageLabel="אוסף כלה"
       />
 
       <EditorialPanel
         id="diamonds-heading"
-        // LITERAL, NOT A CHOICE THE CATALOGUE CANNOT BACK (D4D.15).
-        title="יהלומי מעבדה, וטבעיים לפי בקשה"
-        body="רוב התכשיטים בקטלוג משובצים ביהלומי מעבדה. יהלום מעבדה זהה ליהלום טבעי בהרכב הכימי, במבנה הגבישי ובתכונות האופטיות; ההבדל הוא במקור ההיווצרות ובמחיר."
+        // BOTH KINDS ARE IN THE CATALOGUE (PRODUCT.md): the band says so and
+        // that the type is on every model, rather than casting natural stones
+        // as special-order while the best sellers above carry them (D4D.27).
+        title="יהלומי מעבדה ויהלומים טבעיים"
+        body="בקטלוג יש שני הסוגים, וסוג היהלום כתוב על כל דגם. יהלום מעבדה זהה ליהלום טבעי בהרכב, במבנה ובברק; ההבדל הוא במקור ההיווצרות ובמחיר."
         points={[
-          'סוג היהלום כתוב על כל דגם, ואפשר לסנן לפיו',
           'יהלום מעבדה — מחיר נמוך יותר לאותו גודל ואיכות',
           'כל דגם אפשר לבקש גם עם יהלום טבעי',
         ]}
         action={{ label: 'לשאלות ותשובות', href: '/faq' }}
+        actionVariant="secondary"
         imageSide="start"
         tone="muted"
         assetId="diamonds"
@@ -153,6 +176,8 @@ export default async function HomePage() {
       />
 
       <FaqSection />
+
+      <ClosingBand />
     </>
   );
 }
