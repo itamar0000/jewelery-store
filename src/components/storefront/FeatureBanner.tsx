@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
 import { EditorialImage } from '@/components/ui/EditorialImage';
@@ -14,6 +16,7 @@ export function FeatureBanner({
   title,
   body,
   action,
+  help,
   imageLabel,
   assetId = 'bridal',
 }: {
@@ -21,6 +24,8 @@ export function FeatureBanner({
   title: string;
   body: string;
   action?: { label: string; href: string };
+  /** A quieter companion link beside the action, for help at the point of need. */
+  help?: { label: string; href: string };
   imageLabel?: string;
   assetId?: EditorialAssetId;
 }) {
@@ -48,11 +53,21 @@ export function FeatureBanner({
               {body}
             </p>
           </div>
-          {action && (
-            <div className="mt-9">
-              <Button href={action.href} variant="primary">
-                {action.label}
-              </Button>
+          {(action || help) && (
+            <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
+              {action && (
+                <Button href={action.href} variant="primary">
+                  {action.label}
+                </Button>
+              )}
+              {help && (
+                <Link
+                  href={help.href}
+                  className="text-accent decoration-accent/40 hover:decoration-accent touch-target text-[0.9375rem] underline underline-offset-[0.4em]"
+                >
+                  {help.label}
+                </Link>
+              )}
             </div>
           )}
         </div>

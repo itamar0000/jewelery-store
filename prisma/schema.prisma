@@ -73,10 +73,11 @@ model Category {
   updatedAt  DateTime  @updatedAt
 
   /// Products whose canonical URL and breadcrumb this category owns.
-  primaryProducts Product[]         @relation("PrimaryCategory")
+  primaryProducts  Product[]         @relation("PrimaryCategory")
   /// Additional (non-canonical) category memberships.
-  productLinks    ProductCategory[]
-  couponTargets   CouponTarget[]
+  productLinks     ProductCategory[]
+  couponTargets    CouponTarget[]
+  promotionTargets PromotionTarget[]
 
   @@index([parentId, position])
   @@index([slug])
@@ -151,19 +152,20 @@ model Product {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  variants       ProductVariant[]
-  images         ProductImage[]
-  options        ProductOption[]
-  customFields   CustomizationField[]
-  collections    ProductCollection[]
-  categories     ProductCategory[]
-  reviews        Review[]
-  wishlistItems  WishlistItem[]
-  cartItems      CartItem[]
-  orderItems     OrderItem[]
-  diamondSpec    DiamondSpec?
-  couponTargets  CouponTarget[]
-  customRequests CustomRequest[]
+  variants         ProductVariant[]
+  images           ProductImage[]
+  options          ProductOption[]
+  customFields     CustomizationField[]
+  collections      ProductCollection[]
+  categories       ProductCategory[]
+  reviews          Review[]
+  wishlistItems    WishlistItem[]
+  cartItems        CartItem[]
+  orderItems       OrderItem[]
+  diamondSpec      DiamondSpec?
+  couponTargets    CouponTarget[]
+  promotionTargets PromotionTarget[]
+  customRequests   CustomRequest[]
 
   @@index([primaryCategoryId, isActive])
   @@index([isActive, publishedAt])
@@ -443,8 +445,9 @@ model Collection {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  products      ProductCollection[]
-  couponTargets CouponTarget[]
+  products         ProductCollection[]
+  couponTargets    CouponTarget[]
+  promotionTargets PromotionTarget[]
 
   @@index([isActive, position])
 }
@@ -1465,4 +1468,83 @@ enum CustomRequestStatus {
   COMPLETED
   REJECTED
   CANCELLED
+}
+
+// ===========================================================================
+// PROMOTIONS AND ANNOUNCEMENTS (D4D.33)
+// ===========================================================================
+
+/// An automatic sale: a percentage or an amount off the price, for a window
+/// of dates, on one or more products, categories or collections, or on the
+/// whole site. No code is entered; the sale price is what the shop shows and
+/// charges. Where two sales reach one piece, the buyer gets the larger one,
+/// never both. The struck-through price beside a sale is always the piece's
+/// own regular price, which the shop really charges outside the sale.
+model Promotion {
+  id     String @id @default(cuid())
+  nameHe String
+
+  /// PERCENTAGE (basis points) or FIXED_AMOUNT (agorot off each piece).
+  /// FREE_SHIPPING is a coupon's business, not a sale's.
+  discountType  DiscountType
+  discountValue Int
+
+  appliesTo PromotionScope @default(ENTIRE_SITE)
+
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  isActive   Boolean   @default(true)
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  targets PromotionTarget[]
+
+  @@index([isActive, startsAt, endsAt])
+}
+
+model PromotionTarget {
+  id          String    @id @default(cuid())
+  promotionId String
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  productId    String?
+  product      Product?    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  categoryId   String?
+  category     Category?   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  collectionId String?
+  collection   Collection? @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([promotionId])
+  @@index([productId])
+  @@index([categoryId])
+  @@index([collectionId])
+}
+
+enum PromotionScope {
+  ENTIRE_SITE
+  PRODUCT
+  CATEGORY
+  COLLECTION
+}
+
+/// A line of news across the top of every storefront page - a sale, a
+/// holiday notice. One shows at a time: the newest live one.
+model Announcement {
+  id          String  @id @default(cuid())
+  textHe      String
+  linkHref    String?
+  linkLabelHe String?
+
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, startsAt, endsAt])
 }

@@ -62,6 +62,8 @@ describe('OrderFacts', () => {
     lines: [],
     itemCount: 1,
     subtotal: fromShekels(1290),
+    discount: fromShekels(0),
+    couponCode: null,
     shipping: fromShekels(0),
     total: fromShekels(1290),
     vat: null,

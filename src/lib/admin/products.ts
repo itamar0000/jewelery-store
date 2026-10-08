@@ -416,3 +416,52 @@ export async function removeDiamondSize(
     return 'removed';
   });
 }
+
+// ------------------------------------------------------- men's department
+
+/** The men's department root (D4D.34). Its children are the choices. */
+export const MEN_DEPARTMENT_SLUG = 'men';
+
+export interface MenDepartmentState {
+  readonly choices: readonly { id: string; nameHe: string }[];
+  /** The men's category the piece is in, or null when it is not in one. */
+  readonly currentId: string | null;
+}
+
+/** Which men's category a piece belongs to, and which it could. */
+export async function getMenDepartment(productId: string): Promise<MenDepartmentState> {
+  const choices = await prisma.category.findMany({
+    where: { parent: { slug: MEN_DEPARTMENT_SLUG }, archivedAt: null },
+    orderBy: { position: 'asc' },
+    select: { id: true, nameHe: true },
+  });
+  const link = await prisma.productCategory.findFirst({
+    where: { productId, categoryId: { in: choices.map((choice) => choice.id) } },
+    select: { categoryId: true },
+  });
+  return { choices, currentId: link?.categoryId ?? null };
+}
+
+/**
+ * Puts a piece in one men's category, or takes it out of the department.
+ *
+ * A SECONDARY MEMBERSHIP ONLY: the piece's primary category, its URL and its
+ * photographs do not change. A piece sits in at most one men's category, so
+ * the old link goes in the same transaction the new one is made.
+ */
+export async function setMenDepartment(
+  productId: string,
+  categoryId: string | null,
+): Promise<void> {
+  const { choices } = await getMenDepartment(productId);
+  const ids = choices.map((choice) => choice.id);
+  if (categoryId !== null && !ids.includes(categoryId)) {
+    throw new Error('Not a men’s category.');
+  }
+  await prisma.$transaction([
+    prisma.productCategory.deleteMany({ where: { productId, categoryId: { in: ids } } }),
+    ...(categoryId === null
+      ? []
+      : [prisma.productCategory.create({ data: { productId, categoryId, position: 100 } })]),
+  ]);
+}

@@ -70,7 +70,8 @@ makes "we can make any of these your way" true rather than marketing.
 ## Capabilities and Constraints
 
 **Built and working:** catalogue of 51 products across rings, necklaces,
-earrings, bracelets and sets; category and product pages; variant selection
+earrings, bracelets and sets, plus a men's department (D4D.34) holding
+existing pieces by secondary membership; category and product pages; variant selection
 across karat, gold colour and size; filtering, sorting and pagination; search;
 real product photography (153 images at 2048px); a guest cart and a checkout
 that places a real order, awaiting payment, and stops there.
@@ -87,7 +88,8 @@ that places a real order, awaiting payment, and stops there.
 - **Payment, invoicing, shipping and email providers are all unchosen.** The
   checkout ends on a page that says payment is not active and nothing was
   charged; no page may suggest a purchase was completed.
-- **Shipping is free** (owner, 2026-10-05). Delivery times are not yet set.
+- **Shipping is free** (owner, 2026-10-05). **Production takes 10 business days**
+  for every piece (owner, 2026-10-08); delivery time after that is not yet set.
 
 **Products are representative, and that distinction matters.** The catalogue
 pieces are not photographs of existing inventory, but the owner has confirmed

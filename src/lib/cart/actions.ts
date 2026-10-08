@@ -3,7 +3,14 @@
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 
-import { addItem, removeItem, setItemQuantity } from './store';
+import {
+  addItem,
+  applyCoupon,
+  removeCoupon,
+  removeItem,
+  setItemQuantity,
+  type CouponResult,
+} from './store';
 import { CART_COOKIE, CART_TTL_DAYS, cookieOptions } from './token';
 import type { CartMutationResult } from './types';
 
@@ -42,4 +49,17 @@ export async function removeCartItemAction(cartItemId: unknown): Promise<CartMut
 
   if (result.ok) revalidatePath('/', 'layout');
   return result;
+}
+
+export async function applyCouponAction(code: unknown): Promise<CouponResult> {
+  const jar = await cookies();
+  const result = await applyCoupon(jar.get(CART_COOKIE)?.value, code);
+  if (result.ok) revalidatePath('/', 'layout');
+  return result;
+}
+
+export async function removeCouponAction(): Promise<void> {
+  const jar = await cookies();
+  await removeCoupon(jar.get(CART_COOKIE)?.value);
+  revalidatePath('/', 'layout');
 }

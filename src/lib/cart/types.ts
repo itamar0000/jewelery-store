@@ -22,6 +22,9 @@ export interface CartLineView {
   readonly personalization: readonly { readonly label: string; readonly value: string }[];
   readonly quantity: number;
   readonly unitPrice: Money;
+  /** Set while a sale lowers the unit price: the regular price, and the sale (D4D.33). */
+  readonly regularUnitPrice?: Money;
+  readonly promotionNameHe?: string;
   /** Per-unit surcharge for the personalisation on this line. */
   readonly personalizationPrice: Money;
   readonly lineTotal: Money;
@@ -43,6 +46,14 @@ export interface CartView {
   readonly shipping: Money;
   readonly total: Money;
   readonly hasUnavailable: boolean;
+  /** Taken off by the coupon on the bag (D4D.33); zero without one. */
+  readonly discount: Money;
+  /** The code on the bag, whether it applies, and why not. */
+  readonly coupon: {
+    readonly code: string;
+    readonly applied: boolean;
+    readonly message: string | null;
+  } | null;
 }
 
 /**

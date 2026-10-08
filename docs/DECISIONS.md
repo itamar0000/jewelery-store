@@ -2537,3 +2537,189 @@ It replaces the paper-and-ink world; DESIGN.md was rewritten from the build.
   open one is the best-seller line, kept by the owner's earlier instruction;
   its description ("הדגמים המבוקשים ביותר בקטלוג") is a demand claim while no
   orders exist, flagged for the owner.
+
+## D4D.27 — The home page critique, fixed
+
+An independent two-part critique of the atelier home page (24/36) found it
+contradicting itself, with no action on a phone's first screen, and ending on
+doubt. All its findings were taken:
+
+- **Truth.** The diamonds band said natural stones were special-order while
+  two of the four best sellers above carry them; it now says the catalogue
+  holds both and the type is on every model. "קראט" no longer means gold in one
+  sentence and diamond in the next: the hero offers "סוג וגודל היהלום", bridal
+  "גודל היהלום". The best-seller description stops claiming demand ("דגמים
+  נבחרים מהקטלוג"); the heading stays, as the owner asked. The hero action says
+  where it goes ("לכל הקטגוריות"). Step 3 says production starts once the order
+  is paid - true for every product, where a lead time is set on only 27 of 50.
+- **Phone.** The photograph is 46svh and the type a step tighter, so the green
+  action sits inside the first screen at 390x844, 390x740 and 375x667; both
+  actions are full width.
+- **Gifts.** Personalised pieces get their own band after the best sellers;
+  the collections band shows only when two or more collections remain.
+- **Close.** A closing band on the recessed ivory at finale spacing ends the
+  page on the workshop and the catalogue, not on the FAQ. The bridal band links
+  to the ring-size answer.
+- **Polish.** No double padding between ivory bands; the FAQ on the start edge;
+  the diamonds band's FAQ link is a secondary pill; the alteration list said
+  once; the footer's lone-privacy column is "מידע"; the wordmark at regular
+  weight and its sizes documented.
+
+## D4D.28 — No karat choice anywhere in the copy
+
+The owner: 14K is the standard and there is no choice of karat; anything else
+is a custom order. Three texts still offered one:
+
+- The filter panel's note ("אין צורך לסנן לפי גוון זהב, קראט...: כל דגם אפשר
+  להזמין בכל אחד מהם") now says every piece is made in 14K, and that colour,
+  size and length are chosen on the product page.
+- The FAQ question was "מה ההבדל בין 14K ל-18K?"; it is now "באיזה זהב
+  מיוצרים התכשיטים?", answered with 14K as the standard and 18K as a custom
+  order (home FAQ band too).
+- The rings category description offered every model "לפי קראט, גוון זהב
+  ומידה"; migration `20261008090000_fourteen_karat_copy` rewrites that sentence
+  in the database, so production changes on deploy.
+
+Left as they are, because they already say it: the product page states
+"קראט זהב 14 קראט" as a fact with no choice, and its "רוצים גוון זהב, קראט או
+מידה אחרים?" line leads to a custom request; the custom-request pages offer
+another karat as a custom order.
+
+## D4D.29 — Ten business days for every piece
+
+The owner: production takes 10 business days. Migration
+`20261008100000_prep_days_ten` sets `Product.defaultPrepDays = 10` on every
+live product and clears the variant-level `prepDays`, so every variant
+inherits the one figure and a later change is one edit. The product page now
+states it for all 50 pieces (23 stated nothing before); the home page's third
+step says it; the admin's new-product form defaults to it. Delivery time after
+production is still not set.
+
+## D4D.30 — Every diamond is colour D-F
+
+The owner: all diamonds are stated as colour D-F, colourless. Migration
+`20261008110000_diamond_color_d_f` sets `DiamondSpec.color = 'D-F'` on every
+product- and variant-level record (28), so the product page, the cart and new
+orders carry it; `colorGloss` now glosses a range whose ends share a group, so
+the page reads "D-F · חסר צבע". The admin's new-product form defaults to D-F.
+
+Not the coloured-diamond ring: its stone is a yellow fancy colour by design,
+which the D-to-Z scale does not describe. It still reads "G" and waits for the
+owner's grade.
+
+## D4D.31 — The diamond standard: clarity and finish
+
+The owner's standard for every stone: clarity IF to VS1; round stones Triple
+Very Good to Triple Excellent (cut, polish and symmetry); fancy shapes VG/VG to
+EX/EX (polish and symmetry, all a fancy shape is graded on). Migration
+`20261008120000_diamond_clarity_cut` writes it to every `DiamondSpec` (16 round,
+13 fancy). The product page's row is now "חיתוך וליטוש", and the glosses read
+ranges: "IF-VS1 · ללא פגמים פנימיים עד פגמים זעירים שנראים רק בהגדלה",
+"Triple VG – Triple EX · חיתוך, ליטוש וסימטריה: טוב מאוד עד מצוין". New
+products default to IF-VS1 and take the finish standard for their shape when
+the field is left empty.
+
+## D4D.32 — Seven pieces that stated no karat
+
+Seven starter products (eternity ring, classic wedding band, gold hoops, name
+necklace, diamond pendant necklace, Nova bracelet, ring-and-earrings bridal
+set) had no gold_karat option, so the product page, the cart, the order and
+the catalogue review file said nothing about the gold. `fourteen-karat-only.ts`
+now gives each a 14K option holding the one value, linked to every live
+variant (signatures recomputed), so the page states "14 קראט" as a fact. It
+runs on production with the rest of that script.
+
+## D4D.33 — Sales, coupons and an announcement bar, run from the admin
+
+The owner asked to run sales from the admin, on a model, a group or the whole
+site, plus on-site notices, and coupon codes.
+
+**Sales (`/admin/promotions`).** A `Promotion` is a percentage or a fixed
+amount, on the whole site or on chosen products, categories (a parent reaches
+its subcategories) or collections, with optional start and end dates read in
+Israel time ("until the 20th" runs through the 20th). Each price surface
+(card, product page, bag, order) goes through one pure `salePrice`, so the
+shown price and the charged price cannot differ. One sale per piece: where
+two reach it, the larger discount wins; sales never stack. A percentage sale
+price is rounded to a whole shekel, and a price never drops below ₪1.
+
+**An honest struck price.** A crossed-out price now appears only beside a live
+sale, and is the regular price. The same migration clears every stored
+`compareAtAgorot` (six starter products showed a "was" price with no sale
+behind it, which the standing rule against fake urgency and unverifiable claims rules out).
+
+**Coupons (`/admin/coupons`).** The existing `Coupon` model gets an admin and a
+field in the bag. A code applies on top of a sale, to the lines it covers at
+their sale price; a minimum order is measured on the whole bag; the discount
+is rounded to a whole shekel. The total and per-customer limits are counted
+from redemptions; the per-customer one is checked by email when the order is
+placed, inside the same transaction that records the `CouponRedemption`. The
+order keeps the code as typed and the discount; the payment and confirmation
+pages show the coupon row.
+
+**The seed's `DEMO10` is retired.** Migration
+`20261008140000_retire_demo_coupon` archives it: once the bag accepts codes,
+a live development coupon would give anyone 10% off.
+
+**An announcement bar, not a pop-up (`/admin/announcements`).** One line on
+the green above the header, with an optional link, shown in its date window;
+the newest live one wins. A visitor can close it, and it stays closed in that
+browser until a new announcement replaces it. A pop-up was declined: on a
+phone it covers the shop, search engines penalise it, and it is hard to make
+accessible.
+
+## D4D.34 — A men's department
+
+The owner asked for separate pages for men's jewellery, approved the proposed
+list and structure, and asked for its photographs to be generated.
+
+**Structure.** A root category "גברים" (`/men`) with four children: טבעות
+לגבר, טבעות נישואין לגבר, שרשראות לגבר, צמידים לגבר (migration
+`20261008150000_men_department`). It is in the main navigation with its own
+menu, and in the footer. Men's pendants join with the first men's pendant;
+until then there is no empty category.
+
+**Membership, not new products.** Ten existing pieces the owner approved are
+linked as SECONDARY memberships: the signet and wide band, the three wedding
+bands, the link and bar necklaces, the link, rope and tennis bracelets. Their
+primary category, canonical URL, variants and photographs are unchanged. The
+migration matches each slug with or without the `demo-` prefix production
+still carries. In the admin, a product's page has a "מחלקת גברים" control
+that puts the piece in one men's category or takes it out.
+
+**The landing.** `/men` is the atelier's grammar on the forest-green field:
+the curved hero (Hero gained `assetId`, `tone="field"` and `compact`), one
+arch per men's category holding that category's own first piece, a wedding
+band for both partners, the signet's engraving on the green, and the full men's
+catalogue with its filters and sorting. Every claim is PRODUCT.md's: 14K,
+made after the order in the owner's workshop, and the real axes of alteration.
+No black and gold. The "all" chip reads "כל התכשיטים לגבר", not "כל הגברים".
+
+**Photographs.** Three generated images (`men-hero`, `men-wedding`,
+`men-engraving`), made with `scripts/generate-editorial.ts`: a man's hand
+with the signet, two hands with wedding bands, an engraved signet still life.
+Hands and objects only; no recognisable person.
+
+**For the owner, not decided here:**
+
+- Ring sizes on the men's rings run 50-56 (the wedding band 48-60). Most men
+  wear 58-70; the sizes and their prices are the owner's to add.
+- The link bracelet is offered in 40 and 45 cm, which are necklace lengths:
+  likely a data error in the starter catalogue.
+- The bar necklace and rope bracelet's second photographs are worn by a woman.
+- The new men's models proposed to the owner (Cuban, Figaro, rope and franco
+  chains, Star of David, "חי" and engraved-plate pendants, cufflinks, a men's
+  diamond ring) wait for the owner's confirmation, photographs and prices.
+
+**Unisex pieces worn by a man, in the men's department only.** The owner
+noticed that hovering a necklace or bracelet in the men's department showed a
+woman wearing it - the piece's own second photograph, right in the women's
+categories. Inside the men's department (the landing and its four
+categories) a card's hover frame is now the piece worn by a man, for the link
+and bar necklaces and the link and rope bracelets; everywhere else, and on the
+product page, the piece keeps its own photographs. The four images are static
+files (`public/images/men-worn/`, mapped in `src/lib/catalog/men-worn.ts`),
+generated from each piece's packshot with fal's flux-2-pro edit model - neck
+or wrist only, no face - so they need no storage upload and cannot leak into a
+gallery, a cart line or search. A piece made for men, with its own men's
+photographs, needs no entry.

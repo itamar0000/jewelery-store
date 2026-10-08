@@ -38,6 +38,7 @@ import type { ProductBadge, ProductCardData } from './types';
  */
 const BADGE_LABELS: Record<ProductBadge, string> = {
   new: 'חדש',
+  sale: 'מבצע',
 };
 
 export function ProductCard({

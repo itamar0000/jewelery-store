@@ -1,5 +1,6 @@
 import type { ProductCardData } from '@/components/product/types';
 import { prisma } from '@/lib/db';
+import { getActivePromotions } from '@/lib/promotions/active';
 
 import {
   ATTRIBUTE_KEY,
@@ -563,9 +564,10 @@ export async function getCatalogPage(
     take: query.pageSize,
     select: productCardSelect,
   });
+  const promotions = await getActivePromotions();
 
   return {
-    products: rows.map((row) => toProductCard(row)),
+    products: rows.map((row) => toProductCard(row, { promotions })),
     total,
     page,
     totalPages,
@@ -615,9 +617,10 @@ async function getRankedPage(
       take: query.pageSize,
       select: productCardSelect,
     });
+    const promotions = await getActivePromotions();
 
     return {
-      products: rows.map((row) => toProductCard(row)),
+      products: rows.map((row) => toProductCard(row, { promotions })),
       total,
       page,
       totalPages,
@@ -642,6 +645,7 @@ async function getRankedPage(
     where: { id: { in: pageIds } },
     select: productCardSelect,
   });
+  const promotions = await getActivePromotions();
 
   // `findMany` returns rows in the database's order, not the id list's, so the
   // rank order is reapplied here.
@@ -649,7 +653,7 @@ async function getRankedPage(
   const products = pageIds
     .map((id) => byId.get(id))
     .filter((row): row is NonNullable<typeof row> => row !== undefined)
-    .map((row) => toProductCard(row));
+    .map((row) => toProductCard(row, { promotions }));
 
   return { products, total, page, totalPages, pageSize: query.pageSize };
 }

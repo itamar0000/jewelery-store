@@ -5,6 +5,9 @@ import { getCartCount } from '@/lib/cart/store';
 import { CART_COOKIE } from '@/lib/cart/token';
 import { contactAvailable } from '@/lib/contact';
 
+import { getActiveAnnouncement } from '@/lib/announcements/active';
+
+import { AnnouncementBar } from './AnnouncementBar';
 import { Footer } from './Footer';
 import { Header } from './Header';
 import { SkipLink } from './SkipLink';
@@ -22,11 +25,15 @@ import { SkipLink } from './SkipLink';
  * cookie there is no query.
  */
 export async function StorefrontShell({ children }: { children: ReactNode }) {
-  const cartCount = await getCartCount((await cookies()).get(CART_COOKIE)?.value);
+  const [cartCount, announcement] = await Promise.all([
+    getCartCount((await cookies()).get(CART_COOKIE)?.value),
+    getActiveAnnouncement(),
+  ]);
 
   return (
     <>
       <SkipLink />
+      {announcement && <AnnouncementBar announcement={announcement} />}
       {/* The Header is a client component; the server tells it what exists. */}
       <Header contactAvailable={contactAvailable} cartCount={cartCount} />
       <main id="main-content">{children}</main>

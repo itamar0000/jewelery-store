@@ -125,6 +125,15 @@ const COMPOSITION: Readonly<Record<EditorialAssetId, string>> = {
 
   diamonds:
     'Extreme macro of a brilliant-cut diamond set into a gold ring. Real optical refraction and fire, visible facets and prongs, photographic rather than CGI sparkle effects. No laboratory, no scientific or technology imagery of any kind.',
+
+  // THE MEN'S DEPARTMENT (D4D.34): a man's hand, hands or a still life -
+  // never a face, never a recognisable person.
+  'men-hero':
+    "Square close crop on an adult man's hand from the wrist, fingers relaxed and clearly separated, resting on a deep forest-green wool cloth. One plain polished oval signet ring in yellow gold on the little finger, sharply in focus. Natural skin texture, short clean nails. Soft window daylight from the left.",
+  'men-wedding':
+    "Vertical close crop of two hands lightly touching on ivory linen: a man's hand wearing a plain wide yellow-gold wedding band and a woman's hand wearing a narrower matching band. Only hands and wrists in frame. Soft daylight.",
+  'men-engraving':
+    'Vertical still life, no model. One polished oval yellow-gold signet ring lying on its side on warm ivory paper, the flat oval face turned toward the camera and engraved with the two letters A and M in a classic serif, cut into the metal. A small steel engraving burin lies beside it. Raking light so the engraved letters cast fine shadows.',
 };
 
 /**

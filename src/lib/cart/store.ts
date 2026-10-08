@@ -1,5 +1,14 @@
 import { activeProduct, activeVariant } from '@/lib/catalog/queries';
+import {
+  COUPON_MESSAGES,
+  couponSelect,
+  evaluateCartCoupon,
+  type CartCoupon,
+} from '@/lib/coupons/cart-coupon';
+import { normalizeCouponCode } from '@/lib/coupons/evaluate';
 import { prisma } from '@/lib/db';
+import { subtract, ZERO } from '@/lib/money';
+import { getActivePromotions } from '@/lib/promotions/active';
 import { addToCartSchema, updateCartItemSchema } from '@/lib/validation/commerce';
 import { id as idSchema } from '@/lib/validation/common';
 
@@ -36,7 +45,7 @@ import type { CartMutationResult, CartView } from './types';
 
 const EMPTY_VIEW: CartView = (() => {
   const totals = computeTotals([]);
-  return { lines: [], hasUnavailable: false, ...totals };
+  return { lines: [], hasUnavailable: false, ...totals, discount: ZERO, coupon: null };
 })();
 
 /** A live cart for this token, or null. An expired cart is no cart. */
@@ -49,6 +58,7 @@ async function findCart(token: string | null | undefined) {
       id: true,
       expiresAt: true,
       items: { orderBy: { addedAt: 'asc' }, select: cartItemSelect },
+      coupon: { select: couponSelect },
     },
   });
 
@@ -59,14 +69,27 @@ async function findCart(token: string | null | undefined) {
 /** The cart's lines resolved against the catalogue, for the view and for ordering. */
 export async function loadCart(
   token: string | null | undefined,
-): Promise<{ id: string; lines: ResolvedLine[] } | null> {
+): Promise<{ id: string; lines: ResolvedLine[]; coupon: CartCoupon | null } | null> {
   const cart = await findCart(token);
   if (!cart) return null;
 
-  return { id: cart.id, lines: cart.items.map(resolveLine) };
+  const promotions = await getActivePromotions();
+  return {
+    id: cart.id,
+    lines: cart.items.map((item) => resolveLine(item, promotions)),
+    coupon: cart.coupon,
+  };
 }
 
-export function toCartView(lines: readonly ResolvedLine[]): CartView {
+/**
+ * The bag's figures. A coupon on the cart is re-checked every time the bag is
+ * read (D4D.33): a code that has expired or no longer covers anything in the
+ * bag stays named, with the reason, and takes nothing off.
+ */
+export function toCartView(
+  lines: readonly ResolvedLine[],
+  coupon: CartCoupon | null = null,
+): CartView {
   const orderable = lines.filter((line) => line.orderable);
   const totals = computeTotals(
     orderable.map((line) => ({
@@ -76,16 +99,28 @@ export function toCartView(lines: readonly ResolvedLine[]): CartView {
     })),
   );
 
+  const outcome = coupon ? evaluateCartCoupon(coupon, lines) : null;
+  const discount = outcome?.ok ? outcome.discount : ZERO;
+
   return {
     lines: lines.map((line) => line.view),
     hasUnavailable: orderable.length < lines.length,
     ...totals,
+    discount,
+    total: subtract(totals.total, discount),
+    coupon: coupon
+      ? {
+          code: coupon.code,
+          applied: outcome?.ok ?? false,
+          message: outcome && !outcome.ok ? COUPON_MESSAGES[outcome.reason] : null,
+        }
+      : null,
   };
 }
 
 export async function getCartView(token: string | null | undefined): Promise<CartView> {
   const cart = await loadCart(token);
-  return cart ? toCartView(cart.lines) : EMPTY_VIEW;
+  return cart ? toCartView(cart.lines, cart.coupon) : EMPTY_VIEW;
 }
 
 /**
@@ -273,4 +308,39 @@ export async function removeItem(
       personalization: parseStoredPersonalization(item.customization),
     },
   };
+}
+
+export type CouponResult = { readonly ok: true } | { readonly ok: false; readonly message: string };
+
+/**
+ * Put a coupon on the bag (D4D.33). Checked against the bag as it stands, so
+ * a code that cannot apply is refused with its reason rather than kept. A bag
+ * holds one code; a new one replaces it.
+ */
+export async function applyCoupon(
+  token: string | null | undefined,
+  rawCode: unknown,
+): Promise<CouponResult> {
+  const code = normalizeCouponCode(String(rawCode ?? '')).slice(0, 64);
+  if (!code) return { ok: false, message: 'יש להקליד קוד קופון.' };
+
+  const cart = await loadCart(token);
+  if (!cart || cart.lines.length === 0) return { ok: false, message: 'הסל ריק.' };
+
+  const coupon = await prisma.coupon.findUnique({
+    where: { codeNormalized: code },
+    select: couponSelect,
+  });
+  if (!coupon) return { ok: false, message: COUPON_MESSAGES.UNKNOWN };
+
+  const outcome = evaluateCartCoupon(coupon, cart.lines);
+  if (!outcome.ok) return { ok: false, message: COUPON_MESSAGES[outcome.reason] };
+
+  await prisma.cart.update({ where: { id: cart.id }, data: { couponId: coupon.id } });
+  return { ok: true };
+}
+
+export async function removeCoupon(token: string | null | undefined): Promise<void> {
+  if (!isWellFormedToken(token)) return;
+  await prisma.cart.updateMany({ where: { token }, data: { couponId: null } });
 }

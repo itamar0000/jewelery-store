@@ -261,7 +261,8 @@ export function FilterBar({
 function MadeToMeasureNote({ className }: { className?: string }) {
   return (
     <p className={cn('text-soft-foreground text-sm', className)}>
-      אין צורך לסנן לפי גוון זהב, קראט, מידה או אורך: כל דגם אפשר להזמין בכל אחד מהם.
+      כל התכשיטים מיוצרים בזהב <bdi>14K</bdi>. גוון זהב, מידה ואורך בוחרים בעמוד הדגם, ואין צורך
+      לסנן לפיהם.
     </p>
   );
 }

@@ -105,7 +105,7 @@ export const createProductSchema = z.object({
       stoneCount: z.number().int().min(1).max(500).nullable(),
       color: z.string().trim().max(10),
       clarity: z.string().trim().max(10),
-      cut: z.string().trim().max(20),
+      cut: z.string().trim().max(30),
     })
     .nullable(),
 });

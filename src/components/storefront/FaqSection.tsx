@@ -25,14 +25,14 @@ import { ChevronIcon } from '@/components/ui/icons';
  */
 const FAQ_TOPICS: readonly { id: string; title: string }[] = [
   { id: 'natural-or-lab', title: 'היהלומים טבעיים או יהלומי מעבדה?' },
-  { id: 'karat', title: 'מה ההבדל בין 14K ל-18K?' },
+  { id: 'karat', title: 'באיזה זהב מיוצרים התכשיטים?' },
   { id: 'ring-size', title: 'איך יודעים מידת טבעת?' },
 ];
 
 export function FaqSection() {
   return (
     <Container as="section" aria-labelledby="faq-heading" className="py-section">
-      <div className="mx-auto max-w-(--container-narrow)">
+      <div className="max-w-(--container-narrow)">
         <h2
           id="faq-heading"
           className="font-display text-4xl leading-[1.1] font-normal text-balance md:text-5xl"

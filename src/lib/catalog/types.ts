@@ -109,7 +109,10 @@ export interface VariantView {
   readonly id: string;
   readonly sku: string;
   readonly price: Money;
+  /** The regular price, set only while a sale lowers this variant's price (D4D.33). */
   readonly compareAtPrice: Money | null;
+  /** The live sale's name, beside its price. */
+  readonly promotionNameHe?: string | null;
   /** Option value ids this variant is the combination of. */
   readonly optionValueIds: readonly string[];
   readonly availability: Availability;

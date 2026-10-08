@@ -18,6 +18,7 @@ import {
   addDiamondSize,
   normalizeCarat,
   removeDiamondSize,
+  setMenDepartment,
   setProductArchived,
   updateProductDetails,
   updateVariantPrices,
@@ -80,6 +81,26 @@ export async function saveProductDetailsAction(
   });
   refresh(id, slug);
   return { ok: true, message: 'נשמר.' };
+}
+
+/** The men's department membership (D4D.34). */
+export async function saveMenDepartmentAction(
+  _previous: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  await requireAdminAction();
+  const id = field(form, 'productId', 40);
+  const slug = field(form, 'slug', 200);
+  if (!id) return { ok: false, message: 'המוצר לא נמצא.' };
+  const choice = field(form, 'menCategory', 40);
+  try {
+    await setMenDepartment(id, choice || null);
+  } catch {
+    return { ok: false, message: 'הקטגוריה הזו אינה במחלקת הגברים.' };
+  }
+  refresh(id, slug);
+  revalidatePath('/men', 'layout');
+  return { ok: true, message: choice ? 'הדגם מופיע במחלקת הגברים.' : 'הדגם הוסר ממחלקת הגברים.' };
 }
 
 export async function savePricesAction(
@@ -264,7 +285,7 @@ export async function createProductAction(
   if (price === null || price <= 0) {
     return { ok: false, message: 'כתבו מחיר בשקלים, למשל 2490.' };
   }
-  const prepDays = Number(field(form, 'prepDays', 4) || '21');
+  const prepDays = Number(field(form, 'prepDays', 4) || '10');
 
   const caratRaw = field(form, 'carat', 10);
   let diamond: CreateProductInput['diamond'] = null;
@@ -279,7 +300,10 @@ export async function createProductAction(
       stoneCount: stones ? Number(stones) : null,
       color: field(form, 'color', 10).toUpperCase(),
       clarity: field(form, 'clarity', 10).toUpperCase(),
-      cut: field(form, 'cut', 20),
+      // Empty takes the shop's standard for the shape (D4D.31).
+      cut:
+        field(form, 'cut', 30) ||
+        (field(form, 'shape', 20) === 'Round' ? 'Triple VG – Triple EX' : 'VG/VG – EX/EX'),
     };
   }
 

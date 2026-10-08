@@ -17,13 +17,15 @@ function allLinks(item: NavItem) {
 describe('PRIMARY_NAV', () => {
   it('carries the primary entries, with the owner departures from section 6', () => {
     // Gifts removed (no products behind it yet); Guides became FAQ; Contact
-    // promoted out of the footer. See the taxonomy header comment.
+    // promoted out of the footer; the men's department added (D4D.34). See the
+    // taxonomy header comment.
     expect(PRIMARY_NAV.map((item) => item.id)).toEqual([
       'rings',
       'earrings',
       'necklaces',
       'bracelets',
       'sets',
+      'men',
       'custom',
       'faq',
       'contact',
@@ -37,10 +39,10 @@ describe('PRIMARY_NAV', () => {
     expect(hrefs.some((href) => href.includes('gifts'))).toBe(false);
   });
 
-  it('gives the five product categories a mega menu, and the other three none', () => {
+  it("gives the product categories and the men's department a mega menu, the rest none", () => {
     const withMenus = PRIMARY_NAV.filter((item) => item.columns !== undefined).map((i) => i.id);
 
-    expect(withMenus).toEqual(['rings', 'earrings', 'necklaces', 'bracelets', 'sets']);
+    expect(withMenus).toEqual(['rings', 'earrings', 'necklaces', 'bracelets', 'sets', 'men']);
   });
 
   it('uses unique top-level ids', () => {
@@ -102,6 +104,7 @@ describe('FOOTER_COLUMNS', () => {
       '/necklaces',
       '/bracelets',
       '/sets',
+      '/men',
       '/custom',
       '/faq',
       '/contact',

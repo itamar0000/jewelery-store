@@ -5,7 +5,14 @@ import { Suspense } from 'react';
 
 import { CategoryPageShell } from '@/components/category/CategoryPageShell';
 import { CategoryResults, CategoryResultsSkeleton } from '@/components/category/CategoryResults';
-import { descendantCategoryIds, getCategoryBySlug } from '@/lib/catalog/queries';
+import { MenDepartment, type MenKind } from '@/components/storefront/MenDepartment';
+import { allInCategoryLabel } from '@/lib/catalog/category-labels';
+import {
+  countProductsByCategory,
+  descendantCategoryIds,
+  getCategoryBySlug,
+  getProductsByCategory,
+} from '@/lib/catalog/queries';
 import { canonicalFor, parseCatalogSearchParams, type SearchParams } from '@/lib/catalog/filters';
 import { notFoundMetadata } from '@/lib/seo/not-found';
 
@@ -25,6 +32,8 @@ import { notFoundMetadata } from '@/lib/seo/not-found';
  * behind a Suspense boundary - see CategoryResults for why that is not a
  * `loading.tsx`.
  */
+const MEN_SLUG = 'men';
+
 export async function generateMetadata({
   params,
   searchParams,
@@ -68,13 +77,48 @@ export default async function CategoryPage({
   // primary category exists to avoid.
   if (category.ancestors.length > 0) notFound();
 
+  // THE MEN'S DEPARTMENT has a landing of its own (D4D.34); its children are
+  // ordinary category pages.
+  if (category.slug === MEN_SLUG) {
+    const kinds = await Promise.all(
+      category.children.map(async (child): Promise<MenKind | null> => {
+        const [count, [first]] = await Promise.all([
+          countProductsByCategory(child.id),
+          getProductsByCategory(child.id, { limit: 1 }),
+        ]);
+        if (count === 0 || !first) return null;
+        return {
+          id: child.id,
+          label: child.nameHe,
+          href: child.href,
+          count,
+          imageUrl: first.imageUrl ?? null,
+          imageAlt: first.imageAlt ?? first.name,
+        };
+      }),
+    );
+    return (
+      <MenDepartment
+        kinds={kinds.filter((kind): kind is MenKind => kind !== null)}
+        categoryIds={await descendantCategoryIds(category.id)}
+        filterConfig={category.filterConfig}
+        basePath={category.href}
+        rawQuery={parseCatalogSearchParams(rawSearchParams)}
+      />
+    );
+  }
+
   return (
     <CategoryPageShell
       title={category.nameHe}
       description={category.descriptionHe ?? undefined}
       trail={[{ label: 'דף הבית', href: '/' }, { label: category.nameHe }]}
       subcategories={[
-        { id: `${category.slug}-all`, label: `כל ה${category.nameHe}`, href: category.href },
+        {
+          id: `${category.slug}-all`,
+          label: allInCategoryLabel(category.slug, category.nameHe),
+          href: category.href,
+        },
         ...category.children.map((child) => ({
           id: child.id,
           label: child.nameHe,

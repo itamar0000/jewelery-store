@@ -115,4 +115,4 @@ export interface ProductSwatch {
  * best-sellers band makes that claim once, from one ranking
  * (src/lib/catalog/best-sellers.ts), instead of on every card.
  */
-export type ProductBadge = 'new';
+export type ProductBadge = 'new' | 'sale';

@@ -7,14 +7,14 @@ import { Container } from '@/components/ui/Container';
  * through, made to order - so they are set large in the serif, in green, over
  * one rule that runs under all four. Every line is a fact PRODUCT.md
  * establishes: the catalogue and custom requests, the real axes of
- * alteration, manufacture after the order in the owner's workshop,
+ * alteration, manufacture in ten business days in the owner's workshop (D4D.29),
  * and free shipping (owner, 2026-10-05).
  */
 const STEPS = [
   { title: 'בוחרים דגם', body: 'מהקטלוג, או מתחילים מבקשה לעיצוב אישי.' },
   { title: 'מתאימים', body: 'גוון זהב, מידה, חריטה ואבן, לפי מה שהדגם מאפשר.' },
-  { title: 'מייצרים בסדנה', body: 'התכשיט מיוצר אחרי ההזמנה, בסדנה שלנו.' },
-  { title: 'משלוח עד הבית', body: 'המשלוח חינם.' },
+  { title: 'מייצרים בסדנה', body: 'עשרה ימי עסקים בסדנה שלנו, מהרגע שההזמנה משולמת.' },
+  { title: 'משלוח עד הבית', body: 'המשלוח חינם, עד הדלת.' },
 ] as const;
 
 export function OrderSteps() {

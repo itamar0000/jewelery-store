@@ -255,6 +255,41 @@ export const PRIMARY_NAV: readonly NavItem[] = [
       image: { src: '/images/editorial/menu/sets.jpg', alt: '' },
     },
   },
+  /*
+   * THE MEN'S DEPARTMENT (D4D.34): a root of its own, holding catalogue pieces
+   * by secondary membership. No discovery column - "new" and "best sellers"
+   * are site-wide collections and would lead out of the department. Men's
+   * pendants join this list with the first men's pendant.
+   */
+  {
+    id: 'men',
+    label: 'גברים',
+    href: '/men',
+    columns: [
+      {
+        id: 'men-categories',
+        title: 'קטגוריות',
+        links: [
+          { id: 'men-all', label: 'כל התכשיטים לגבר', href: '/men' },
+          { id: 'men-rings', label: 'טבעות לגבר', href: '/men/men-rings' },
+          {
+            id: 'men-wedding-rings',
+            label: 'טבעות נישואין לגבר',
+            href: '/men/men-wedding-rings',
+          },
+          { id: 'men-necklaces', label: 'שרשראות לגבר', href: '/men/men-necklaces' },
+          { id: 'men-bracelets', label: 'צמידים לגבר', href: '/men/men-bracelets' },
+        ],
+      },
+    ],
+    feature: {
+      title: 'טבעת החותם',
+      description: 'טבעת חותם בזהב 14K, שאפשר לחרוט עליה ראשי תיבות, תאריך או סמל.',
+      href: '/men/men-rings',
+      linkLabel: 'לטבעות לגבר',
+      image: { src: '/images/editorial/men/hero.jpg', alt: '' },
+    },
+  },
   { id: 'custom', label: 'עיצוב אישי', href: '/custom' },
   { id: 'faq', label: 'שאלות ותשובות', href: '/faq' },
   { id: 'contact', label: 'צור קשר', href: '/contact' },
@@ -283,6 +318,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
       { id: 'f-necklaces', label: 'שרשראות', href: '/necklaces' },
       { id: 'f-bracelets', label: 'צמידים', href: '/bracelets' },
       { id: 'f-sets', label: 'סטים', href: '/sets' },
+      { id: 'f-men', label: 'גברים', href: '/men' },
     ],
   },
   {
@@ -295,7 +331,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
   },
   {
     id: 'about',
-    title: 'אודות',
+    title: 'מידע',
     links: [
       { id: 'f-contact', label: 'צור קשר', href: '/contact' },
       { id: 'f-privacy', label: 'מדיניות פרטיות', href: '/legal/privacy' },

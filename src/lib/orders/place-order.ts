@@ -2,6 +2,7 @@ import type { Prisma } from '@/generated/prisma/client';
 import type { ResolvedLine } from '@/lib/cart/line';
 import { SHIPPING, includedVat } from '@/lib/cart/pricing';
 import { loadCart, toCartView } from '@/lib/cart/store';
+import { evaluateCartCoupon } from '@/lib/coupons/cart-coupon';
 import { hashToken, newToken } from '@/lib/cart/token';
 import type { FieldProblem } from '@/lib/cart/types';
 import { prisma } from '@/lib/db';
@@ -42,7 +43,9 @@ export type PlaceOrderResult =
   /** A line can no longer be ordered as configured; the cart page says which. */
   | { readonly ok: false; readonly error: 'changed' }
   /** Stock went between the review and the hold. */
-  | { readonly ok: false; readonly error: 'stock' };
+  | { readonly ok: false; readonly error: 'stock' }
+  /** The coupon on the bag stopped applying between the bag and the order (D4D.33). */
+  | { readonly ok: false; readonly error: 'coupon' };
 
 export async function placeOrder(
   token: string | null | undefined,
@@ -72,14 +75,29 @@ export async function placeOrder(
   if (!cart || cart.lines.length === 0) return { ok: false, error: 'empty' };
   if (cart.lines.some((line) => !line.orderable)) return { ok: false, error: 'changed' };
 
-  const view = toCartView(cart.lines);
+  // The coupon is checked once more, now that the buyer's email is known, so
+  // a per-customer limit holds (D4D.33). One that no longer applies comes off
+  // the bag and the buyer is told, rather than charged without it.
+  const emailNormalized = input.email.trim().toLowerCase();
+  if (cart.coupon) {
+    const customerRedemptions = await prisma.couponRedemption.count({
+      where: { couponId: cart.coupon.id, customerEmailNormalized: emailNormalized },
+    });
+    const outcome = evaluateCartCoupon(cart.coupon, cart.lines, customerRedemptions);
+    if (!outcome.ok) {
+      await prisma.cart.update({ where: { id: cart.id }, data: { couponId: null } });
+      return { ok: false, error: 'coupon' };
+    }
+  }
+
+  const view = toCartView(cart.lines, cart.coupon);
   const vat = includedVat(view.total, options.vatRateBps);
 
   // Validated before writing: an arithmetic bug fails here, at the boundary,
   // as well as at the `Order_total_consistent` CHECK constraint.
   const totals = orderTotalsSchema.parse({
     subtotalAgorot: toAgorot(view.subtotal),
-    discountAgorot: 0,
+    discountAgorot: toAgorot(view.discount),
     shippingAgorot: toAgorot(view.shipping),
     totalAgorot: toAgorot(view.total),
     vatRateBps: vat === null ? null : options.vatRateBps,
@@ -101,6 +119,9 @@ export async function placeOrder(
           customerName: input.customerName,
           subtotalAgorot: totals.subtotalAgorot,
           discountAgorot: totals.discountAgorot,
+          ...(cart.coupon && totals.discountAgorot > 0
+            ? { couponId: cart.coupon.id, couponCodeUsed: cart.coupon.code }
+            : {}),
           shippingAgorot: totals.shippingAgorot,
           totalAgorot: totals.totalAgorot,
           vatRateBps: totals.vatRateBps ?? null,
@@ -130,6 +151,19 @@ export async function placeOrder(
         },
         select: { id: true, orderNumber: true },
       });
+
+      if (cart.coupon && totals.discountAgorot > 0) {
+        await tx.couponRedemption.create({
+          data: {
+            couponId: cart.coupon.id,
+            orderId: created.id,
+            customerId,
+            customerEmailNormalized: emailNormalized,
+            amountAgorot: totals.discountAgorot,
+          },
+        });
+        await tx.cart.update({ where: { id: cart.id }, data: { couponId: null } });
+      }
 
       // Holds inside the same transaction: if any line cannot be held, the
       // order, its lines and every earlier hold roll back together.
@@ -254,6 +288,9 @@ function toOrderItem(line: ResolvedLine): Prisma.OrderItemCreateWithoutOrderInpu
       axes: line.axisValues.map((value) => ({ ...value })),
       basePriceAgorot: product.basePriceAgorot,
       unitPriceAgorot,
+      // The regular price and the sale that lowered it, if one did (D4D.33).
+      regularUnitPriceAgorot: toAgorot(line.regularUnitPrice),
+      promotion: line.promotion ? { ...line.promotion } : null,
       personalizationAgorot,
       availability: { state: line.availability.state, prepDays: line.availability.prepDays },
     },

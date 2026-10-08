@@ -6,6 +6,8 @@ import { parseFieldOptions } from '@/lib/personalization/field-options';
 import type { FieldDefinition } from '@/lib/personalization/snapshot';
 import { validatePersonalization, type FieldRule } from '@/lib/validation/personalization';
 
+import { categoryIdsOf, salePrice, type ActivePromotion } from '@/lib/promotions/pricing';
+
 import { lineTotal } from './pricing';
 import type { CartLineView, FieldProblem } from './types';
 
@@ -89,6 +91,9 @@ export const cartItemSelect = {
       options: selectionOptionsSelect,
       customFields: customFieldsSelect,
       diamondSpec: { select: diamondSnapshotSelect() },
+      primaryCategory: { select: { id: true, parentId: true } },
+      categories: { select: { category: { select: { id: true, parentId: true } } } },
+      collections: { select: { collectionId: true } },
     },
   },
   variant: {
@@ -197,6 +202,10 @@ export interface CartItemRow {
     options: SelectionOptionRow[];
     customFields: CustomFieldRow[];
     diamondSpec: DiamondRow | null;
+    /** What a sale can target (D4D.33). Optional for hand-built test rows. */
+    primaryCategory?: { id: string; parentId: string | null };
+    categories?: { category: { id: string; parentId: string | null } }[];
+    collections?: { collectionId: string }[];
   };
   variant: {
     id: string;
@@ -249,6 +258,9 @@ export interface ResolvedLine {
   readonly fieldDefinitions: readonly FieldDefinition[];
   readonly axisValues: readonly AxisValue[];
   readonly imageKey: string | null;
+  /** The piece's regular unit price, and the sale that lowered it, if any (D4D.33). */
+  readonly regularUnitPrice: Money;
+  readonly promotion: { readonly id: string; readonly nameHe: string } | null;
 }
 
 // --------------------------------------------------------------- validation
@@ -367,7 +379,10 @@ export function canSupply(
   return inventory.onHand - inventory.reserved >= quantity;
 }
 
-export function resolveLine(row: CartItemRow): ResolvedLine {
+export function resolveLine(
+  row: CartItemRow,
+  promotions: readonly ActivePromotion[] = [],
+): ResolvedLine {
   const { product, variant } = row;
 
   const visible =
@@ -390,7 +405,21 @@ export function resolveLine(row: CartItemRow): ResolvedLine {
   const personalizationCheck = checkPersonalization(product.customFields, storedPersonalization);
 
   const personalization = personalizationCheck.ok ? personalizationCheck.value : {};
-  const unitPrice = fromAgorot(variant.priceAgorot ?? product.basePriceAgorot);
+  // The sale price where a live sale reaches the piece (D4D.33): what the bag
+  // shows is what the order charges, from the same rule as the product page.
+  const sale = salePrice(
+    variant.priceAgorot ?? product.basePriceAgorot,
+    {
+      productId: product.id,
+      categoryIds: categoryIdsOf([
+        ...(product.primaryCategory ? [product.primaryCategory] : []),
+        ...(product.categories ?? []).map((link) => link.category),
+      ]),
+      collectionIds: (product.collections ?? []).map((link) => link.collectionId),
+    },
+    promotions,
+  );
+  const unitPrice = fromAgorot(sale.priceAgorot);
   const personalizationPrice = personalizationSurcharge(product.customFields, personalization);
 
   const orderable =
@@ -444,6 +473,9 @@ export function resolveLine(row: CartItemRow): ResolvedLine {
     ),
     quantity: row.quantity,
     unitPrice,
+    ...(sale.promotion
+      ? { regularUnitPrice: fromAgorot(sale.regularAgorot), promotionNameHe: sale.promotion.nameHe }
+      : {}),
     personalizationPrice,
     lineTotal: lineTotal({ unitPrice, personalizationPrice, quantity: row.quantity }),
     leadTimeDays: availability.state === 'MADE_TO_ORDER' ? availability.prepDays : null,
@@ -468,6 +500,8 @@ export function resolveLine(row: CartItemRow): ResolvedLine {
     })),
     axisValues,
     imageKey: image?.storageKey ?? null,
+    regularUnitPrice: fromAgorot(sale.regularAgorot),
+    promotion: sale.promotion,
   };
 }
 

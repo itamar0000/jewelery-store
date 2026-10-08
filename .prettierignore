@@ -24,3 +24,7 @@ next-env.d.ts
 
 # Impeccable critique snapshots: dated audit records, kept exactly as written.
 .impeccable/critique/
+
+# The design alternatives the owner chose between: archived comps, kept
+# exactly as they were shown.
+/docs/design-alternatives/

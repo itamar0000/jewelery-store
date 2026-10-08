@@ -396,11 +396,22 @@ export function ProductDetailView({
           )}
           {compareAt && (
             <span className="text-muted-foreground text-sm line-through">
-              {formatPrice(compareAt)}
+              <span className="sr-only">במקום </span>
+              {formatPrice(
+                requiredSurchargeAgorot > 0
+                  ? add(compareAt, fromAgorot(requiredSurchargeAgorot))
+                  : compareAt,
+              )}
             </span>
           )}
           {priceLabel && <span className="text-muted-foreground text-sm">{priceLabel}</span>}
         </div>
+        {/* The live sale, by name, beside the price it lowered (D4D.33). */}
+        {selectedVariant?.promotionNameHe && (
+          <p className="text-accent mt-1.5 text-sm font-medium">
+            מבצע: {selectedVariant.promotionNameHe}
+          </p>
+        )}
 
         {availability && (
           <AvailabilityLine availability={availability} stockLevelsLive={stockLevelsLive} />
@@ -817,7 +828,9 @@ function DiamondSpecTable({ diamond }: { diamond: NonNullable<ProductDetail['dia
     ...(diamond.clarity
       ? [{ label: 'ניקיון', value: diamond.clarity, gloss: clarityGloss(diamond.clarity) }]
       : []),
-    ...(diamond.cut ? [{ label: 'ליטוש', value: diamond.cut, gloss: cutGloss(diamond.cut) }] : []),
+    ...(diamond.cut
+      ? [{ label: 'חיתוך וליטוש', value: diamond.cut, gloss: cutGloss(diamond.cut) }]
+      : []),
   ];
 
   return (

@@ -9,6 +9,9 @@ const SECTIONS = [
   { href: '/admin/orders', label: 'הזמנות' },
   { href: '/admin/requests', label: 'בקשות עיצוב' },
   { href: '/admin/products', label: 'מוצרים' },
+  { href: '/admin/promotions', label: 'מבצעים' },
+  { href: '/admin/coupons', label: 'קופונים' },
+  { href: '/admin/announcements', label: 'הודעות' },
 ] as const;
 
 export function AdminNav() {

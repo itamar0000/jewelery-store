@@ -39,6 +39,9 @@ export interface SummaryTotals {
   readonly total: Money;
   /** The VAT inside the total, when a rate is configured; null otherwise. */
   readonly vat: Money | null;
+  /** Taken off by a coupon, and its code (D4D.33). */
+  readonly discount?: Money;
+  readonly couponCode?: string | null;
 }
 
 export function SummaryLines({ lines }: { lines: readonly SummaryLine[] }) {
@@ -112,6 +115,16 @@ export function SummaryTotalsTable({
             <bdi>{formatPrice(totals.subtotal)}</bdi>
           </dd>
         </div>
+        {totals.discount !== undefined && !isZero(totals.discount) && (
+          <div className="text-accent flex justify-between gap-4 py-1.5">
+            <dt>
+              קופון {totals.couponCode && <bdi className="font-medium">{totals.couponCode}</bdi>}
+            </dt>
+            <dd className="tabular-nums">
+              <bdi>−{formatPrice(totals.discount)}</bdi>
+            </dd>
+          </div>
+        )}
         <div className="flex justify-between gap-4 py-1.5">
           <dt className="text-soft-foreground">משלוח</dt>
           <dd className="tabular-nums">

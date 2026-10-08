@@ -1,11 +1,19 @@
 import { cache } from 'react';
 
 import type { ProductBadge, ProductCardData, ProductSwatch } from '@/components/product/types';
+import { getActivePromotions } from '@/lib/promotions/active';
 import { prisma } from '@/lib/db';
 import { resolveAvailability, type Availability } from '@/lib/inventory/availability';
 import { STOCK_LEVELS_ARE_LIVE } from '@/lib/inventory/disclosure';
 import { fromAgorot, toAgorot, type Money } from '@/lib/money';
 import { parseFieldOptions } from '@/lib/personalization/field-options';
+
+import {
+  categoryIdsOf,
+  salePrice,
+  type ActivePromotion,
+  type PriceContext,
+} from '@/lib/promotions/pricing';
 
 import { diamondOriginLabel } from './diamond-terms';
 import { resolveImageUrl, type ResolvedImage } from './images';
@@ -173,8 +181,9 @@ export async function getProductsByCategory(
     take: options.limit,
     select: productCardSelect,
   });
+  const promotions = await getActivePromotions();
 
-  return rows.map((row) => toProductCard(row));
+  return rows.map((row) => toProductCard(row, { promotions }));
 }
 
 /** How many products a category page will show. Same predicate as the list. */
@@ -248,8 +257,9 @@ export async function getProductsByCollection(
     take: options.limit,
     select: { product: { select: productCardSelect } },
   });
+  const promotions = await getActivePromotions();
 
-  return rows.map((row) => toProductCard(row.product));
+  return rows.map((row) => toProductCard(row.product, { promotions }));
 }
 
 export async function countProductsByCollection(collectionId: string): Promise<number> {
@@ -358,30 +368,42 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
           collection: { select: { id: true, slug: true, nameHe: true, descriptionHe: true } },
         },
       },
+
+      categories: { select: { category: { select: { id: true, parentId: true } } } },
     },
   });
 
   if (!row) return null;
 
-  const variants: VariantView[] = row.variants.map((variant) => ({
-    id: variant.id,
-    sku: variant.sku,
-    price: fromAgorot(variant.priceAgorot ?? row.basePriceAgorot),
-    compareAtPrice:
-      variant.compareAtAgorot !== null
-        ? fromAgorot(variant.compareAtAgorot)
-        : row.compareAtAgorot !== null
-          ? fromAgorot(row.compareAtAgorot)
-          : null,
-    optionValueIds: variant.optionValues.map((link) => link.valueId),
-    availability: toAvailability(variant.inventory, {
-      productThreshold: row.lowStockThreshold,
-      productPrepDays: row.defaultPrepDays,
-      variantPrepDays: variant.prepDays,
-    }),
-    images: variant.images.map(toResolvedImage),
-    diamond: variant.diamondSpec ? toDiamond(variant.diamondSpec) : null,
-  }));
+  // A struck price is only ever the regular price beside a live sale (D4D.33).
+  const promotions = await getActivePromotions();
+  const priceContext: PriceContext = {
+    productId: row.id,
+    categoryIds: categoryIdsOf([
+      { id: row.primaryCategory.id, parentId: row.primaryCategory.parent?.id ?? null },
+      ...row.categories.map((link) => link.category),
+    ]),
+    collectionIds: row.collections.map((link) => link.collection.id),
+  };
+
+  const variants: VariantView[] = row.variants.map((variant) => {
+    const sale = salePrice(variant.priceAgorot ?? row.basePriceAgorot, priceContext, promotions);
+    return {
+      id: variant.id,
+      sku: variant.sku,
+      price: fromAgorot(sale.priceAgorot),
+      compareAtPrice: sale.promotion ? fromAgorot(sale.regularAgorot) : null,
+      promotionNameHe: sale.promotion?.nameHe ?? null,
+      optionValueIds: variant.optionValues.map((link) => link.valueId),
+      availability: toAvailability(variant.inventory, {
+        productThreshold: row.lowStockThreshold,
+        productPrepDays: row.defaultPrepDays,
+        variantPrepDays: variant.prepDays,
+      }),
+      images: variant.images.map(toResolvedImage),
+      diamond: variant.diamondSpec ? toDiamond(variant.diamondSpec) : null,
+    };
+  });
 
   const parent = row.primaryCategory.parent;
 
@@ -463,13 +485,14 @@ export async function getProductsByIds(
     where: { id: { in: [...ids] }, ...activeProduct },
     select: productCardSelect,
   });
+  const promotions = await getActivePromotions();
 
   const byId = new Map(rows.map((row) => [row.id, row]));
 
   return ids
     .map((id) => byId.get(id))
     .filter((row): row is NonNullable<typeof row> => row !== undefined)
-    .map((row) => toProductCard(row));
+    .map((row) => toProductCard(row, { promotions }));
 }
 
 /**
@@ -511,13 +534,9 @@ export async function getProductVariants(productId: string): Promise<readonly Va
   return product.variants.map((variant) => ({
     id: variant.id,
     sku: variant.sku,
+    // Regular prices: the product page (getProductBySlug) is where sales apply.
     price: fromAgorot(variant.priceAgorot ?? product.basePriceAgorot),
-    compareAtPrice:
-      variant.compareAtAgorot !== null
-        ? fromAgorot(variant.compareAtAgorot)
-        : product.compareAtAgorot !== null
-          ? fromAgorot(product.compareAtAgorot)
-          : null,
+    compareAtPrice: null,
     optionValueIds: variant.optionValues.map((link) => link.valueId),
     availability: toAvailability(variant.inventory, {
       productThreshold: product.lowStockThreshold,
@@ -634,7 +653,10 @@ export const productCardSelect = {
       },
     },
   },
-  collections: { select: { collection: { select: { slug: true } } } },
+  collections: { select: { collection: { select: { id: true, slug: true } } } },
+  /* What a sale can target (D4D.33): the categories it is filed under and their parents. */
+  primaryCategory: { select: { id: true, parentId: true } },
+  categories: { select: { category: { select: { id: true, parentId: true } } } },
   /* The stone's origin, stated on the card (D4D.15). */
   diamondSpec: { select: { isLabGrown: true, stoneCount: true } },
   /* Surcharges a piece cannot be ordered without - part of its price (D4D.17). */
@@ -666,7 +688,10 @@ type ProductCardRow = {
       lowStockThreshold: number | null;
     } | null;
   }[];
-  collections: { collection: { slug: string } }[];
+  collections: { collection: { id?: string; slug: string } }[];
+  /** Optional so hand-built test rows need not carry them (D4D.33). */
+  primaryCategory?: { id: string; parentId: string | null };
+  categories?: { category: { id: string; parentId: string | null } }[];
   /** Optional so hand-built test rows need not carry it. */
   diamondSpec?: { isLabGrown: boolean; stoneCount: number | null } | null;
   customFields?: { priceDeltaAgorot: number }[];
@@ -702,7 +727,7 @@ export type { ProductCardRow };
  */
 export function toProductCard(
   row: ProductCardRow,
-  options: { stockLevelsLive?: boolean } = {},
+  options: { stockLevelsLive?: boolean; promotions?: readonly ActivePromotion[] } = {},
 ): ProductCardData {
   const stockLevelsLive = options.stockLevelsLive ?? STOCK_LEVELS_ARE_LIVE;
   const availabilities = row.variants.map((variant) =>
@@ -720,10 +745,17 @@ export function toProductCard(
   // A required surcharge - the name on a name necklace - is part of every
   // price the piece can be bought at, so the card's figure includes it.
   const required = (row.customFields ?? []).reduce((sum, field) => sum + field.priceDeltaAgorot, 0);
-  const prices = row.variants.map(
-    (variant) => (variant.priceAgorot ?? row.basePriceAgorot) + required,
+  // Each variant at its sale price where a sale reaches it (D4D.33).
+  const context = cardPriceContext(row);
+  const sales = (row.variants.length > 0 ? row.variants : [{ priceAgorot: null }]).map((variant) =>
+    salePrice(variant.priceAgorot ?? row.basePriceAgorot, context, options.promotions ?? []),
   );
-  const minPrice = prices.length > 0 ? Math.min(...prices) : row.basePriceAgorot + required;
+  const prices = sales.map((sale) => sale.priceAgorot + required);
+  const cheapest = sales.reduce((best, sale) =>
+    sale.priceAgorot < best.priceAgorot ? sale : best,
+  );
+  const minPrice = cheapest.priceAgorot + required;
+  const onSale = sales.some((sale) => sale.promotion !== null);
   // More than one distinct price: the card's figure is a floor, and says so.
   const priceFrom = new Set(prices).size > 1;
 
@@ -733,7 +765,12 @@ export function toProductCard(
     availabilities.length > 0 &&
     availabilities.every((availability) => availability.state === 'MADE_TO_ORDER');
 
-  const badge: ProductBadge | undefined = collectionSlugs.has('new-arrivals') ? 'new' : undefined;
+  // One badge; a live sale outranks "new".
+  const badge: ProductBadge | undefined = onSale
+    ? 'sale'
+    : collectionSlugs.has('new-arrivals')
+      ? 'new'
+      : undefined;
 
   // The lowest genuinely-low stock figure across variants, if any.
   const lowStock = availabilities.find((availability) => availability.isLowStock);
@@ -758,6 +795,9 @@ export function toProductCard(
     slug: row.slug,
     name: row.nameHe,
     price: fromAgorot(minPrice),
+    ...(cheapest.promotion
+      ? { compareAtPrice: fromAgorot(cheapest.regularAgorot + required) }
+      : {}),
     ...(priceFrom ? { priceFrom } : {}),
     imageAlt: row.images[0]?.altHe ?? row.nameHe,
     /*
@@ -819,6 +859,20 @@ export function toProductCard(
   };
 
   return card;
+}
+
+/** What a sale can reach on this card's product. */
+function cardPriceContext(row: ProductCardRow): PriceContext {
+  return {
+    productId: row.id,
+    categoryIds: categoryIdsOf([
+      ...(row.primaryCategory ? [row.primaryCategory] : []),
+      ...(row.categories ?? []).map((link) => link.category),
+    ]),
+    collectionIds: row.collections.flatMap((link) =>
+      link.collection.id ? [link.collection.id] : [],
+    ),
+  };
 }
 
 function toResolvedImage(row: {
