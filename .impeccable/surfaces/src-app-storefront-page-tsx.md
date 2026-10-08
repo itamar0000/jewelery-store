@@ -1,8 +1,8 @@
 ---
 version: 1
-slug: "src-app-storefront-page-tsx"
-primary_target: "src/app/(storefront)/page.tsx"
-related_targets: ["src/styles/tokens.css","src/lib/fonts.ts","src/components/storefront/Hero.tsx"]
+slug: 'src-app-storefront-page-tsx'
+primary_target: 'src/app/(storefront)/page.tsx'
+related_targets: ['src/styles/tokens.css', 'src/lib/fonts.ts', 'src/components/storefront/Hero.tsx']
 ---
 
 # Storefront home — surface brief

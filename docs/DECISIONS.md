@@ -2701,6 +2701,7 @@ with the signet, two hands with wedding bands, an engraved signet still life.
 Hands and objects only; no recognisable person.
 
 **For the owner, not decided here:**
+
 - Ring sizes on the men's rings run 50-56 (the wedding band 48-60). Most men
   wear 58-70; the sizes and their prices are the owner's to add.
 - The link bracelet is offered in 40 and 45 cm, which are necklace lengths:
