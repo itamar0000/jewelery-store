@@ -567,7 +567,9 @@ export async function getCatalogPage(
   const promotions = await getActivePromotions();
 
   return {
-    products: rows.map((row) => toProductCard(row, { promotions })),
+    products: rows.map((row) =>
+      toProductCard(row, { promotions, goldColors: query.values.gold_color }),
+    ),
     total,
     page,
     totalPages,
@@ -620,7 +622,9 @@ async function getRankedPage(
     const promotions = await getActivePromotions();
 
     return {
-      products: rows.map((row) => toProductCard(row, { promotions })),
+      products: rows.map((row) =>
+        toProductCard(row, { promotions, goldColors: query.values.gold_color }),
+      ),
       total,
       page,
       totalPages,
@@ -653,7 +657,7 @@ async function getRankedPage(
   const products = pageIds
     .map((id) => byId.get(id))
     .filter((row): row is NonNullable<typeof row> => row !== undefined)
-    .map((row) => toProductCard(row, { promotions }));
+    .map((row) => toProductCard(row, { promotions, goldColors: query.values.gold_color }));
 
   return { products, total, page, totalPages, pageSize: query.pageSize };
 }

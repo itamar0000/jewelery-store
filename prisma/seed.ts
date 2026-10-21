@@ -346,14 +346,14 @@ async function main(): Promise<void> {
     });
   }
 
-  // What a piece IS, never what the workshop can make it in: karat, gold colour,
-  // size and length are made to order for every model, so they are chosen on
-  // the product page rather than filtered by (docs/DECISIONS.md D4D.11).
-  const RING_FACETS = ['price', 'diamond_type', 'diamond_shape', 'carat'];
-  const EARRING_FACETS = ['price', 'diamond_type', 'diamond_shape', 'style'];
-  const NECKLACE_FACETS = ['price', 'diamond_type', 'pendant_type'];
-  const BRACELET_FACETS = ['price', 'diamond_type', 'style'];
-  const SET_FACETS = ['price', 'diamond_type', 'style'];
+  // Gold colour filters by the colours a model is OFFERED in, each with its own
+  // photographs (D4D.39). Karat (14K only), size and length are chosen on the
+  // product page rather than filtered by (docs/DECISIONS.md D4D.11).
+  const RING_FACETS = ['price', 'gold_color', 'diamond_type', 'diamond_shape', 'carat'];
+  const EARRING_FACETS = ['price', 'gold_color', 'diamond_type', 'diamond_shape', 'style'];
+  const NECKLACE_FACETS = ['price', 'gold_color', 'diamond_type', 'pendant_type'];
+  const BRACELET_FACETS = ['price', 'gold_color', 'diamond_type', 'style'];
+  const SET_FACETS = ['price', 'gold_color', 'diamond_type', 'style'];
 
   const rings = await createCategory({
     slug: 'rings',

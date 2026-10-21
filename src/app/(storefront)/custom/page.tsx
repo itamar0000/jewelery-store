@@ -9,7 +9,7 @@ import { CUSTOM_STEPS } from '@/lib/content/custom-process';
 
 export const metadata: Metadata = {
   title: 'עיצוב אישי',
-  description: 'הזמנת תכשיט בעיצוב אישי, או דגם מהקטלוג בגוון, בקראט או במידה אחרים.',
+  description: 'הזמנת תכשיט בעיצוב אישי, או דגם מהקטלוג בגוון, בזהב או במידה אחרים.',
 };
 
 /**

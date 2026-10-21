@@ -51,101 +51,104 @@ const YELLOW = { value: 'YELLOW', labelHe: 'זהב צהוב', hexColor: '#E5C06B
 try {
   const touched: string[] = [];
 
-  await prisma.$transaction(async (tx) => {
-    for (const slug of SLUGS) {
-      const product = await tx.product.findUnique({
-        where: { slug },
-        select: {
-          id: true,
-          options: {
-            where: { code: 'gold_color' },
-            select: { id: true, values: { select: { id: true, value: true, position: true } } },
-          },
-          variants: {
-            where: { archivedAt: null },
-            orderBy: { position: 'asc' },
-            select: {
-              id: true,
-              sku: true,
-              priceAgorot: true,
-              compareAtAgorot: true,
-              prepDays: true,
-              weightGrams: true,
-              position: true,
-              isActive: true,
-              optionValues: { select: { valueId: true } },
-              inventory: { select: { policy: true } },
+  await prisma.$transaction(
+    async (tx) => {
+      for (const slug of SLUGS) {
+        const product = await tx.product.findUnique({
+          where: { slug },
+          select: {
+            id: true,
+            options: {
+              where: { code: 'gold_color' },
+              select: { id: true, values: { select: { id: true, value: true, position: true } } },
             },
-          },
-        },
-      });
-
-      const colour = product?.options[0];
-      if (!product || !colour) {
-        console.log(`${slug.padEnd(18)} not found or has no gold colour - skipped`);
-        continue;
-      }
-      if (colour.values.some((value) => value.value === YELLOW.value)) {
-        console.log(`${slug.padEnd(18)} already has yellow gold - skipped`);
-        continue;
-      }
-
-      const white = colour.values.find((value) => value.value === 'WHITE');
-      if (!white) {
-        console.log(`${slug.padEnd(18)} has no white gold to mirror - skipped`);
-        continue;
-      }
-
-      const templates = product.variants.filter((variant) =>
-        variant.optionValues.some((link) => link.valueId === white.id),
-      );
-      const lastPosition = Math.max(0, ...product.variants.map((variant) => variant.position));
-
-      console.log(`${slug.padEnd(18)} + yellow gold, ${templates.length} variant(s):`);
-      for (const template of templates) {
-        console.log(`  ${template.sku} -> ${template.sku.replace('-WHITE-', '-YELLOW-')}`);
-      }
-      if (!APPLY) continue;
-
-      const yellow = await tx.productOptionValue.create({
-        data: {
-          optionId: colour.id,
-          ...YELLOW,
-          position: Math.max(0, ...colour.values.map((value) => value.position)) + 1,
-        },
-        select: { id: true },
-      });
-
-      for (const [index, template] of templates.entries()) {
-        const valueIds = [
-          ...template.optionValues.map((link) => link.valueId).filter((id) => id !== white.id),
-          yellow.id,
-        ];
-        await tx.productVariant.create({
-          data: {
-            productId: product.id,
-            sku: template.sku.includes('-WHITE-')
-              ? template.sku.replace('-WHITE-', '-YELLOW-')
-              : `${template.sku}-YELLOW`,
-            priceAgorot: template.priceAgorot,
-            compareAtAgorot: template.compareAtAgorot,
-            prepDays: template.prepDays,
-            weightGrams: template.weightGrams,
-            isActive: template.isActive,
-            position: lastPosition + index + 1,
-            optionSignature: computeOptionSignature(valueIds),
-            optionValues: { create: valueIds.map((valueId) => ({ valueId })) },
-            inventory: {
-              create: { onHand: 0, policy: template.inventory?.policy ?? 'MADE_TO_ORDER' },
+            variants: {
+              where: { archivedAt: null },
+              orderBy: { position: 'asc' },
+              select: {
+                id: true,
+                sku: true,
+                priceAgorot: true,
+                compareAtAgorot: true,
+                prepDays: true,
+                weightGrams: true,
+                position: true,
+                isActive: true,
+                optionValues: { select: { valueId: true } },
+                inventory: { select: { policy: true } },
+              },
             },
           },
         });
-      }
-      touched.push(product.id);
-    }
 
-    if (APPLY && touched.length > 0) await reindexSearchDocuments(tx, touched);
-  });
+        const colour = product?.options[0];
+        if (!product || !colour) {
+          console.log(`${slug.padEnd(18)} not found or has no gold colour - skipped`);
+          continue;
+        }
+        if (colour.values.some((value) => value.value === YELLOW.value)) {
+          console.log(`${slug.padEnd(18)} already has yellow gold - skipped`);
+          continue;
+        }
+
+        const white = colour.values.find((value) => value.value === 'WHITE');
+        if (!white) {
+          console.log(`${slug.padEnd(18)} has no white gold to mirror - skipped`);
+          continue;
+        }
+
+        const templates = product.variants.filter((variant) =>
+          variant.optionValues.some((link) => link.valueId === white.id),
+        );
+        const lastPosition = Math.max(0, ...product.variants.map((variant) => variant.position));
+
+        console.log(`${slug.padEnd(18)} + yellow gold, ${templates.length} variant(s):`);
+        for (const template of templates) {
+          console.log(`  ${template.sku} -> ${template.sku.replace('-WHITE-', '-YELLOW-')}`);
+        }
+        if (!APPLY) continue;
+
+        const yellow = await tx.productOptionValue.create({
+          data: {
+            optionId: colour.id,
+            ...YELLOW,
+            position: Math.max(0, ...colour.values.map((value) => value.position)) + 1,
+          },
+          select: { id: true },
+        });
+
+        for (const [index, template] of templates.entries()) {
+          const valueIds = [
+            ...template.optionValues.map((link) => link.valueId).filter((id) => id !== white.id),
+            yellow.id,
+          ];
+          await tx.productVariant.create({
+            data: {
+              productId: product.id,
+              sku: template.sku.includes('-WHITE-')
+                ? template.sku.replace('-WHITE-', '-YELLOW-')
+                : `${template.sku}-YELLOW`,
+              priceAgorot: template.priceAgorot,
+              compareAtAgorot: template.compareAtAgorot,
+              prepDays: template.prepDays,
+              weightGrams: template.weightGrams,
+              isActive: template.isActive,
+              position: lastPosition + index + 1,
+              optionSignature: computeOptionSignature(valueIds),
+              optionValues: { create: valueIds.map((valueId) => ({ valueId })) },
+              inventory: {
+                create: { onHand: 0, policy: template.inventory?.policy ?? 'MADE_TO_ORDER' },
+              },
+            },
+          });
+        }
+        touched.push(product.id);
+      }
+
+      if (APPLY && touched.length > 0) await reindexSearchDocuments(tx, touched);
+    },
+    { maxWait: 15_000, timeout: 120_000 },
+  );
 
   console.log(
     APPLY ? `\nApplied to ${touched.length} product(s).` : '\nDRY RUN - nothing written.',

@@ -1,5 +1,4 @@
 import { CategoryDiscovery } from '@/components/storefront/CategoryDiscovery';
-import { ClosingBand } from '@/components/storefront/ClosingBand';
 import { CollectionsSection } from '@/components/storefront/CollectionsSection';
 import { EditorialPanel } from '@/components/storefront/EditorialPanel';
 import { FeatureBanner } from '@/components/storefront/FeatureBanner';
@@ -26,13 +25,13 @@ import { getCollections } from '@/lib/catalog/queries';
  *   categories    five arches, names in the serif beneath
  *   best sellers  four pieces on the ivory, packshots seated into it
  *   gifts         personalised pieces, split beside their photograph
- *   workshop      the green field beside the atelier photograph
  *   steps         four numbered steps over one rule
  *   bridal        full-bleed photograph, square; statement and action below
  *   diamonds      split editorial on the recessed ivory, mirrored
  *   collections   wide arches, when two or more remain
  *   FAQ           three questions
- *   close         the workshop line and the catalogue, then the night footer
+ *   close         the workshop, on the green field beside its photograph,
+ *                 and the custom-design action; then the night footer
  *
  * ALL COPY HERE IS PROVISIONAL AND DESCRIPTIVE, NOT MARKETING. The brand name,
  * slogan and voice are TBD (section 2 and 57). Every string below states a
@@ -124,28 +123,12 @@ export default async function HomePage() {
         imageLabel="תכשיטים אישיים"
       />
 
-      {/*
-       * THE WORKSHOP, ON THE GREEN FIELD. Every fact is PRODUCT.md's: made
-       * after the order, in the owner's own workshop in Israel, which is why
-       * any detail can change and why no shop's margin is in the price.
-       */}
-      <EditorialPanel
-        id="workshop-heading"
-        title="שום דבר לא יושב על מדף"
-        body="התכשיט מיוצר אחרי ההזמנה, בסדנה שלנו בישראל. לכן אפשר לשנות כל פרט, ולכן אתם משלמים על התכשיט ולא על חנות."
-        action={{ label: 'לעיצוב אישי', href: '/custom' }}
-        imageSide="end"
-        tone="field"
-        assetId="atelier"
-        imageLabel="עבודת צורף"
-      />
-
       <OrderSteps />
 
       <FeatureBanner
         id="bridal-heading"
         title="אירוסין ונישואין"
-        body="טבעות אירוסין, טבעות נישואין וסטים תואמים. כל דגם ניתן להתאמה לפי גודל היהלום, גוון הזהב והמידה."
+        body="טבעות אירוסין, טבעות נישואין וסטים תואמים, בזהב 14K ובמידה שלכם."
         action={{ label: 'לאוסף הכלה', href: '/collections/bridal' }}
         help={{ label: 'איך יודעים מידת טבעת?', href: '/faq#ring-size' }}
         assetId="bridal"
@@ -177,7 +160,24 @@ export default async function HomePage() {
 
       <FaqSection />
 
-      <ClosingBand />
+      {/*
+       * THE CLOSE, ON THE GREEN FIELD (critique 2026-10-08). The workshop
+       * band that stood after the gifts said what the hero and the old
+       * closing band already said, and the close only sent the visitor back
+       * up the page. The page now ends on its one fact a reseller cannot
+       * copy - made in the owner's own workshop, after the order - beside the
+       * workshop photograph, with the action that goes forward from there.
+       */}
+      <EditorialPanel
+        id="closing-heading"
+        title="כל תכשיט מתחיל בסדנה, ונגמר אצלכם"
+        body="התכשיט מיוצר אחרי ההזמנה, בסדנה שלנו בישראל. רוצים משהו שאינו בקטלוג? מתחילים מבקשה לעיצוב אישי, ונחזור אליכם עם הצעה."
+        action={{ label: 'לעיצוב בהתאמה אישית', href: '/custom' }}
+        imageSide="end"
+        tone="field"
+        assetId="atelier"
+        imageLabel="עבודת צורף"
+      />
     </>
   );
 }

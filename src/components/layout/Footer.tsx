@@ -58,12 +58,12 @@ export function Footer() {
                * one - so on touch screens the rows themselves grow. Under a
                * mouse the list keeps its compact rhythm.
                */}
-              <ul className="space-y-2.5 pointer-coarse:space-y-0">
+              <ul className="space-y-1 pointer-coarse:space-y-0">
                 {column.links.map((link) => (
                   <li key={link.id}>
                     <Link
                       href={link.href}
-                      className="text-night-foreground/80 hover:text-background text-sm transition-colors pointer-coarse:flex pointer-coarse:min-h-11 pointer-coarse:items-center"
+                      className="text-night-foreground/80 hover:text-background inline-flex min-h-7 items-center text-sm transition-colors pointer-coarse:flex pointer-coarse:min-h-11"
                     >
                       {link.label}
                     </Link>

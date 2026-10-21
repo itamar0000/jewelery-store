@@ -9,7 +9,7 @@ import { Bidi } from '@/lib/rtl/bidi';
 
 export const metadata: Metadata = {
   title: 'שאלות ותשובות',
-  description: 'תשובות על יהלומים טבעיים ויהלומי מעבדה, מידות, קראט, גווני זהב ועיצוב אישי.',
+  description: 'תשובות על יהלומים טבעיים ויהלומי מעבדה, מידות, זהב 14K, גווני זהב ועיצוב אישי.',
 };
 
 /**
@@ -87,7 +87,7 @@ const FAQS: readonly Faq[] = [
     answer: (
       <>
         כל התכשיטים באתר מיוצרים בזהב <Bidi>14K</Bidi>, וזה הסטנדרט שלנו: כ-58% זהב טהור, עמיד
-        לשריטות ומתאים לתכשיט שעונדים כל יום. רוצים דגם בקראט אחר, למשל <Bidi>18K</Bidi> (75% זהב,
+        לשריטות ומתאים לתכשיט שעונדים כל יום. רוצים דגם בזהב אחר, למשל <Bidi>18K</Bidi> (75% זהב,
         עשיר יותר בגוון ויקר יותר)?{' '}
         <Link href="/custom" className="underline underline-offset-[0.35em]">
           אפשר להזמין אותו כעיצוב אישי
@@ -101,8 +101,8 @@ const FAQS: readonly Faq[] = [
     question: 'מה ההבדל בין זהב צהוב, לבן ואדום?',
     answer: (
       <>
-        כולם זהב באותו קראט, עם מתכות מסגסגות שונות שקובעות את הגוון. זהב לבן (
-        <Bidi>White Gold</Bidi>) בדרך כלל מצופה רודיום, וציפוי זה מתחדש מעת לעת כחלק מתחזוקה שוטפת.
+        כולם זהב 14K, עם מתכות מסגסגות שונות שקובעות את הגוון. זהב לבן (<Bidi>White Gold</Bidi>)
+        בדרך כלל מצופה רודיום, וציפוי זה מתחדש מעת לעת כחלק מתחזוקה שוטפת.
       </>
     ),
   },
@@ -141,7 +141,7 @@ const FAQS: readonly Faq[] = [
         <ul className="marker:text-muted-foreground mt-3 list-disc space-y-2 ps-5">
           <li>
             <strong className="text-foreground font-medium">משקל</strong> נמדד בקראט: קראט אחד הוא
-            0.2 גרם. זה לא הקראט של הזהב, שמציין את אחוז הזהב בסגסוגת.
+            0.2 גרם. זה לא ה-K של הזהב (<Bidi>14K</Bidi>), שמציין את אחוז הזהב בסגסוגת.
           </li>
           <li>
             <strong className="text-foreground font-medium">צבע</strong> מדורג מ-<Bidi>D</Bidi> עד{' '}

@@ -21,6 +21,11 @@ export interface ProductCardData {
   readonly id: string;
   readonly slug: string;
   readonly name: string;
+  /**
+   * The gold colour (lower case, as the address spells it) the card pictures
+   * when a colour filter is active; its link then opens the piece in that colour.
+   */
+  readonly colour?: string;
   readonly price: Money;
   /**
    * True when the product's options change its price, so `price` is the lowest

@@ -11,7 +11,7 @@ import { getBaseModel } from '@/lib/custom-requests/base-model';
 
 export const metadata: Metadata = {
   title: 'בקשת התאמה',
-  description: 'בקשה לתכשיט בעיצוב אישי, או לדגם מהקטלוג בגוון, בקראט או במידה אחרים.',
+  description: 'בקשה לתכשיט בעיצוב אישי, או לדגם מהקטלוג בגוון, בזהב או במידה אחרים.',
   // A form, not a page anyone searches for; /custom is the page to find.
   robots: { index: false, follow: true },
 };
@@ -39,7 +39,7 @@ export default async function CustomRequestPage({
         title={model ? 'בקשת התאמה' : 'בקשה לעיצוב אישי'}
         description={
           model
-            ? 'כל דגם אפשר להכין בגוון זהב, בקראט, במידה או באורך אחרים, וגם עם אבן אחרת.'
+            ? 'כל דגם אפשר להכין בגוון זהב אחר, בזהב 18K, במידה או באורך אחרים, וגם עם אבן אחרת.'
             : 'תכשיט שנבנה מהתחלה: מתארים את הרעיון, ומקבלים הצעת עיצוב ומחיר לאישור.'
         }
         trail={[

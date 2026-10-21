@@ -2723,3 +2723,183 @@ generated from each piece's packshot with fal's flux-2-pro edit model - neck
 or wrist only, no face - so they need no storage upload and cannot leak into a
 gallery, a cart line or search. A piece made for men, with its own men's
 photographs, needs no entry.
+
+## D4D.35 — The 2026-10-08 critique: landmarks, a shorter home, one word per meaning
+
+- **A11Y-1 fixed.** `Container` forwards `id` and every ARIA attribute, so the
+  home page's discovery, best-seller, collections and FAQ sections (and the
+  men's department's) are named regions. A test asserts it; KNOWN-ISSUES
+  records it as resolved.
+- **The home page is shorter and ends forward.** The workshop band repeated
+  the hero and the old closing band; it is gone. The close is now the workshop
+  itself, on the green field beside the atelier photograph, ending on the
+  custom-design action instead of a pill that jumped back up the page
+  (`ClosingBand` removed). The alteration axes are listed once, in the hero;
+  the steps and the bridal banner no longer repeat them. About 7,030px at
+  1440 wide, from 7,650.
+- **Karat and carat stop sharing a word.** "קראט" now means diamond weight
+  only; gold is written as stamped, "זהב 14K". Migration
+  `20261008160000_gold_karat_labels` renames the option ("זהב") and its values
+  ("זהב 14K"), labels only. A one-value option whose label already names it is
+  printed once, so the product page reads "זהב 14K" where it read "קראט זהב 14
+  קראט", and the bag "זהב 14K · זהב צהוב". The custom-order line asks about
+  "זהב 18K"; the FAQ, the custom pages and the admin follow.
+- **Category pages show products in the first screen.** A `catalogue` header
+  variant sets the title and its introduction on one line on a wide screen,
+  tightens the gaps and lets the subcategory pills replace the closing rule.
+  At 1440x900 the first row of pieces, names and prices included, ends at
+  881px (it began at 654px). Filter, count and sort were already one row.
+- **Targets and small type.** Footer links are at least 28px tall with a mouse
+  (44px on touch, as before). Badges go from 12px to 13px, and the "prices are
+  estimates" note takes the darker secondary ink. Product-card titles were
+  already a whole-card target through their stretched link, so they stay.
+
+## D4D.36 — A product opens in the colour its card showed
+
+The owner clicked a yellow-gold ring in the catalogue and landed on its rose
+or white version. The product page opened on `variants[0]`, the first variant
+by position, which had nothing to do with the photograph on the card: 42 of 50
+pieces showed one colour in the grid and opened in another.
+
+The card shows the product's first shared photograph, and that same file is
+attached to the variants of the colour it pictures. `leadVariantId`
+(queries.ts) finds the first variant holding it, and the page opens on that
+variant, its colour, price and photographs. A colour named in the address
+(`?color=`) still wins, so a shared link opens what was shared. Read from the
+data rather than from file names, so it holds for photographs the owner
+uploads later; with no match the page falls back to the first variant as before.
+No data changed.
+
+## D4D.37 — Fifty new models from a 2026 market survey
+
+The owner asked for a large, current selection. A survey of 2026 coverage
+(jewellers' trend pieces, mostly retail, so read as signals) and of Israeli
+14K shops gave the direction: elongated stones (marquise, oval, emerald,
+radiant), east-west settings, toi et moi, bezels, chunky gold, three-stone,
+huggies and ear cuffs, tennis pieces; and for Israel the Cuban and Figaro
+chains, the Star of David, "חי", the hamsa and an engraved tag.
+
+- **The data is a file:** `scripts/data/new-models-2026.json`, fifty models
+  with name, category, colours, placeholder price, description, diamond and
+  the photograph's prompt. `scripts/add-new-models.ts` creates them the way the
+  admin does (14K, one variant per colour, made to order in 10 business days,
+  the shop's diamond standard), links the men's ones into the department and
+  every one into "חדש באתר", hidden; `--update` re-applies the words,
+  `--sync-colours` offers a colour only once it has a photograph, `--publish`
+  shows those with one. Idempotent; nothing existing changes.
+- **Photographs are generated** from each model's description in the style of
+  the catalogue's packshots (fal flux-2-pro edit, a catalogue photograph as the
+  style reference), marked "הדמיה". Every one was reviewed. Where the
+  generator kept producing a different but good piece, the model's words were
+  changed to match the picture rather than the picture forced: the oval and
+  the elongated cushion became round solitaires, the east-west emerald a
+  north-south one, the knife-edge band a flat one, the station ring six
+  bezels, the station necklace two strands, the Star of David set with
+  diamonds, the huggies round stones, and the three-stone ring pear sides.
+- **45 are shown, in yellow gold.** The image service ran out of credit before
+  the white- and rose-gold photographs were made, so those colours are
+  switched off (not archived) until they are; the product page still offers
+  any colour as a custom order. Five models wait, hidden, for an acceptable
+  photograph: the wide-band solitaire, "חי", the Cuban bracelet, the Figaro
+  chain and the paperclip bracelet. (Superseded by D4D.38: all fifty are
+  shown, in the colours of the colour plan.)
+- **Men's pendants exist now** (migration `20261012090000_men_pendants`), in
+  the department's menu, holding the Star of David and the engraved tag.
+- **New rings are sized 48 to 62** and new necklaces and bracelets get a
+  longer length (50 cm, 21 cm), so the men's pieces fit.
+- **For the owner:** every price is a placeholder beside a comparable piece;
+  natural or lab-grown is set per model (lab for larger centre stones,
+  natural for small stones) and is the owner's to confirm. The review
+  workbook (`photo-kit/catalog/…(כולל דגמים חדשים).xlsx`) lists all fifty,
+  marked "חדש ·", to keep, remove and price.
+- **Production:** the migration deploys with the code; the products and their
+  photographs reach production by running the script and the image placement
+  against production's database and storage, which need the owner's keys.
+
+## D4D.38 — Each piece in the colours that suit it, and one model wears them all
+
+The owner asked that every piece be offered in the gold colours that suit it,
+not all three by default, and that worn photographs use the same woman and the
+same man throughout.
+
+- **The colour plan is a file:** `scripts/data/colour-plan.json`, slug to
+  colours, the lead colour first (the card's photograph and the colour the
+  product page opens on, D4D.36). All three where buyers split (engagement and
+  diamond rings, marquise and bezel pieces, studs, delicate pieces, wedding
+  bands); yellow and white for tennis lines and men's pieces; yellow and rose
+  for the romantic charm pieces; white alone where the icy look is the point
+  (the marquise eternity ring, the emerald line band, the inside-out hoops, the
+  marquise tennis necklace); yellow alone for chunky gold (the dome ring, the
+  chunky hoops). `add-new-models.ts --sync-colours` applies it: it creates a
+  missing colour, and offers a colour only when the plan names it and it has
+  its own photograph. Nothing is deleted; a colour outside the plan is
+  switched off.
+- **Photographs come from Gemini**, from the owner's account, now that the
+  paid image service is out of credit. Other colours are recolours of the
+  piece's own packshot ("change only the metal"), so the design stays the same
+  piece. Every image was looked at; the ones that changed the piece or missed
+  the colour were made again.
+- **One woman, one man.** Worn photographs are made from fixed references
+  (`photo-kit/new-models/refs/`: her hand, ear and neck, his neck and wrist),
+  each prompt naming the same person, skin, clothes, surface and light, so the
+  catalogue reads as one shoot. A worn photograph is shown on the lead colour,
+  is marked "הדמיה" (D4D.21), and is skipped where the result changed the piece.
+- **Production:** as D4D.37, the script and the image placement run against
+  production's database and storage with the owner's keys.
+
+## D4D.39 — Gold colour is a filter again, and the cards show the colour chosen
+
+The owner asked that a shopper who filters by a gold colour sees pieces in that
+colour. D4D.11 had removed the filter because every model could be made in any
+colour; since D4D.38 each model is offered only in the colours that suit it,
+each with its own photographs, so the filter now says something true.
+
+- **Migration `20261018090000_gold_colour_filter`** adds `gold_color` to each
+  category's facets, right after `price` (data only; karat, size and length stay
+  off). The seed's facet lists carry it too.
+- **The card shows the chosen colour.** With a colour filter active,
+  `toProductCard` takes the first variant in a chosen colour that has
+  photographs of its own and uses its two images; the card's link carries
+  `?color=<colour>` so the product page opens in that colour (`ProductCardData.colour`).
+  With no filter, or no variant in the colour, the lead photographs stay.
+  Covered in `product-card.test.ts`.
+- The filter-panel note no longer mentions gold colour.
+
+## D4D.40 — No "הדמיה" label; 75 close-ups placed
+
+The owner decided the catalogue photographs ship as they are, without the
+"הדמיה" label.
+
+- **Code:** the gallery no longer draws the chip, the admin image manager no
+  longer shows it or offers "סימון כהדמיה" / the upload checkbox, and the men's
+  worn captions drop "(הדמיה)". The `isSimulation` column and the server-side
+  command stay (no migration), unused by the storefront.
+- **Data (local DB):** `isSimulation` cleared on 323 images and "(הדמיה)"
+  removed from 305 alt texts. The same two statements run on production
+  (LAUNCH_PLAN step C10, extended with the alt-text one):
+  `UPDATE "ProductImage" SET "isSimulation" = false WHERE "isSimulation";`
+  `UPDATE "ProductImage" SET "altHe" = btrim(replace("altHe", '(הדמיה)', '')) WHERE "altHe" LIKE '%(הדמיה)%';`
+- **Photographs:** 75 Gemini close-ups (photo-kit/launch/, QA in QA.md) were
+  placed with `place-product-images.ts` as the "detail" image (position 2) of
+  their colour's variants, only where that slot was empty
+  (`manifest-free.json`); three entries whose slot was already filled were
+  left out.
+
+## D4D.41 — One background for every product photograph
+
+The photographs came from different generations and shoots: backgrounds ran from
+a cool near-white to a strong cream, so a grid read as tiles of different tones
+(measured: luminance 206-246, warmth R-B 2-46 across the 102 lead images).
+
+- **The photographs were normalised** (`photo-kit/launch/normalise/`): only
+  pixels close to each picture's own background colour and of similar (low)
+  chroma move towards the site ivory (248,245,239); gold, stones and shadows keep
+  their colour. 252 images changed, 129 already on target, 139 skipped (close-ups
+  and worn shots, whose border is the piece itself). Originals are kept in
+  `photo-kit/media-backup/`. After it: luminance 216-246 (94 of 102 in
+  240-250), warmth 4-21 (1 above 16).
+- **The product page seats the photograph in the page** (`mix-blend-darken` on
+  the main image and the thumbnails, no tinted frame), as the cards already did
+  (D4D.26), so no lighter rectangle shows behind the ring.
+- Production must receive the processed files, not the originals (see the README
+  in that folder).

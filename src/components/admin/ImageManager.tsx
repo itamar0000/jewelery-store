@@ -78,7 +78,6 @@ export function ImageManager({
 function GroupPanel({ productId, slug, group }: { productId: string; slug: string; group: Group }) {
   const router = useRouter();
   const inputId = useId();
-  const [simulated, setSimulated] = useState(false);
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -102,7 +101,6 @@ function GroupPanel({ productId, slug, group }: { productId: string; slug: strin
       form.set('productId', productId);
       form.set('slug', slug);
       form.set('group', group.key);
-      form.set('simulated', String(simulated));
       form.set('width', String(prepared.width));
       form.set('height', String(prepared.height));
       form.set('file', prepared.blob, 'photo.jpg');
@@ -153,9 +151,6 @@ function GroupPanel({ productId, slug, group }: { productId: string; slug: strin
                 <span className="bg-background/90 absolute start-1 top-1 px-1.5 py-0.5 tabular-nums">
                   {index + 1}
                 </span>
-                {image.isSimulation && (
-                  <span className="bg-background/90 absolute end-1 top-1 px-1.5 py-0.5">הדמיה</span>
-                )}
               </div>
               <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1">
                 <button
@@ -173,19 +168,6 @@ function GroupPanel({ productId, slug, group }: { productId: string; slug: strin
                   className="underline disabled:no-underline disabled:opacity-40"
                 >
                   אחרי
-                </button>
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={() =>
-                    command(
-                      image.storageKey,
-                      image.isSimulation ? 'simulation-off' : 'simulation-on',
-                    )
-                  }
-                  className="underline"
-                >
-                  {image.isSimulation ? 'לא הדמיה' : 'סימון כהדמיה'}
                 </button>
                 <button
                   type="button"
@@ -226,15 +208,6 @@ function GroupPanel({ productId, slug, group }: { productId: string; slug: strin
             event.target.value = '';
           }}
         />
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={simulated}
-            onChange={(event) => setSimulated(event.target.checked)}
-            className="size-4"
-          />
-          התמונות הן הדמיה (למשל תכשיט על הגוף שנוצר במחשב)
-        </label>
         {status && (
           <span
             role={status.ok ? 'status' : 'alert'}

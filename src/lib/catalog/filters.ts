@@ -457,7 +457,7 @@ export const ATTRIBUTE_VALUE_LABELS: Readonly<Record<string, string>> = {
 /** Hebrew label for a facet, used as the group heading in the filter panel. */
 export const FACET_LABELS: Record<FacetCode, string> = {
   price: 'מחיר',
-  gold_karat: 'קראט זהב',
+  gold_karat: 'זהב',
   gold_color: 'גוון זהב',
   ring_size: 'מידת טבעת',
   length: 'אורך',

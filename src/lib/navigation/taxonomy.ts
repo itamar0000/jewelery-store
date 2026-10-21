@@ -258,8 +258,8 @@ export const PRIMARY_NAV: readonly NavItem[] = [
   /*
    * THE MEN'S DEPARTMENT (D4D.34): a root of its own, holding catalogue pieces
    * by secondary membership. No discovery column - "new" and "best sellers"
-   * are site-wide collections and would lead out of the department. Men's
-   * pendants join this list with the first men's pendant.
+   * are site-wide collections and would lead out of the department. Pendants
+   * joined with the first men's pendants (D4D.37).
    */
   {
     id: 'men',
@@ -278,6 +278,7 @@ export const PRIMARY_NAV: readonly NavItem[] = [
             href: '/men/men-wedding-rings',
           },
           { id: 'men-necklaces', label: 'שרשראות לגבר', href: '/men/men-necklaces' },
+          { id: 'men-pendants', label: 'תליונים לגבר', href: '/men/men-pendants' },
           { id: 'men-bracelets', label: 'צמידים לגבר', href: '/men/men-bracelets' },
         ],
       },

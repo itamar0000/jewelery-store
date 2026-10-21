@@ -83,6 +83,7 @@ const RING: ProductDetail = {
       diamond: null,
     },
   ],
+  leadVariantId: null,
   images: [],
   diamond: {
     isLabGrown: false,
@@ -166,6 +167,23 @@ describe('ProductDetailView', () => {
     // photographs the page shows, and the legend names it.
     it('still opens on the first real variant, named in the legend', () => {
       expect(markup).toMatch(/גוון זהב<span[^>]*>\s*זהב צהוב<\/span>/);
+    });
+
+    it('opens on the variant the catalogue card showed', () => {
+      const page = renderToStaticMarkup(
+        <ProductDetailView product={{ ...RING, leadVariantId: 'var-white' }} />,
+      );
+      expect(page).toMatch(/גוון זהב<span[^>]*>\s*זהב לבן<\/span>/);
+    });
+
+    it('lets the address override the card, as a shared link expects', () => {
+      const page = renderToStaticMarkup(
+        <ProductDetailView
+          product={{ ...RING, leadVariantId: 'var-white' }}
+          initialChoices={{ 'o-colour': 'v-yellow' }}
+        />,
+      );
+      expect(page).toMatch(/גוון זהב<span[^>]*>\s*זהב צהוב<\/span>/);
     });
 
     it('presses exactly one control on arrival - the variant colour, nothing else', () => {
@@ -430,7 +448,7 @@ describe('ring size', () => {
  */
 describe('made your way', () => {
   it('names the axes this piece has a reason to mention, and links to a request for this model', () => {
-    expect(markup).toContain('רוצים גוון זהב, קראט או מידה אחרים? כל דגם אפשר להזמין גם בהם.');
+    expect(markup).toContain('רוצים גוון זהב אחר, זהב 18K או מידה אחרת? כל דגם אפשר להזמין גם כך.');
     // The request starts from this model, made the way it is on screen.
     expect(markup).toMatch(/href="\/custom\/request\?product=[a-z0-9-]+&amp;/);
   });
@@ -448,10 +466,10 @@ describe('made your way', () => {
     };
 
     expect(renderToStaticMarkup(<ProductDetailView product={chain} />)).toContain(
-      'רוצים גוון זהב, קראט או אורך אחרים?',
+      'רוצים גוון זהב אחר, זהב 18K או אורך אחר?',
     );
     expect(renderToStaticMarkup(<ProductDetailView product={earrings} />)).toContain(
-      'רוצים גוון זהב או קראט אחרים?',
+      'רוצים גוון זהב אחר או זהב 18K?',
     );
   });
 });

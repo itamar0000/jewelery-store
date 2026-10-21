@@ -427,11 +427,22 @@ export function ProductDetailView({
            */
           option.values.length === 1 ? (
             <p key={option.id} className="mt-7 text-base font-medium">
-              {option.nameHe}
-              <span className="text-muted-foreground me-2 text-sm font-normal">
-                {' '}
-                {labelFor(option.values, axisSelection[option.id])}
-              </span>
+              {/*
+               * A label that already names its option ("זהב 14K" under "זהב")
+               * is the whole fact: printing the name before it read "קראט
+               * זהב 14 קראט" (critique 2026-10-08).
+               */}
+              {labelFor(option.values, axisSelection[option.id]).startsWith(option.nameHe) ? (
+                labelFor(option.values, axisSelection[option.id])
+              ) : (
+                <>
+                  {option.nameHe}
+                  <span className="text-muted-foreground me-2 text-sm font-normal">
+                    {' '}
+                    {labelFor(option.values, axisSelection[option.id])}
+                  </span>
+                </>
+              )}
             </p>
           ) : (
             <fieldset key={option.id} className="mt-7">
@@ -915,16 +926,18 @@ function MadeYourWay({
   requestHref: string;
 }) {
   const codes = new Set(options.map((option) => option.code));
+  // Gold is 14K throughout; another karat is a custom order, named as 18K
+  // rather than as "קראט", which the site keeps for diamond weight.
   const axes = [
-    'גוון זהב',
-    'קראט',
-    ...(codes.has('ring_size') ? ['מידה'] : codes.has('length') ? ['אורך'] : []),
+    'גוון זהב אחר',
+    'זהב 18K',
+    ...(codes.has('ring_size') ? ['מידה אחרת'] : codes.has('length') ? ['אורך אחר'] : []),
   ];
   const list = `${axes.slice(0, -1).join(', ')} או ${axes[axes.length - 1]}`;
 
   return (
     <p className="text-soft-foreground mt-6 text-sm">
-      {`רוצים ${list} אחרים? כל דגם אפשר להזמין גם בהם. `}
+      {`רוצים ${list}? כל דגם אפשר להזמין גם כך. `}
       <Link
         href={requestHref}
         className="decoration-border-strong hover:decoration-accent touch-target underline underline-offset-[0.35em]"
@@ -960,7 +973,10 @@ function initialAxisSelection(
   requested: Readonly<Record<string, string>> = {},
   fallback?: Record<string, string>,
 ): Record<string, string> {
-  const first = product.variants[0];
+  // The variant the catalogue card showed, so the page opens in the colour
+  // the visitor clicked; the first variant only when no photograph says.
+  const first =
+    product.variants.find((variant) => variant.id === product.leadVariantId) ?? product.variants[0];
   if (!first) return {};
 
   const selection: Record<string, string> = {};

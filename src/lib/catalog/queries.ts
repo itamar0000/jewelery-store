@@ -445,6 +445,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     })),
 
     variants,
+    leadVariantId: leadVariantId(row.images, row.variants),
     images: row.images.map(toResolvedImage),
     diamond: row.diamondSpec ? toDiamond(row.diamondSpec) : null,
 
@@ -566,6 +567,31 @@ export async function getProductImages(productId: string): Promise<readonly Reso
 
 // ------------------------------------------------------------------ mapping
 
+/**
+ * The variant the catalogue card shows.
+ *
+ * A card shows the product's first shared photograph. That photograph is a
+ * picture of one colourway, and the same file is attached to that colour's
+ * variants too - so the first variant (by position) holding it is the piece
+ * the visitor clicked. Without this the page opened on `variants[0]`, whose
+ * colour was unrelated to the photograph: 42 of 50 pieces showed a yellow-gold
+ * card and opened in rose or white gold.
+ *
+ * Read from the data rather than from file names, so it holds for any
+ * photograph the owner uploads. Null when no variant shares the file.
+ */
+export function leadVariantId(
+  sharedImages: readonly { storageKey: string }[],
+  variants: readonly { id: string; images: readonly { storageKey: string }[] }[],
+): string | null {
+  const lead = sharedImages[0]?.storageKey;
+  if (!lead) return null;
+  return (
+    variants.find((variant) => variant.images.some((image) => image.storageKey === lead))?.id ??
+    null
+  );
+}
+
 const imageSelect = {
   id: true,
   storageKey: true,
@@ -648,6 +674,18 @@ export const productCardSelect = {
       priceAgorot: true,
       compareAtAgorot: true,
       prepDays: true,
+      /*
+       * Which gold colour this variant is, and its own photographs, so a card
+       * can show the colour a shopper filtered by (see `goldColors` below).
+       */
+      optionValues: {
+        select: { value: { select: { value: true, option: { select: { code: true } } } } },
+      },
+      images: {
+        orderBy: { position: 'asc' },
+        take: 2,
+        select: { altHe: true, storageKey: true },
+      },
       inventory: {
         select: { onHand: true, reserved: true, policy: true, lowStockThreshold: true },
       },
@@ -681,6 +719,9 @@ type ProductCardRow = {
     priceAgorot: number | null;
     compareAtAgorot: number | null;
     prepDays: number | null;
+    /** Optional so hand-built test rows need not carry them. */
+    optionValues?: { value: { value: string; option: { code: string } } }[];
+    images?: { altHe: string; storageKey: string }[];
     inventory: {
       onHand: number;
       reserved: number;
@@ -727,7 +768,16 @@ export type { ProductCardRow };
  */
 export function toProductCard(
   row: ProductCardRow,
-  options: { stockLevelsLive?: boolean; promotions?: readonly ActivePromotion[] } = {},
+  options: {
+    stockLevelsLive?: boolean;
+    promotions?: readonly ActivePromotion[];
+    /**
+     * The gold colours the shopper filtered by (option values such as "ROSE").
+     * The card then shows the photographs of a variant in that colour and links
+     * to the product opened in it, instead of the product's lead colour.
+     */
+    goldColors?: readonly string[];
+  } = {},
 ): ProductCardData {
   const stockLevelsLive = options.stockLevelsLive ?? STOCK_LEVELS_ARE_LIVE;
   const availabilities = row.variants.map((variant) =>
@@ -790,24 +840,47 @@ export function toProductCard(
         }))
       : [];
 
+  /*
+   * A COLOUR FILTER MUST SHOW THAT COLOUR. Filtering "rose gold" and being
+   * handed yellow-gold photographs reads as a broken filter. The first variant
+   * in a chosen colour that has photographs of its own supplies the card's two
+   * images; the card also remembers the colour so its link opens the piece in
+   * it. Without a filter, or with no such variant, the lead photographs stay.
+   */
+  const wanted = options.goldColors ?? [];
+  const colourOf = (variant: ProductCardRow['variants'][number]) =>
+    variant.optionValues?.find((link) => link.value.option.code === 'gold_color')?.value.value;
+  const colourVariant =
+    wanted.length > 0
+      ? row.variants.find((variant) => {
+          const colour = colourOf(variant);
+          return colour !== undefined && wanted.includes(colour);
+        })
+      : undefined;
+  const colourImages =
+    colourVariant?.images && colourVariant.images.length > 0 ? colourVariant.images : null;
+  const shown = colourImages ?? row.images;
+  const shownColour = colourVariant ? colourOf(colourVariant) : undefined;
+
   const card: ProductCardData = {
     id: row.id,
     slug: row.slug,
     name: row.nameHe,
+    ...(shownColour ? { colour: shownColour.toLowerCase() } : {}),
     price: fromAgorot(minPrice),
     ...(cheapest.promotion
       ? { compareAtPrice: fromAgorot(cheapest.regularAgorot + required) }
       : {}),
     ...(priceFrom ? { priceFrom } : {}),
-    imageAlt: row.images[0]?.altHe ?? row.nameHe,
+    imageAlt: shown[0]?.altHe ?? row.nameHe,
     /*
      * `resolveImageUrl` returns null while no storage provider is configured
      * or for a private key, so an absent URL here is the ordinary
      * undelivered-photography case rather than an error. The card renders a
      * captioned stand-in for it.
      */
-    ...(row.images[0] && resolveImageUrl(row.images[0].storageKey) !== null
-      ? { imageUrl: resolveImageUrl(row.images[0].storageKey)! }
+    ...(shown[0] && resolveImageUrl(shown[0].storageKey) !== null
+      ? { imageUrl: resolveImageUrl(shown[0].storageKey)! }
       : {}),
     /*
      * Only when a genuine second photograph exists. `?? row.nameHe` would be
@@ -815,9 +888,9 @@ export function toProductCard(
      * every product a hover state that crossfades one placeholder into an
      * identical one, which is a broken interaction rather than a missing one.
      */
-    ...(row.images[1] ? { hoverImageAlt: row.images[1].altHe } : {}),
-    ...(row.images[1] && resolveImageUrl(row.images[1].storageKey) !== null
-      ? { hoverImageUrl: resolveImageUrl(row.images[1].storageKey)! }
+    ...(shown[1] ? { hoverImageAlt: shown[1].altHe } : {}),
+    ...(shown[1] && resolveImageUrl(shown[1].storageKey) !== null
+      ? { hoverImageUrl: resolveImageUrl(shown[1].storageKey)! }
       : {}),
     ...(swatches.length > 0 ? { swatches } : {}),
     ...(badge ? { badge } : {}),
