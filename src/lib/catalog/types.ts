@@ -150,6 +150,11 @@ export interface ProductDetail {
   readonly ancestors: readonly CategorySummary[];
   readonly options: readonly ProductOptionView[];
   readonly variants: readonly VariantView[];
+  /**
+   * The variant the page opens on: the one the catalogue card's photograph
+   * shows (see `leadVariantId` in queries.ts). Null falls back to the first.
+   */
+  readonly leadVariantId: string | null;
   /** Product-level images, shared by variants that carry none of their own. */
   readonly images: readonly ResolvedImage[];
   /** Product-level diamond spec, shared across variants (schema F6). */

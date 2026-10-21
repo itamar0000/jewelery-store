@@ -123,7 +123,7 @@ export function FilterBar({
            * The price note is not: it does not change, and re-announcing it on
            * every filter would bury the count.
            */}
-          <p className="text-muted-foreground text-sm">
+          <p className="text-soft-foreground text-sm">
             <span aria-live="polite">{countOf(productCount, PRODUCTS)}</span>
             {priceNote && <> · {priceNote}</>}
           </p>
@@ -252,17 +252,16 @@ export function FilterBar({
 }
 
 /**
- * Where a shopper looks for a colour or a size filter, the reason there is
- * none: every model is made to order in any of them (PRODUCT.md), so a filter
- * could only say which models happen to LIST a value - and it hid most of the
- * catalogue from someone asking for exactly what the workshop makes on
- * request. They are chosen on the product page instead.
+ * Where a shopper looks for a size or length filter, the reason there is none:
+ * every model is made to order in any of them (PRODUCT.md), so a filter could
+ * only say which models happen to LIST a value. They are chosen on the product
+ * page instead. Gold colour IS a filter (D4D.39): each model is offered in the
+ * colours that suit it, each with its own photographs.
  */
 function MadeToMeasureNote({ className }: { className?: string }) {
   return (
     <p className={cn('text-soft-foreground text-sm', className)}>
-      כל התכשיטים מיוצרים בזהב <bdi>14K</bdi>. גוון זהב, מידה ואורך בוחרים בעמוד הדגם, ואין צורך
-      לסנן לפיהם.
+      כל התכשיטים מיוצרים בזהב <bdi>14K</bdi>. מידה ואורך בוחרים בעמוד הדגם, ואין צורך לסנן לפיהם.
     </p>
   );
 }

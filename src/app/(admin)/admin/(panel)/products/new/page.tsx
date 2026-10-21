@@ -22,7 +22,7 @@ export default async function NewProductPage() {
       </Link>
       <h1 className="mt-3 text-2xl font-bold">מוצר חדש</h1>
       <p className="text-muted-foreground mt-1 text-sm">
-        המוצר נוצר מוסתר, ב-14 קראט. בשלב הבא מעלים תמונות, ואז מסמנים &quot;מוצג באתר&quot;.
+        המוצר נוצר מוסתר, בזהב 14K. בשלב הבא מעלים תמונות, ואז מסמנים &quot;מוצג באתר&quot;.
       </p>
 
       <ActionForm action={createProductAction} submitLabel="יצירת המוצר" className="mt-8 space-y-6">

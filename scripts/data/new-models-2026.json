@@ -1,0 +1,712 @@
+{
+  "_about": "50 new catalogue models (D4D.37), from a 2026 market survey: elongated stones (marquise, oval, elongated cushion), east-west settings, toi et moi, bezels, chunky gold, three-stone, huggies and cuffs, tennis pieces, and the chains and symbols Israeli buyers ask for. PRICES ARE PLACEHOLDERS set beside comparable pieces, like every price in the catalogue, and are the owner's to set. Natural or lab-grown is the owner's to confirm per piece. Diamonds follow the shop's standard: D-F, IF-VS1, round Triple VG - Triple EX, fancy VG/VG - EX/EX. `prompt` describes the piece for its generated photograph.",
+  "models": [
+    {
+      "slug": "marquise-solitaire",
+      "nameHe": "טבעת סוליטר מרקיזה",
+      "category": "engagement-rings",
+      "price": 6890,
+      "short": "יהלום מרקיזה אחד, מאורך, על טבעת זהב דקה.",
+      "desc": "טבעת אירוסין עם יהלום מרקיזה במשקל קראט אחד, אחוז בשש שיניים ששומרות על שני הקצוות המחודדים. הצורה המאורכת מאריכה את האצבע, והטבעת עצמה דקה ופשוטה.",
+      "diamond": {
+        "carat": "1.00",
+        "lab": true,
+        "shape": "Marquise",
+        "count": 1
+      },
+      "prompt": "A marquise-cut diamond solitaire engagement ring: one elongated marquise diamond of about 1 carat, its long axis running along the finger, held by six claw prongs with V-shaped tips protecting both pointed ends, on a slim plain polished band."
+    },
+    {
+      "slug": "east-west-oval-ring",
+      "nameHe": "טבעת אובל מזרח-מערב",
+      "category": "engagement-rings",
+      "price": 7180,
+      "short": "יהלום אובלי בשיבוץ רוחבי, לאורך האצבע.",
+      "desc": "יהלום אובלי במשקל קראט אחד, משובץ לרוחב, כך שהציר הארוך שלו חוצה את האצבע מצד לצד. מסגרת זהב דקה אוחזת אותו, והשיבוץ הנמוך נוח לענידה יומיומית.",
+      "diamond": {
+        "carat": "1.00",
+        "lab": true,
+        "shape": "Oval",
+        "count": 1
+      },
+      "prompt": "An east-west oval diamond engagement ring, photographed from directly above the ring: one oval diamond of about 1 carat set SIDEWAYS, its long axis running left-to-right ACROSS the band (perpendicular to the direction of the band, like a horizontal egg lying across the ring), in a thin polished bezel, on a slim plain band."
+    },
+    {
+      "slug": "east-west-emerald-ring",
+      "nameHe": "טבעת סוליטר אמרלד",
+      "category": "engagement-rings",
+      "price": 8390,
+      "short": "יהלום אמרלד מלבני על טבעת דקה.",
+      "desc": "יהלום בליטוש אמרלד במשקל 1.20 קראט, מלבני עם פינות קטומות, בארבע שיניים כפולות על טבעת דקה. קווים נקיים ומראה ארט דקו.",
+      "diamond": {
+        "carat": "1.20",
+        "lab": true,
+        "shape": "Emerald",
+        "count": 1
+      },
+      "prompt": "An east-west emerald-cut diamond ring photographed from DIRECTLY ABOVE looking down at the top of the ring: the band runs vertically up and down in the image, and one rectangular step-cut emerald-cut diamond of about 1.2 carat sits on top of it turned SIDEWAYS, so the diamond's long side runs left-to-right, perpendicular to the band, like a horizontal bar across the finger. Four double claw prongs, slim plain band."
+    },
+    {
+      "slug": "toi-et-moi-ring",
+      "nameHe": "טבעת טואה א מואה טיפה ואובל",
+      "category": "engagement-rings",
+      "price": 7590,
+      "short": "שני יהלומים זה לצד זה: טיפה ואובל.",
+      "desc": "שני יהלומים, טיפה ואובל, יושבים זה לצד זה על טבעת אחת, כל אחד בשיניים משלו. העיצוב נקרא 'טואה א מואה', 'את ואני' בצרפתית.",
+      "diamond": {
+        "carat": "1.10",
+        "lab": true,
+        "shape": "Pear",
+        "count": 2
+      },
+      "prompt": "A toi et moi engagement ring: two diamonds side by side at the top of the ring, one pear-shaped and one oval (together about 1.1 carat), each in its own fine claw prongs, slightly offset diagonally, on a slim open bypass band whose two ends meet the stones."
+    },
+    {
+      "slug": "bezel-oval-solitaire",
+      "nameHe": "טבעת סוליטר עגול במסגרת",
+      "category": "engagement-rings",
+      "price": 6490,
+      "short": "יהלום עגול במסגרת זהב מלאה, על שוק רחב.",
+      "desc": "יהלום עגול במשקל 0.90 קראט, עטוף במסגרת זהב מלאה שמגינה עליו מכל צד, על שוק רחב ומעוגל. שיבוץ נמוך שלא נתפס בבגדים.",
+      "diamond": {
+        "carat": "0.90",
+        "lab": true,
+        "shape": "Round",
+        "count": 1
+      },
+      "prompt": "A bezel-set OVAL diamond solitaire ring: one clearly OVAL (egg-shaped, longer than wide) diamond of about 0.9 carat, its long axis running along the finger, fully surrounded by a smooth polished gold bezel rim, low profile, on a wide rounded band (about 3.5 mm) of even width all the way round."
+    },
+    {
+      "slug": "hidden-halo-ring",
+      "nameHe": "טבעת הילה נסתרת",
+      "category": "engagement-rings",
+      "price": 6990,
+      "short": "יהלום עגול, ושורת יהלומים קטנים מתחתיו.",
+      "desc": "יהלום עגול במשקל קראט אחד על ארבע שיניים. מתחתיו, בצדי הכן, שורת יהלומים קטנים שנראית רק מהצד: הילה שלא משנה את מראה האבן מלמעלה.",
+      "diamond": {
+        "carat": "1.00",
+        "lab": true,
+        "shape": "Round",
+        "count": 25
+      },
+      "prompt": "A hidden halo engagement ring seen from a low 3/4 side angle: one round brilliant diamond of about 1 carat on four claw prongs, and directly beneath the centre stone, wrapped around the collar of the basket, a thin ring of tiny pavé diamonds visible only from the side; slim plain band."
+    },
+    {
+      "slug": "elongated-cushion-ring",
+      "nameHe": "טבעת סוליטר עם שוק משובץ",
+      "category": "engagement-rings",
+      "price": 7790,
+      "short": "יהלום עגול בארבע שיניים, על שוק משובץ.",
+      "desc": "יהלום עגול במשקל קראט אחד בארבע שיניים, על שוק משובץ ביהלומים קטנים עד מחצית הטבעת.",
+      "diamond": {
+        "carat": "1.20",
+        "lab": true,
+        "shape": "Round",
+        "count": 21
+      },
+      "prompt": "An elongated cushion-cut diamond engagement ring: one RECTANGULAR cushion-cut diamond of about 1.2 carat, clearly longer than wide (ratio about 1.4:1), a rectangle with softly rounded corners and a pillow-like outline - NOT round - held by four claw prongs at its corners, its long axis along the finger, on a slim band set with a single row of small pavé diamonds across its top half."
+    },
+    {
+      "slug": "marquise-three-stone",
+      "nameHe": "טבעת שלוש אבנים אובל וטיפות",
+      "category": "engagement-rings",
+      "price": 8190,
+      "short": "אובל במרכז, וטיפה מכל צד.",
+      "desc": "יהלום אובלי במרכז, ומשני צדיו שתי טיפות קטנות. שלוש אבנים בטבעת אחת, בשילוב צורות.",
+      "diamond": {
+        "carat": "1.30",
+        "lab": true,
+        "shape": "Oval",
+        "count": 3
+      },
+      "prompt": "A three-stone engagement ring: a central oval diamond of about 1 carat flanked on each side by one smaller pear-shaped diamond angled outward, all on claw prongs, on a slim plain band."
+    },
+    {
+      "slug": "radiant-solitaire",
+      "nameHe": "טבעת סוליטר רדיאנט",
+      "category": "engagement-rings",
+      "price": 6790,
+      "short": "יהלום רדיאנט מלבני, ברק של ליטוש עגול.",
+      "desc": "יהלום בליטוש רדיאנט במשקל קראט אחד: צורה מלבנית עם פינות קטומות וברק של יהלום עגול. ארבע שיניים, שוק דק.",
+      "diamond": {
+        "carat": "1.00",
+        "lab": true,
+        "shape": "Radiant",
+        "count": 1
+      },
+      "prompt": "A radiant-cut diamond solitaire engagement ring: one rectangular radiant-cut diamond of about 1 carat with trimmed corners and brilliant crushed-ice sparkle, its long axis along the finger, on four claw prongs, on a slim plain band."
+    },
+    {
+      "slug": "chunky-solitaire",
+      "nameHe": "טבעת סוליטר על שוק רחב",
+      "category": "engagement-rings",
+      "price": 5390,
+      "short": "יהלום עגול על שוק זהב רחב ובולט.",
+      "desc": "יהלום עגול במשקל 0.70 קראט, משובץ בשש שיניים על שוק זהב רחב ובולט. טבעת אירוסין עם נוכחות.",
+      "diamond": {
+        "carat": "0.70",
+        "lab": false,
+        "shape": "Round",
+        "count": 1
+      },
+      "prompt": "A solitaire engagement ring with one round brilliant diamond of about 0.7 carat on six claw prongs set in yellow gold, centred on a wide, bold, symmetrical domed polished band about 4 mm wide, even on both sides, all metal the same yellow gold."
+    },
+    {
+      "slug": "marquise-cluster-ring",
+      "nameHe": "טבעת אשכול מרקיזות",
+      "category": "diamond-rings",
+      "price": 4690,
+      "short": "שבע מרקיזות קטנות סביב יהלום עגול, כמו פרח.",
+      "desc": "יהלום עגול קטן במרכז, ושבע מרקיזות קטנות מסביבו כעלי כותרת. טבעת יומיומית עם הרבה ברק.",
+      "diamond": {
+        "carat": "0.60",
+        "lab": false,
+        "shape": "Marquise",
+        "count": 8
+      },
+      "prompt": "A flower cluster ring: one small round diamond in the centre surrounded by seven small marquise-cut diamonds arranged as petals radiating outward, all in fine claw prongs, on a thin plain band."
+    },
+    {
+      "slug": "marquise-eternity-ring",
+      "nameHe": "טבעת איטרניטי מרקיזות",
+      "category": "diamond-rings",
+      "price": 8490,
+      "short": "מרקיזות קטנות לאורך כל הטבעת, בשיבוץ רוחבי.",
+      "desc": "שורה של מרקיזות קטנות סביב כל הטבעת, כל אחת משובצת לרוחב, קצה מול קצה. מתאימה כטבעת נישואין או לענידה בשכבות.",
+      "diamond": {
+        "carat": "1.50",
+        "lab": true,
+        "shape": "Marquise",
+        "count": 18
+      },
+      "prompt": "A full eternity ring made entirely of small marquise-cut diamonds set sideways, tip to tip, all the way around the ring in a continuous chain of claw prongs, standing upright."
+    },
+    {
+      "slug": "emerald-line-band",
+      "nameHe": "טבעת שורת אמרלדים",
+      "category": "diamond-rings",
+      "price": 4390,
+      "short": "שורת יהלומי אמרלד קטנים בשיבוץ ערוץ.",
+      "desc": "שורה של יהלומים קטנים בליטוש אמרלד, צמודים זה לזה בתוך ערוץ זהב, בחלק העליון של הטבעת. מראה נקי וגאומטרי.",
+      "diamond": {
+        "carat": "0.50",
+        "lab": false,
+        "shape": "Emerald",
+        "count": 9
+      },
+      "prompt": "A channel-set band: a row of nine small rectangular step-cut emerald-cut diamonds set side by side inside a polished gold channel across the top half of a slim band."
+    },
+    {
+      "slug": "bezel-station-ring",
+      "nameHe": "טבעת שש מסגרות",
+      "category": "diamond-rings",
+      "price": 2390,
+      "short": "שישה יהלומים קטנים, כל אחד במסגרת משלו.",
+      "desc": "שישה יהלומים עגולים קטנים, כל אחד במסגרת זהב עגולה, מחוברים בשורה על טבעת דקה. טובה לענידה לבד או בשכבות.",
+      "diamond": {
+        "carat": "0.30",
+        "lab": false,
+        "shape": "Round",
+        "count": 6
+      },
+      "prompt": "A delicate stacking ring with EXACTLY FIVE small round diamonds, each in its own tiny round polished bezel, linked in one row across the top of a very thin plain band. Count: five bezels."
+    },
+    {
+      "slug": "crossover-diamond-ring",
+      "nameHe": "טבעת מתפתלת עם יהלומים",
+      "category": "diamond-rings",
+      "price": 3290,
+      "short": "שני פסים שנפגשים: אחד חלק ואחד משובץ.",
+      "desc": "טבעת שבה שני פסים מתעקלים וחוצים זה את זה מעל האצבע, האחד זהב חלק והאחר משובץ ביהלומים קטנים.",
+      "diamond": {
+        "carat": "0.30",
+        "lab": false,
+        "shape": "Round",
+        "count": 22
+      },
+      "prompt": "A crossover bypass ring: two slim bands curve and cross over each other on top of the finger, one band plain polished gold and the other set with a single row of small pavé diamonds."
+    },
+    {
+      "slug": "dome-ring",
+      "nameHe": "טבעת כיפה זהב",
+      "category": "gold-rings",
+      "price": 2890,
+      "short": "טבעת זהב רחבה ומעוגלת, מבריקה.",
+      "desc": "טבעת זהב מלאה בצורת כיפה, רחבה במרכז ומצטמצמת מאחור. ליטוש מבריק.",
+      "diamond": null,
+      "prompt": "A chunky dome ring in solid polished gold: a wide, puffy, rounded dome profile on top (about 8 mm wide) tapering to a narrower band at the back, mirror polished, no stones."
+    },
+    {
+      "slug": "mens-diamond-ring",
+      "nameHe": "טבעת גבר עם יהלום שקוע",
+      "category": "diamond-rings",
+      "men": "men-rings",
+      "colours": ["YELLOW", "WHITE"],
+      "price": 4190,
+      "short": "טבעת רחבה עם יהלום עגול שקוע במרכזה.",
+      "desc": "טבעת זהב רחבה ושטוחה, עם יהלום עגול אחד שקוע בגובה הזהב בשיבוץ ציפור (פליישט). לא בולט ולא נתפס.",
+      "diamond": {
+        "carat": "0.20",
+        "lab": false,
+        "shape": "Round",
+        "count": 1
+      },
+      "prompt": "A men's ring: a wide flat polished band (about 7 mm) with one round brilliant diamond flush-set (gypsy set) into the metal at the centre, sitting level with the gold surface."
+    },
+    {
+      "slug": "knife-edge-band",
+      "nameHe": "טבעת נישואין שטוחה",
+      "category": "wedding-rings",
+      "men": "men-wedding-rings",
+      "price": 1890,
+      "short": "פרופיל שטוח ונקי, ברוחב 4 מ״מ.",
+      "desc": "טבעת נישואין בפרופיל שטוח עם פינות מעוגלות ונוחות, ברוחב 4 מ״מ. קלאסית ומתאימה לגבר ולאישה.",
+      "diamond": null,
+      "prompt": "A knife-edge wedding band standing upright: a plain polished band about 2.5 mm wide whose top surface is two flat bevelled planes meeting at one sharp straight ridge running around the centre of the band, like the roof of a house in cross-section; perfectly round, no twist. PLAIN SOLID POLISHED GOLD ONLY: absolutely NO diamonds, NO stones, NO pavé, NO crystals anywhere on it."
+    },
+    {
+      "slug": "half-eternity-band",
+      "nameHe": "טבעת נישואין חצי איטרניטי",
+      "category": "wedding-rings",
+      "price": 3590,
+      "short": "שורת יהלומים עגולים בחציה העליון של הטבעת.",
+      "desc": "טבעת נישואין עם שורה של יהלומים עגולים בשיניים, בחציה העליון. החצי התחתון חלק ונוח.",
+      "diamond": {
+        "carat": "0.50",
+        "lab": false,
+        "shape": "Round",
+        "count": 13
+      },
+      "prompt": "A half eternity wedding band: a single row of small round brilliant diamonds in shared claw prongs across the top half of a slim band, plain polished gold underneath, standing upright."
+    },
+    {
+      "slug": "contour-band",
+      "nameHe": "טבעת נישואין מעוקלת",
+      "category": "wedding-rings",
+      "price": 2490,
+      "short": "טבעת עם קשת שמתאימה את עצמה לטבעת אירוסין.",
+      "desc": "טבעת עם עיקול בצורת V במרכזה, משובצת ביהלומים קטנים, שנצמדת לטבעת אירוסין עם אבן מרקיזה, טיפה או אובל.",
+      "diamond": {
+        "carat": "0.20",
+        "lab": false,
+        "shape": "Round",
+        "count": 15
+      },
+      "prompt": "A contour wedding band: a slim band with a gentle V-shaped chevron curve at its centre, set with a single row of tiny pavé diamonds along the curve, designed to nest against an engagement ring."
+    },
+    {
+      "slug": "marquise-studs",
+      "nameHe": "עגילי מרקיזה צמודים",
+      "category": "diamond-earrings",
+      "price": 3890,
+      "short": "זוג יהלומי מרקיזה בשש שיניים.",
+      "desc": "שני יהלומי מרקיזה, 0.60 קראט לזוג, כל אחד בשש שיניים ששומרות על הקצוות. נענדים אנכית.",
+      "diamond": {
+        "carat": "0.60",
+        "lab": true,
+        "shape": "Marquise",
+        "count": 2
+      },
+      "prompt": "A pair of marquise-cut diamond stud earrings, each an elongated marquise diamond held vertically by six claw prongs with V-tips, posts and butterfly backs visible, the two studs lying side by side."
+    },
+    {
+      "slug": "bezel-studs",
+      "nameHe": "עגילי מסגרת צמודים",
+      "category": "diamond-earrings",
+      "price": 2790,
+      "short": "יהלום עגול במסגרת זהב מלאה, לכל אוזן.",
+      "desc": "שני יהלומים עגולים, 0.50 קראט לזוג, כל אחד עטוף במסגרת זהב מלאה. נקיים, יומיומיים, ולא נתפסים בשיער.",
+      "diamond": {
+        "carat": "0.50",
+        "lab": true,
+        "shape": "Round",
+        "count": 2
+      },
+      "prompt": "A pair of bezel-set round diamond stud earrings: each a round brilliant diamond completely surrounded by a smooth polished gold rim, posts and butterfly backs, lying side by side."
+    },
+    {
+      "slug": "chunky-hoops",
+      "nameHe": "עגילי חישוק עבים",
+      "category": "hoop-earrings",
+      "price": 1990,
+      "short": "חישוקי זהב עבים ובולטים, בקוטר 25 מ״מ.",
+      "desc": "חישוקי זהב חלולים ועבים, בקוטר 25 מ״מ ובעובי 6 מ״מ, עם סגירת לחיצה. מבריקים ובולטים.",
+      "diamond": null,
+      "prompt": "A pair of chunky gold hoop earrings: thick round tubular hoops about 25 mm across and 6 mm thick, mirror polished, hinged snap closures, one hoop standing upright and one lying beside it. PLAIN SOLID POLISHED GOLD ONLY: absolutely NO diamonds, NO stones, NO pavé, NO crystals anywhere on it."
+    },
+    {
+      "slug": "marquise-huggies",
+      "nameHe": "עגילי האגי יהלומים",
+      "category": "hoop-earrings",
+      "price": 2690,
+      "short": "חישוקים קטנים צמודים לאוזן, משובצים ביהלומים.",
+      "desc": "חישוקים קטנים שנצמדים לתנוך, משובצים בשורה של יהלומים עגולים בחזית.",
+      "diamond": {
+        "carat": "0.40",
+        "lab": false,
+        "shape": "Round",
+        "count": 12
+      },
+      "prompt": "A pair of small huggie hoop earrings about 12 mm across, the front of each hoop set with a row of tiny MARQUISE-shaped (pointed oval, boat-shaped) diamonds laid end to end along the hoop, hinged closures, one hoop standing upright."
+    },
+    {
+      "slug": "diamond-ear-cuff",
+      "nameHe": "עגיל קאף משובץ",
+      "category": "hoop-earrings",
+      "price": 1290,
+      "short": "קאף שנענד על שולי האוזן, בלי חור.",
+      "desc": "טבעת קטנה ופתוחה שנלחצת על שולי האוזן, בלי צורך בחור. משובצת בשורת יהלומים קטנים. נמכר כיחידה.",
+      "diamond": {
+        "carat": "0.10",
+        "lab": false,
+        "shape": "Round",
+        "count": 9
+      },
+      "prompt": "A single ear cuff: a small open C-shaped ring about 12 mm across, its outer face set with a row of tiny round pavé diamonds, lying at an angle on the surface."
+    },
+    {
+      "slug": "pear-drop-earrings",
+      "nameHe": "עגילי טיפה תלויים",
+      "category": "drop-earrings",
+      "price": 5890,
+      "short": "יהלום טיפה תלוי מיהלום עגול קטן.",
+      "desc": "יהלום טיפה תלוי מתחת ליהלום עגול קטן, בכל אוזן. 1.00 קראט לזוג. נעים לתנועה ומבריק.",
+      "diamond": {
+        "carat": "1.00",
+        "lab": true,
+        "shape": "Pear",
+        "count": 4
+      },
+      "prompt": "A pair of drop earrings: each a small round diamond stud in claw prongs from which hangs a pear-shaped diamond on three prongs, point upward, on a short link, posts visible, the pair lying side by side."
+    },
+    {
+      "slug": "marquise-flower-studs",
+      "nameHe": "עגילי פרח מרקיזות",
+      "category": "stud-earrings",
+      "price": 3290,
+      "short": "פרח של מרקיזות קטנות סביב יהלום עגול.",
+      "desc": "בכל עגיל יהלום עגול במרכז ושש מרקיזות קטנות מסביבו כעלי כותרת.",
+      "diamond": {
+        "carat": "0.70",
+        "lab": false,
+        "shape": "Marquise",
+        "count": 14
+      },
+      "prompt": "A pair of flower cluster stud earrings: each a small round diamond centre surrounded by six small marquise-cut diamond petals radiating outward in fine claw prongs, the pair side by side."
+    },
+    {
+      "slug": "inside-out-hoops",
+      "nameHe": "חישוקי יהלומים פנים-חוץ",
+      "category": "diamond-earrings",
+      "price": 6490,
+      "short": "חישוקים משובצים ביהלומים מבפנים ומבחוץ.",
+      "desc": "חישוקים בקוטר 20 מ״מ, משובצים בשורת יהלומים עגולים גם בצד הפנימי וגם בצד החיצוני, כך שהם מבריקים מכל זווית.",
+      "diamond": {
+        "carat": "1.00",
+        "lab": true,
+        "shape": "Round",
+        "count": 48
+      },
+      "prompt": "A pair of inside-out diamond hoop earrings about 20 mm across: each hoop set with round brilliant diamonds on both its outer face and its inner face, hinged closure, one hoop upright and one lying flat. No engraving, no markings, no text on the metal."
+    },
+    {
+      "slug": "marquise-pendant",
+      "nameHe": "תליון מרקיזה",
+      "category": "diamond-necklaces",
+      "price": 2990,
+      "short": "יהלום מרקיזה אנכי על שרשרת עדינה.",
+      "desc": "יהלום מרקיזה במשקל 0.50 קראט, תלוי אנכית בשש שיניים על שרשרת זהב עדינה.",
+      "diamond": {
+        "carat": "0.50",
+        "lab": true,
+        "shape": "Marquise",
+        "count": 1
+      },
+      "prompt": "A marquise diamond pendant necklace: one marquise-cut diamond hanging vertically in six fine claw prongs from a delicate thin cable chain, the chain laid in a gentle V, seen from above."
+    },
+    {
+      "slug": "bezel-pendant",
+      "nameHe": "תליון סוליטר במסגרת",
+      "category": "diamond-necklaces",
+      "price": 2590,
+      "short": "יהלום עגול במסגרת זהב, על שרשרת דקה.",
+      "desc": "יהלום עגול במשקל 0.50 קראט במסגרת זהב מלאה, שהשרשרת עוברת דרכה. תליון יומיומי שלא מסתובב.",
+      "diamond": {
+        "carat": "0.50",
+        "lab": true,
+        "shape": "Round",
+        "count": 1
+      },
+      "prompt": "A bezel solitaire pendant necklace: one round brilliant diamond in a smooth polished gold bezel, fixed in the middle of a delicate thin cable chain, the chain laid in a gentle V, seen from above."
+    },
+    {
+      "slug": "east-west-pendant",
+      "nameHe": "תליון אמרלד מזרח-מערב",
+      "category": "diamond-necklaces",
+      "price": 3390,
+      "short": "יהלום אמרלד בשיבוץ רוחבי על שרשרת.",
+      "desc": "יהלום בליטוש אמרלד במשקל 0.60 קראט, משובץ לרוחב, כשהשרשרת מחוברת לשני צדדיו.",
+      "diamond": {
+        "carat": "0.60",
+        "lab": true,
+        "shape": "Emerald",
+        "count": 1
+      },
+      "prompt": "An east-west emerald-cut diamond pendant necklace: one rectangular step-cut emerald-cut diamond in four double claw prongs, lying horizontally with its long side left-to-right, the thin cable chain attached at both of its short ends, laid in a gentle V, seen from above."
+    },
+    {
+      "slug": "paperclip-chain",
+      "nameHe": "שרשרת פייפרקליפ",
+      "category": "gold-necklaces",
+      "price": 2190,
+      "short": "חוליות מלבניות ארוכות, כמו אטבי נייר.",
+      "desc": "שרשרת זהב מחוליות מלבניות ארוכות ושטוחות, ברוחב 4 מ״מ. נענדת לבד או בשכבות עם שרשרת דקה.",
+      "diamond": null,
+      "prompt": "A paperclip chain necklace in solid yellow gold: long flat elongated rectangular links about 4 mm wide, lobster clasp, laid in a loose oval, seen from slightly above. PLAIN SOLID POLISHED GOLD ONLY: absolutely NO diamonds, NO stones, NO pavé, NO crystals anywhere on it."
+    },
+    {
+      "slug": "cuban-chain",
+      "nameHe": "שרשרת קובנית",
+      "category": "gold-necklaces",
+      "men": "men-necklaces",
+      "colours": ["YELLOW", "WHITE"],
+      "price": 6890,
+      "short": "חוליות קובניות שטוחות וצפופות, ברוחב 6 מ״מ.",
+      "desc": "שרשרת קובנית בזהב 14K: חוליות שטוחות, שזורות וצפופות, ברוחב 6 מ״מ, עם סוגר קופסה. מתאימה לגבר ולאישה.",
+      "diamond": null,
+      "prompt": "A Cuban link chain necklace in solid yellow gold, 6 mm wide, flat tightly interlocking curb links, plain box clasp, laid in a loose open oval on the surface, seen from slightly above. PLAIN SOLID POLISHED GOLD ONLY: absolutely NO diamonds, NO stones, NO pavé, NO crystals anywhere on it."
+    },
+    {
+      "slug": "figaro-chain",
+      "nameHe": "שרשרת פיגרו",
+      "category": "gold-necklaces",
+      "men": "men-necklaces",
+      "colours": ["YELLOW", "WHITE"],
+      "price": 3490,
+      "short": "שלוש חוליות קצרות וחוליה ארוכה, לסירוגין.",
+      "desc": "שרשרת פיגרו קלאסית: שלוש חוליות קצרות ואחריהן חוליה ארוכה, שוב ושוב. ברוחב 4 מ״מ.",
+      "diamond": null,
+      "prompt": "A Figaro chain necklace in solid yellow gold, 4 mm wide, with the classic Figaro pattern clearly visible: three short flat oval links, then one long flat oval link (about three times as long), repeating along the whole chain; lobster clasp; laid in a loose oval, seen from slightly above. PLAIN SOLID POLISHED GOLD ONLY: absolutely NO diamonds, NO stones, NO pavé, NO crystals anywhere on it."
+    },
+    {
+      "slug": "marquise-tennis-necklace",
+      "nameHe": "שרשרת טניס מרקיזות",
+      "category": "diamond-necklaces",
+      "price": 15900,
+      "short": "שורה רציפה של יהלומי מרקיזה סביב הצוואר.",
+      "desc": "שרשרת טניס שבה כל חוליה היא יהלום מרקיזה בשיבוץ רוחבי, קצה מול קצה, לאורך כל השרשרת.",
+      "diamond": {
+        "carat": "4.00",
+        "lab": true,
+        "shape": "Marquise",
+        "count": 60
+      },
+      "prompt": "A marquise tennis NECKLACE (long enough for a neck, about 42 cm): a continuous flexible line of small marquise-cut diamonds set end to end, each in its own claw setting, laid in a large round collar shape filling the frame, seen from above."
+    },
+    {
+      "slug": "star-of-david-pendant",
+      "nameHe": "תליון מגן דוד משובץ",
+      "category": "pendant-necklaces",
+      "men": "men-pendants",
+      "colours": ["YELLOW", "WHITE"],
+      "price": 1590,
+      "short": "מגן דוד משובץ ביהלומים קטנים, על שרשרת.",
+      "desc": "מגן דוד בזהב 14K, שני משולשים שזורים משובצים ביהלומים קטנים, בגובה 18 מ״מ, על שרשרת חוליות דקה.",
+      "diamond": {
+        "carat": "0.15",
+        "lab": false,
+        "shape": "Round",
+        "count": 30
+      },
+      "prompt": "A Star of David pendant necklace: a solid polished six-pointed star made of two interlaced outline triangles, about 18 mm tall, hanging from a thin cable chain laid in a gentle V, seen from above. Exactly six points. PLAIN SOLID POLISHED GOLD ONLY: absolutely NO diamonds, NO stones, NO pavé, NO crystals anywhere on it."
+    },
+    {
+      "slug": "hamsa-pendant",
+      "nameHe": "תליון חמסה עם יהלומים",
+      "category": "pendant-necklaces",
+      "price": 1890,
+      "short": "חמסה קטנה משובצת ביהלומים.",
+      "desc": "תליון חמסה קטן בגובה 14 מ״מ, משובץ ביהלומים קטנים, על שרשרת עדינה.",
+      "diamond": {
+        "carat": "0.10",
+        "lab": false,
+        "shape": "Round",
+        "count": 14
+      },
+      "prompt": "A small hamsa (open hand) pendant necklace: a symmetrical stylised hand shape with five fingers about 14 mm tall, its face set with tiny pavé diamonds, on a delicate thin cable chain laid in a gentle V, seen from above."
+    },
+    {
+      "slug": "chai-pendant",
+      "nameHe": "תליון חי",
+      "category": "pendant-necklaces",
+      "men": "men-pendants",
+      "colours": ["YELLOW", "WHITE"],
+      "price": 1390,
+      "short": "המילה 'חי' בזהב מלא.",
+      "desc": "תליון בצורת המילה 'חי', אותיות ח' וי' מחוברות, בזהב מלא ומבריק, על שרשרת חוליות.",
+      "diamond": null,
+      "prompt": "A Hebrew 'Chai' pendant necklace: a solid polished gold charm about 16 mm tall forming the Hebrew word חי - on the RIGHT the letter Chet (ח: two vertical legs joined by a flat roof, like a squared upside-down U with a small notch at the top left), and touching it on the LEFT the small letter Yud (י: a short hook-like stroke hanging from the top line, half the height of the Chet). Exactly these two letters, nothing else. On a thin cable chain laid in a gentle V, seen from above. PLAIN SOLID POLISHED GOLD ONLY: absolutely NO diamonds, NO stones, NO pavé, NO crystals anywhere on it."
+    },
+    {
+      "slug": "engraved-tag-necklace",
+      "nameHe": "שרשרת לוחית לחריטה",
+      "category": "pendant-necklaces",
+      "men": "men-pendants",
+      "colours": ["YELLOW", "WHITE"],
+      "price": 1990,
+      "short": "לוחית זהב מלבנית, לחריטה של שם או תאריך.",
+      "desc": "לוחית זהב מלבנית עם פינות מעוגלות, על שרשרת חוליות. אפשר לחרוט עליה שם, תאריך או ראשי תיבות בבקשה לעיצוב אישי.",
+      "diamond": null,
+      "prompt": "A gold tag pendant necklace: a plain rectangular polished gold tag with rounded corners, about 25 x 14 mm, blank with no engraving, hanging from a medium cable chain laid in a gentle V, seen from above."
+    },
+    {
+      "slug": "diamond-station-necklace",
+      "nameHe": "שרשרת תחנות יהלומים כפולה",
+      "category": "diamond-necklaces",
+      "price": 2790,
+      "short": "שתי שרשראות דקות עם יהלומים קטנים במרווחים.",
+      "desc": "שתי שרשראות דקות בשכבות, ולאורכן יהלומים עגולים קטנים במסגרות, במרווחים שווים.",
+      "diamond": {
+        "carat": "0.30",
+        "lab": false,
+        "shape": "Round",
+        "count": 5
+      },
+      "prompt": "A diamond station necklace: ONE single strand of delicate thin cable chain (not layered) with exactly five small round diamonds in tiny round bezels spaced evenly along its front, laid in one gentle U curve, seen from above."
+    },
+    {
+      "slug": "charm-necklace",
+      "nameHe": "שרשרת צ'ארמים",
+      "category": "gold-necklaces",
+      "price": 2390,
+      "short": "שרשרת עם שלושה תליונים קטנים: לב, כוכב ומטבע.",
+      "desc": "שרשרת חוליות עם שלושה צ'ארמים קטנים: לב, כוכב ומטבע עגול. אפשר להחליף או להוסיף צ'ארמים בבקשה לעיצוב אישי.",
+      "diamond": null,
+      "prompt": "A gold charm necklace: a medium cable chain with three small polished charms hanging close together at the front - a puffed heart, a small star and a round coin disc - laid in a gentle V, seen from above."
+    },
+    {
+      "slug": "marquise-tennis-bracelet",
+      "nameHe": "צמיד טניס מרקיזות",
+      "category": "tennis-bracelets",
+      "price": 11900,
+      "short": "שורה רציפה של מרקיזות סביב פרק היד.",
+      "desc": "צמיד טניס שבו כל חוליה היא יהלום מרקיזה בשיבוץ רוחבי, קצה מול קצה. 3.00 קראט.",
+      "diamond": {
+        "carat": "3.00",
+        "lab": true,
+        "shape": "Marquise",
+        "count": 30
+      },
+      "prompt": "A marquise tennis bracelet: a continuous flexible line of small marquise-cut diamonds set sideways tip to tip, each in its own claw setting, box clasp, laid in an open oval on the surface, seen from above."
+    },
+    {
+      "slug": "bezel-tennis-bracelet",
+      "nameHe": "צמיד טניס במסגרות",
+      "category": "tennis-bracelets",
+      "price": 8490,
+      "short": "יהלומים עגולים, כל אחד במסגרת זהב.",
+      "desc": "צמיד טניס שבו כל יהלום עטוף במסגרת זהב עגולה. 2.00 קראט. נוח ולא נתפס.",
+      "diamond": {
+        "carat": "2.00",
+        "lab": true,
+        "shape": "Round",
+        "count": 30
+      },
+      "prompt": "A bezel tennis bracelet: a continuous flexible line of round brilliant diamonds, each in its own smooth round polished gold bezel, linked edge to edge, box clasp, laid in an open oval, seen from above."
+    },
+    {
+      "slug": "cuban-bracelet",
+      "nameHe": "צמיד קובני",
+      "category": "link-bracelets",
+      "men": "men-bracelets",
+      "colours": ["YELLOW", "WHITE"],
+      "price": 4890,
+      "short": "חוליות קובניות שטוחות וצפופות, ברוחב 7 מ״מ.",
+      "desc": "צמיד קובני בזהב 14K, חוליות שטוחות ושזורות ברוחב 7 מ״מ, עם סוגר קופסה. מתאים לגבר ולאישה.",
+      "diamond": null,
+      "prompt": "A Cuban link bracelet in solid yellow gold, 7 mm wide, flat tightly interlocking curb links, plain box clasp, closed and laid in an oval on the surface, seen from slightly above. PLAIN SOLID POLISHED GOLD ONLY: absolutely NO diamonds, NO stones, NO pavé, NO crystals anywhere on it."
+    },
+    {
+      "slug": "paperclip-bracelet",
+      "nameHe": "צמיד פייפרקליפ",
+      "category": "link-bracelets",
+      "price": 1590,
+      "short": "חוליות מלבניות ארוכות, לענידה בשכבות.",
+      "desc": "צמיד מחוליות מלבניות ארוכות ושטוחות, ברוחב 4 מ״מ.",
+      "diamond": null,
+      "prompt": "A paperclip chain bracelet in solid yellow gold: long flat elongated rectangular links about 4 mm wide, lobster clasp, laid in a loose open oval, seen from slightly above. PLAIN SOLID POLISHED GOLD ONLY: absolutely NO diamonds, NO stones, NO pavé, NO crystals anywhere on it."
+    },
+    {
+      "slug": "diamond-cuff",
+      "nameHe": "צמיד קאף משובץ",
+      "category": "diamond-bracelets",
+      "price": 5990,
+      "short": "צמיד קשיח ופתוח עם שורת יהלומים.",
+      "desc": "צמיד קשיח ופתוח שנכנס לפרק היד מהצד, עם שורת יהלומים עגולים לאורך החלק העליון.",
+      "diamond": {
+        "carat": "0.50",
+        "lab": false,
+        "shape": "Round",
+        "count": 25
+      },
+      "prompt": "An open cuff bangle: a slim rigid open C-shaped bracelet whose top face is set with a single row of small round pavé diamonds, standing on its edge at a 3/4 angle."
+    },
+    {
+      "slug": "station-bracelet",
+      "nameHe": "צמיד תחנות יהלומים",
+      "category": "delicate-bracelets",
+      "price": 1890,
+      "short": "שלושה יהלומים קטנים על צמיד דק.",
+      "desc": "צמיד חוליות דק עם שלושה יהלומים עגולים קטנים במסגרות, במרווחים שווים.",
+      "diamond": {
+        "carat": "0.15",
+        "lab": false,
+        "shape": "Round",
+        "count": 3
+      },
+      "prompt": "A delicate diamond station bracelet: a very thin cable chain with three small round diamonds in tiny round bezels spaced evenly along it, lobster clasp, laid in an open oval, seen from above."
+    },
+    {
+      "slug": "id-bracelet",
+      "nameHe": "צמיד לוחית",
+      "category": "link-bracelets",
+      "men": "men-bracelets",
+      "colours": ["YELLOW", "WHITE"],
+      "price": 3290,
+      "short": "לוחית זהב על צמיד חוליות, לחריטה.",
+      "desc": "צמיד חוליות עם לוחית זהב מלבנית במרכזו. אפשר לחרוט עליה שם או תאריך בבקשה לעיצוב אישי.",
+      "diamond": null,
+      "prompt": "A gold ID bracelet: a plain blank rectangular polished gold plate in the middle of a medium curb link chain, lobster clasp, laid in an open oval with the plate facing up, seen from above. No engraving."
+    },
+    {
+      "slug": "marquise-bridal-set",
+      "nameHe": "סט כלה מרקיזה",
+      "category": "bridal-sets",
+      "price": 8990,
+      "short": "טבעת סוליטר מרקיזה וטבעת נישואין מעוקלת.",
+      "desc": "טבעת אירוסין עם יהלום מרקיזה, וטבעת נישואין מעוקלת משובצת שנצמדת אליה.",
+      "diamond": {
+        "carat": "1.20",
+        "lab": true,
+        "shape": "Marquise",
+        "count": 16
+      },
+      "prompt": "A bridal ring set: a marquise diamond solitaire engagement ring on a slim band, stacked together with a matching contour wedding band that curves around the marquise and is set with tiny pavé diamonds; the two rings standing together."
+    },
+    {
+      "slug": "bezel-pendant-earring-set",
+      "nameHe": "סט מסגרות: תליון ועגילים",
+      "category": "necklace-earring-sets",
+      "price": 4990,
+      "short": "תליון סוליטר במסגרת ועגילים תואמים.",
+      "desc": "תליון יהלום עגול במסגרת זהב, וזוג עגילים צמודים תואמים במסגרות.",
+      "diamond": {
+        "carat": "1.00",
+        "lab": true,
+        "shape": "Round",
+        "count": 3
+      },
+      "prompt": "A matching jewellery set: a bezel-set round diamond solitaire pendant on a thin cable chain laid in a gentle V, with a matching pair of bezel-set round diamond stud earrings placed beside it, seen from above."
+    }
+  ]
+}

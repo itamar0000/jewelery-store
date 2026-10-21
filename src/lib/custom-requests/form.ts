@@ -38,7 +38,7 @@ export type ChangeArea = (typeof CHANGE_AREAS)[number];
 
 const CHANGE_LABELS: Readonly<Record<ChangeArea, string>> = {
   gold_color: 'גוון זהב',
-  gold_karat: 'קראט זהב',
+  gold_karat: 'זהב 18K או אחר',
   size: 'מידה',
   stone: 'אבן',
   engraving: 'חריטה',

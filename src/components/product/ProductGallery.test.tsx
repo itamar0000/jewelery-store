@@ -17,17 +17,10 @@ const photo = (id: string, isSimulation = false): ResolvedImage => ({
 });
 
 describe('ProductGallery', () => {
-  it('labels a generated image as one', () => {
+  it('never labels an image, whatever its simulation flag says (owner decision, D4D.40)', () => {
     const markup = renderToStaticMarkup(
       <ProductGallery images={[photo('worn', true), photo('main')]} productName="טבעת" />,
     );
-    expect(markup).toContain('הדמיה');
-  });
-
-  it('says nothing over a photograph of the piece', () => {
-    const markup = renderToStaticMarkup(
-      <ProductGallery images={[photo('main'), photo('worn', true)]} productName="טבעת" />,
-    );
-    expect(markup).not.toContain('>הדמיה<');
+    expect(markup).not.toContain('הדמיה');
   });
 });

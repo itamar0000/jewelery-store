@@ -105,4 +105,40 @@ describe('toProductCard', () => {
       expect(card.badge).toBeUndefined();
     });
   });
+  describe('gold colour filter', () => {
+    const inColour = (colour: string, key: string): ProductCardRow['variants'][number] => ({
+      ...stocked(0, { policy: 'MADE_TO_ORDER' }),
+      optionValues: [{ value: { value: colour, option: { code: 'gold_color' } } }],
+      images: [
+        { altHe: `${colour} main`, storageKey: `public/${key}-main.jpg` },
+        { altHe: `${colour} detail`, storageKey: `public/${key}-detail.jpg` },
+      ],
+    });
+    const product = row({
+      images: [{ altHe: 'lead', storageKey: 'public/lead.jpg' }],
+      variants: [inColour('YELLOW', 'y'), inColour('ROSE', 'r')],
+    });
+
+    it('shows the photographs of the chosen colour and links to it', () => {
+      const card = toProductCard(product, { goldColors: ['ROSE'] });
+
+      expect(card.imageAlt).toBe('ROSE main');
+      expect(card.hoverImageAlt).toBe('ROSE detail');
+      expect(card.colour).toBe('rose');
+    });
+
+    it('keeps the lead photographs when no colour is chosen', () => {
+      const card = toProductCard(product, { goldColors: [] });
+
+      expect(card.imageAlt).toBe('lead');
+      expect(card.colour).toBeUndefined();
+    });
+
+    it('keeps the lead photographs when no variant is in the chosen colour', () => {
+      const card = toProductCard(product, { goldColors: ['WHITE'] });
+
+      expect(card.imageAlt).toBe('lead');
+      expect(card.colour).toBeUndefined();
+    });
+  });
 });

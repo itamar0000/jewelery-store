@@ -38,6 +38,7 @@ export function PageHero({
   imageLabel,
   assetId,
   size = 'headline',
+  variant = 'page',
 }: {
   title: string;
   description?: string;
@@ -52,7 +53,37 @@ export function PageHero({
    * title over one line of text was the largest thing on the page by far.
    */
   size?: 'headline' | 'compact';
+  /**
+   * `catalogue` is a category page's header (critique 2026-10-08): the
+   * products are the page, so the title and its introduction share one line
+   * on a wide screen, the gaps tighten, and the subcategory pills below take
+   * the place of the closing rule. At 1440x900 the first row of pieces -
+   * names and prices included - now sits inside the first screen.
+   */
+  variant?: 'page' | 'catalogue';
 }) {
+  if (variant === 'catalogue') {
+    return (
+      <Container as="section" className="pt-8 md:pt-10">
+        {trail && (
+          <div className="mb-4">
+            <Breadcrumbs trail={trail} />
+          </div>
+        )}
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] lg:items-end lg:gap-12">
+          <h1 className="font-display text-3xl leading-[1.05] font-normal tracking-tight text-balance md:text-5xl">
+            {title}
+          </h1>
+          {description && (
+            <p className="text-muted-foreground mt-3 max-w-(--container-prose) text-[0.9375rem] leading-[1.7] font-light text-pretty lg:mt-0">
+              {description}
+            </p>
+          )}
+        </div>
+      </Container>
+    );
+  }
+
   return (
     <section>
       {assetId && (

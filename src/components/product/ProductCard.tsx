@@ -149,7 +149,7 @@ export function ProductCard({
         <Heading className="font-display text-[1.25rem] leading-snug font-normal">
           {/* `before:` overlay makes the card clickable without wrapping it. */}
           <Link
-            href={`/product/${slug}`}
+            href={product.colour ? `/product/${slug}?color=${product.colour}` : `/product/${slug}`}
             /*
              * UNDERLINE, NOT A COLOUR CHANGE.
              *

@@ -88,7 +88,7 @@ describe('FilterBar', () => {
     expect(one).not.toContain('1 מסננים');
   });
 
-  it('says the catalogue is 14K and why there is no colour, size or length filter', () => {
+  it('says the catalogue is 14K and why there is no size or length filter', () => {
     expect(markup).toContain('כל התכשיטים מיוצרים בזהב');
     expect(markup).toContain('14K');
     expect(markup).toContain('ואין צורך');

@@ -153,9 +153,9 @@ export async function createProduct(input: CreateProductInput): Promise<CreatePr
             {
               code: 'gold_karat',
               type: 'GOLD_KARAT',
-              nameHe: 'קראט זהב',
+              nameHe: 'זהב',
               position: 1,
-              values: { create: { value: '14K', labelHe: '14 קראט', position: 0 } },
+              values: { create: { value: '14K', labelHe: 'זהב 14K', position: 0 } },
             },
             {
               code: 'gold_color',

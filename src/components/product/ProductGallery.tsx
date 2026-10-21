@@ -4,7 +4,6 @@ import { useRef, useState } from 'react';
 
 import { cn } from '@/components/ui/cn';
 import { ProductPhoto } from './ProductPhoto';
-import { Badge } from '@/components/ui/Badge';
 import type { ResolvedImage } from '@/lib/catalog/images';
 
 /**
@@ -119,6 +118,7 @@ export function ProductGallery({
                     ratio="square"
                     // A thumbnail is never wider than the rail.
                     sizes="(min-width: 1024px) 6rem, (min-width: 768px) 5rem, 20vw"
+                    imageClassName="mix-blend-darken"
                   />
                   {/*
                    * The thumbnail's accessible name. PlaceholderImage is
@@ -166,17 +166,6 @@ export function ProductGallery({
        * competing with anything for height.
        */}
       <div className="relative min-w-0 flex-1 md:max-w-[calc(100svh-var(--header-height)-3rem)]">
-        {/*
-         * A GENERATED IMAGE SAYS SO. A piece shown worn is composed from its
-         * own photograph, not photographed on a person, and the frame states
-         * it in words - over the image, outside the zoom so it never scales,
-         * in the over-photograph chip tone (DESIGN.md, Chips; D4D.21).
-         */}
-        {active?.isSimulation && (
-          <Badge tone="onImage" className="pointer-events-none absolute start-3 top-3 z-10">
-            הדמיה
-          </Badge>
-        )}
         <Zoomable>
           <div
             /*
@@ -195,6 +184,8 @@ export function ProductGallery({
               /* The column less the rail: about 45vw from md, 34rem at the container's widest. */
               sizes="(min-width: 1280px) 34rem, (min-width: 768px) 45vw, 100vw"
               priority
+              /* The photographs' ground is a touch lighter than the page: darken seats them in it, as on the cards (D4D.26). */
+              imageClassName="mix-blend-darken"
             />
           </div>
         </Zoomable>
@@ -251,7 +242,7 @@ function Zoomable({ children }: { children: React.ReactNode }) {
         node.style.setProperty('--zoom-x', `${((event.clientX - box.left) / box.width) * 100}%`);
         node.style.setProperty('--zoom-y', `${((event.clientY - box.top) / box.height) * 100}%`);
       }}
-      className="group bg-muted/40 relative overflow-hidden"
+      className="group relative overflow-hidden"
     >
       <div
         /*

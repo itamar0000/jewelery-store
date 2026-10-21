@@ -19,19 +19,19 @@ import type { ProductCardData } from '@/components/product/types';
 const MEN_WORN: Readonly<Record<string, { src: string; alt: string }>> = {
   'chain-necklace': {
     src: '/images/men-worn/chain-necklace.jpg',
-    alt: 'שרשרת חוליות זהב על צוואר של גבר (הדמיה)',
+    alt: 'שרשרת חוליות זהב על צוואר של גבר',
   },
   'bar-necklace': {
     src: '/images/men-worn/bar-necklace.jpg',
-    alt: 'שרשרת בר זהב על צוואר של גבר (הדמיה)',
+    alt: 'שרשרת בר זהב על צוואר של גבר',
   },
   'chain-bracelet': {
     src: '/images/men-worn/chain-bracelet.jpg',
-    alt: 'צמיד חוליות זהב על פרק כף יד של גבר (הדמיה)',
+    alt: 'צמיד חוליות זהב על פרק כף יד של גבר',
   },
   'rope-bracelet': {
     src: '/images/men-worn/rope-bracelet.jpg',
-    alt: 'צמיד חבל זהב על פרק כף יד של גבר (הדמיה)',
+    alt: 'צמיד חבל זהב על פרק כף יד של גבר',
   },
 };
 
