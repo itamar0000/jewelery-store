@@ -10,6 +10,7 @@ import { Bidi } from '@/lib/rtl/bidi';
 export const metadata: Metadata = {
   title: 'שאלות ותשובות',
   description: 'תשובות על יהלומים טבעיים ויהלומי מעבדה, מידות, זהב 14K, גווני זהב ועיצוב אישי.',
+  alternates: { canonical: '/faq' },
 };
 
 /**

@@ -10,7 +10,9 @@ import { choicesFromParams } from '@/lib/catalog/choice-params';
 import { getProductBySlug } from '@/lib/catalog/queries';
 import { contactAvailable } from '@/lib/contact';
 import { STOCK_LEVELS_ARE_LIVE } from '@/lib/inventory/disclosure';
+import { env } from '@/lib/env';
 import { notFoundMetadata } from '@/lib/seo/not-found';
+import { jsonLdText, productJsonLd } from '@/lib/seo/structured-data';
 
 /**
  * Product page, backed by the database.
@@ -80,6 +82,17 @@ export default async function ProductPage({
 
   return (
     <Container className="md:py-tight py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLdText(
+            productJsonLd(product, {
+              origin: env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, ''),
+              pricesFinal: env.PRICES_FINAL,
+            }),
+          ),
+        }}
+      />
       <Breadcrumbs trail={trail} />
 
       <div className="mt-8">

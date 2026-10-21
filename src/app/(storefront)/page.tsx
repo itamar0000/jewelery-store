@@ -1,3 +1,5 @@
+import type { Metadata } from 'next';
+
 import { CategoryDiscovery } from '@/components/storefront/CategoryDiscovery';
 import { CollectionsSection } from '@/components/storefront/CollectionsSection';
 import { EditorialPanel } from '@/components/storefront/EditorialPanel';
@@ -8,6 +10,8 @@ import { Hero } from '@/components/storefront/Hero';
 import { OrderSteps } from '@/components/storefront/OrderSteps';
 import { BEST_SELLERS_SLUG, getBestSellers } from '@/lib/catalog/best-sellers';
 import { getCollections } from '@/lib/catalog/queries';
+import { env } from '@/lib/env';
+import { jsonLdText, organizationJsonLd } from '@/lib/seo/structured-data';
 
 /**
  * The homepage.
@@ -71,12 +75,21 @@ const RAIL = 4;
  */
 const OWN_BAND = new Set([BEST_SELLERS_SLUG, 'bridal', 'personalized']);
 
+/** The home page is its own canonical address (the other pages already say theirs). */
+export const metadata: Metadata = { alternates: { canonical: '/' } };
+
 export default async function HomePage() {
   const [ranking, collections] = await Promise.all([getBestSellers(), getCollections()]);
   const bestSellers = ranking.slice(0, RAIL);
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLdText(organizationJsonLd(env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, ''))),
+        }}
+      />
       {/*
        * The line claims one thing: each piece is made for the buyer, straight
        * from the workshop (PRODUCT.md, manufacturer-direct). No price, no
