@@ -69,7 +69,7 @@ makes "we can make any of these your way" true rather than marketing.
 
 ## Capabilities and Constraints
 
-**Built and working:** catalogue of 51 products across rings, necklaces,
+**Built and working:** catalogue of about 95 products across rings, necklaces,
 earrings, bracelets and sets, plus a men's department (D4D.34) holding
 existing pieces by secondary membership; category and product pages; variant selection
 across karat, gold colour and size; filtering, sorting and pagination; search;
