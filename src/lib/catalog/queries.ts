@@ -859,7 +859,20 @@ export function toProductCard(
       : undefined;
   const colourImages =
     colourVariant?.images && colourVariant.images.length > 0 ? colourVariant.images : null;
+  /*
+   * ONE HOVER RULE FOR EVERY CARD. The original fifty models carry a second
+   * photograph at product level; the 2026 models keep theirs on the variant.
+   * Without this, a grid showed some cards swapping to a close-up and the rest
+   * only zooming. When the product level has no second photograph, the first
+   * variant that has one supplies the pair, so the swap exists wherever a
+   * close-up does.
+   */
   const shown = colourImages ?? row.images;
+  const hoverSource =
+    shown[1] ??
+    (colourImages
+      ? undefined
+      : row.variants.find((variant) => (variant.images?.length ?? 0) >= 2)?.images?.[1]);
   const shownColour = colourVariant ? colourOf(colourVariant) : undefined;
 
   const card: ProductCardData = {
@@ -888,9 +901,9 @@ export function toProductCard(
      * every product a hover state that crossfades one placeholder into an
      * identical one, which is a broken interaction rather than a missing one.
      */
-    ...(shown[1] ? { hoverImageAlt: shown[1].altHe } : {}),
-    ...(shown[1] && resolveImageUrl(shown[1].storageKey) !== null
-      ? { hoverImageUrl: resolveImageUrl(shown[1].storageKey)! }
+    ...(hoverSource ? { hoverImageAlt: hoverSource.altHe } : {}),
+    ...(hoverSource && resolveImageUrl(hoverSource.storageKey) !== null
+      ? { hoverImageUrl: resolveImageUrl(hoverSource.storageKey)! }
       : {}),
     ...(swatches.length > 0 ? { swatches } : {}),
     ...(badge ? { badge } : {}),
