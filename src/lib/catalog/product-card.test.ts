@@ -134,6 +134,13 @@ describe('toProductCard', () => {
       expect(card.colour).toBeUndefined();
     });
 
+    it('takes the hover photograph from a variant when the product has only one of its own', () => {
+      const card = toProductCard(product, { goldColors: [] });
+
+      expect(card.imageAlt).toBe('lead');
+      expect(card.hoverImageAlt).toBe('YELLOW detail');
+    });
+
     it('keeps the lead photographs when no variant is in the chosen colour', () => {
       const card = toProductCard(product, { goldColors: ['WHITE'] });
 
