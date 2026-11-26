@@ -16,8 +16,8 @@ import {
  *
  * STATUS CHANGES ARE HISTORY. Each one writes an `OrderStatusEvent` with who
  * made it and an optional note; the status column is only the latest entry.
- * Payment status is not touched here: it belongs to the payment provider's
- * confirmations, and the admin cannot say an order was paid by card.
+ * Payment status is not touched here: it changes only with a recorded
+ * payment - the gateway's webhook, or "התקבל תשלום" (order-workflow.ts).
  */
 
 export const ORDER_STATUS_LABELS: Readonly<Record<OrderStatus, string>> = {
@@ -61,14 +61,27 @@ export function isOrderStatus(value: unknown): value is OrderStatus {
 export interface OrderListFilter {
   readonly status?: OrderStatus | 'OPEN';
   readonly query?: string;
+  /** Whether "OPEN" includes orders awaiting payment (see `openStatuses`). */
+  readonly includeUnpaid?: boolean;
 }
 
-/** Statuses that still need the workshop's hand. */
-const OPEN_STATUSES: OrderStatus[] = ['PENDING_PAYMENT', 'PAID', 'PROCESSING', 'READY', 'SHIPPED'];
+/**
+ * Statuses that still need the workshop's hand - the default "לטיפול" list.
+ *
+ * Orders awaiting payment are in it only while the site has no payment
+ * gateway: then the shop itself must arrange each payment. With a gateway,
+ * an unpaid order is someone who left the payment page, and it sits in its
+ * own tab (and is cancelled after three days) instead of crowding the list.
+ */
+const WORK_STATUSES: OrderStatus[] = ['PAID', 'PROCESSING', 'READY', 'SHIPPED'];
+
+export function openStatuses(includeUnpaid: boolean): OrderStatus[] {
+  return includeUnpaid ? ['PENDING_PAYMENT', ...WORK_STATUSES] : WORK_STATUSES;
+}
 
 export async function listOrders(filter: OrderListFilter = {}) {
   const where: Prisma.OrderWhereInput = {};
-  if (filter.status === 'OPEN') where.status = { in: OPEN_STATUSES };
+  if (filter.status === 'OPEN') where.status = { in: openStatuses(filter.includeUnpaid ?? true) };
   else if (filter.status) where.status = filter.status;
 
   const query = filter.query?.trim();
@@ -104,16 +117,17 @@ export async function listOrders(filter: OrderListFilter = {}) {
       status: true,
       paymentStatus: true,
       _count: { select: { items: true } },
+      addresses: { where: { type: 'SHIPPING' }, select: { city: true }, take: 1 },
     },
   });
 }
 
 /** How many orders sit in each status, for the filter tabs. */
-export async function countOrdersByStatus(): Promise<Record<string, number>> {
+export async function countOrdersByStatus(includeUnpaid = true): Promise<Record<string, number>> {
   const groups = await prisma.order.groupBy({ by: ['status'], _count: { _all: true } });
   const counts: Record<string, number> = {};
   for (const group of groups) counts[group.status] = group._count._all;
-  counts.OPEN = OPEN_STATUSES.reduce((sum, status) => sum + (counts[status] ?? 0), 0);
+  counts.OPEN = openStatuses(includeUnpaid).reduce((sum, status) => sum + (counts[status] ?? 0), 0);
   return counts;
 }
 
@@ -150,7 +164,8 @@ export async function changeOrderStatus(input: {
   readonly orderId: string;
   readonly toStatus: OrderStatus;
   readonly note: string | null;
-  readonly actorUserId: string;
+  /** Null for the system's own changes (the daily clean-up). */
+  readonly actorUserId: string | null;
 }): Promise<'changed' | 'unchanged' | 'missing'> {
   const order = await prisma.order.findUnique({
     where: { id: input.orderId },

@@ -89,6 +89,26 @@ const nextConfig: NextConfig = {
     // does not need to repeat it.
     ignoreDuringBuilds: true,
   },
+
+  /**
+   * Baseline response headers. The site is never meant to be shown inside
+   * another site's frame - that is how a click on the admin's buttons would be
+   * hijacked - and browsers should not guess content types or leak full URLs
+   * (order and search addresses) to other sites. HSTS is Vercel's own.
+   */
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'none'" },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -16,11 +16,13 @@ export function SubmitButton({
   children,
   pendingLabel = 'שומר…',
   variant = 'primary',
+  size = 'md',
   className,
 }: {
   children: React.ReactNode;
   pendingLabel?: string;
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'danger';
+  size?: 'md' | 'lg';
   className?: string;
 }) {
   const { pending } = useFormStatus();
@@ -30,10 +32,12 @@ export function SubmitButton({
       disabled={pending}
       aria-disabled={pending}
       className={cn(
-        'inline-flex h-10 items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors disabled:opacity-60',
-        variant === 'primary'
-          ? 'bg-stamp text-stamp-foreground hover:bg-stamp-hover'
-          : 'border-border-field hover:border-accent border',
+        'inline-flex items-center justify-center rounded-full font-semibold transition-colors disabled:opacity-60',
+        size === 'lg' ? 'h-12 min-w-48 px-7 text-base' : 'h-10 px-5 text-sm',
+        variant === 'primary' && 'bg-stamp text-stamp-foreground hover:bg-stamp-hover',
+        variant === 'secondary' && 'border-border-field hover:border-accent border',
+        variant === 'danger' &&
+          'border-destructive/50 text-destructive hover:border-destructive border',
         className,
       )}
     >

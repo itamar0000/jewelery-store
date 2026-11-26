@@ -31,6 +31,11 @@ export const env = parseEnv({
   CONTACT_PHONE: process.env.CONTACT_PHONE,
   CONTACT_EMAIL: process.env.CONTACT_EMAIL,
   VAT_RATE_BPS: process.env.VAT_RATE_BPS,
+  EMAIL_API_KEY: process.env.EMAIL_API_KEY,
+  EMAIL_FROM: process.env.EMAIL_FROM,
+  ORDER_NOTIFY_TO: process.env.ORDER_NOTIFY_TO,
+  EMAIL_REPLY_TO: process.env.EMAIL_REPLY_TO,
+  CRON_SECRET: process.env.CRON_SECRET,
 });
 
 export { EnvironmentError, envSchema, parseEnv, type Env } from './schema';

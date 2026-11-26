@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { after } from 'next/server';
 
 import {
   CART_COOKIE,
@@ -10,6 +11,7 @@ import {
   ORDER_COOKIE_MAX_AGE_SECONDS,
   cookieOptions,
 } from '@/lib/cart/token';
+import { notifyNewOrder } from '@/lib/email/notify';
 import { env } from '@/lib/env';
 import { getPaymentProvider } from '@/lib/payments/provider';
 
@@ -33,6 +35,14 @@ export async function placeOrderAction(
   });
 
   if (!result.ok) return result;
+
+  // Without a payment gateway the shop must arrange payment itself, so it is
+  // told now. With one, it is told when the payment lands (notifyOrderPaid),
+  // so an abandoned payment page sends nobody anything.
+  if (!getPaymentProvider()) {
+    const { orderNumber } = result;
+    after(() => notifyNewOrder(orderNumber));
+  }
 
   jar.set(ORDER_COOKIE, result.accessToken, cookieOptions(ORDER_COOKIE_MAX_AGE_SECONDS));
   revalidatePath('/', 'layout');

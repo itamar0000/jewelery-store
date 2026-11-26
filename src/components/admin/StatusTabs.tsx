@@ -9,16 +9,24 @@ export function StatusTabs({
   tabs,
   counts,
   extraParams,
+  hideEmpty = false,
 }: {
   basePath: string;
   current: string;
   tabs: readonly { value: string; label: string }[];
   counts: Record<string, number>;
   extraParams?: Record<string, string>;
+  /** Leave out tabs with nothing in them (the first tab and the current one stay). */
+  hideEmpty?: boolean;
 }) {
+  const shown = hideEmpty
+    ? tabs.filter(
+        (tab, index) => index === 0 || tab.value === current || (counts[tab.value] ?? 0) > 0,
+      )
+    : tabs;
   return (
     <nav aria-label="סינון לפי סטטוס" className="flex flex-wrap gap-1">
-      {tabs.map((tab) => {
+      {shown.map((tab) => {
         const params = new URLSearchParams(extraParams);
         if (tab.value !== 'OPEN') params.set('status', tab.value);
         const query = params.toString();
@@ -30,7 +38,7 @@ export function StatusTabs({
             href={query ? `${basePath}?${query}` : basePath}
             aria-current={active ? 'page' : undefined}
             className={cn(
-              'border px-3 py-1.5 text-sm transition-colors',
+              'inline-flex min-h-10 items-center border px-3 text-sm transition-colors',
               active
                 ? 'border-foreground bg-foreground text-background'
                 : 'border-border hover:border-border-strong',
