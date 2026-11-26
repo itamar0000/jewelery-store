@@ -19,7 +19,11 @@
  *      transaction: record a `Payment`, set the order PAID with an
  *      `OrderStatusEvent`, and `consumeReservation` for each of the order's
  *      holds (src/lib/inventory/reservation.ts). The webhook, never the
- *      return redirect, is what marks an order paid.
+ *      return redirect, is what marks an order paid. Then, outside the
+ *      transaction, `after(() => notifyOrderPaid(order.id))`
+ *      (src/lib/email/notify.ts) - the shop's order email and the customer's
+ *      confirmation. `markOrderPaid` in src/lib/admin/order-workflow.ts does
+ *      the same for payments taken by hand; reuse its transaction.
  *   4. /order/confirmation then renders for the paid order; it already exists
  *      and refuses anything unpaid.
  * Reservations already expire on their own (`expireReservations`), so an

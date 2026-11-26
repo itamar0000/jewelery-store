@@ -15,18 +15,33 @@ export function ActionForm({
   children,
   submitLabel,
   className,
+  confirm,
+  size,
+  variant,
 }: {
   action: (state: ActionState, form: FormData) => Promise<ActionState>;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   submitLabel: string;
   className?: string;
+  /** Asked before submitting ("לבטל את ההזמנה?"); cancelling the dialog sends nothing. */
+  confirm?: string;
+  size?: 'md' | 'lg';
+  variant?: 'primary' | 'secondary' | 'danger';
 }) {
   const [state, formAction] = useActionState(action, { ok: true, message: null });
   return (
-    <form action={formAction} className={className}>
+    <form
+      action={formAction}
+      className={className}
+      onSubmit={(event) => {
+        if (confirm && !window.confirm(confirm)) event.preventDefault();
+      }}
+    >
       {children}
       <div className="mt-4 flex flex-wrap items-center gap-4">
-        <SubmitButton>{submitLabel}</SubmitButton>
+        <SubmitButton size={size} variant={variant}>
+          {submitLabel}
+        </SubmitButton>
         <FormMessage state={state} />
       </div>
     </form>

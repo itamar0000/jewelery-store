@@ -12,10 +12,8 @@ import { z } from 'zod';
  * on a valid environment. `../env` (the module next door) is the one that
  * actually reads `process.env` at import time.
  *
- * ONLY VARIABLES THE CODE ACTUALLY USES BELONG HERE. Payment, invoicing, email
- * and storage providers are all TBD (TBD.md B1, B2, I1, I2); adding their keys
- * now would be inventing configuration for integrations that do not exist, and
- * would make the schema reject environments that are perfectly valid today.
+ * ONLY VARIABLES THE CODE ACTUALLY USES BELONG HERE, and every integration's
+ * keys are optional, so an environment without them stays valid.
  */
 
 /** An optional free-text variable. Unset and empty both mean "not configured". */
@@ -119,6 +117,38 @@ export const envSchema = z.object({
     (value) => value === undefined || z.email().safeParse(value).success,
     'CONTACT_EMAIL must be an email address.',
   ),
+
+  /**
+   * Email (Resend, https://resend.com). ALL OPTIONAL: with no key nothing is
+   * sent and nothing fails - orders and requests are saved exactly as before,
+   * and the admin is where they are seen.
+   *
+   * EMAIL_API_KEY   - a Resend API key ("re_...").
+   * EMAIL_FROM      - the sender, on a domain verified in Resend, e.g.
+   *                   "Jewelry for Less <orders@example.co.il>".
+   * ORDER_NOTIFY_TO - who hears about new orders and requests; one address or
+   *                   several separated by commas.
+   * EMAIL_REPLY_TO  - where a customer's reply goes (optional; CONTACT_EMAIL
+   *                   is used when unset).
+   */
+  EMAIL_API_KEY: optionalText,
+  EMAIL_FROM: optionalText,
+  ORDER_NOTIFY_TO: optionalText.refine(
+    (value) =>
+      value === undefined ||
+      value.split(',').every((part) => z.email().safeParse(part.trim()).success),
+    'ORDER_NOTIFY_TO must be an email address, or several separated by commas.',
+  ),
+  EMAIL_REPLY_TO: optionalText.refine(
+    (value) => value === undefined || z.email().safeParse(value).success,
+    'EMAIL_REPLY_TO must be an email address.',
+  ),
+
+  /**
+   * The shared secret Vercel Cron sends as "Authorization: Bearer <secret>" to
+   * /api/cron/daily. Unset, the route refuses every call.
+   */
+  CRON_SECRET: optionalText,
 
   /**
    * VAT rate in basis points (1800 = 18%), recorded on every order at the moment

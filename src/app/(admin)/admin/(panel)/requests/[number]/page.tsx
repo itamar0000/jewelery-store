@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 
 import { ActionForm } from '@/components/admin/ActionForm';
 import { StatusPill } from '@/components/admin/StatusTabs';
-import { INPUT, LABEL } from '@/components/admin/styles';
+import { INPUT, LABEL, WHATSAPP_BUTTON } from '@/components/admin/styles';
 import { formatAgorot, formatDateTime } from '@/lib/admin/format';
 import { updateRequestAction } from '@/lib/admin/panel-actions';
 import {
@@ -16,6 +16,8 @@ import {
   REQUEST_STATUSES,
 } from '@/lib/admin/requests';
 import { getAdminUser, requireAdminPage } from '@/lib/admin/session';
+import { whatsAppLink } from '@/lib/admin/whatsapp';
+import { SITE_NAME } from '@/lib/config/site';
 import { prisma } from '@/lib/db';
 import { notFoundMetadata } from '@/lib/seo/not-found';
 import { formatOrderNumber } from '@/lib/orders/order-number';
@@ -50,7 +52,10 @@ export default async function AdminRequestPage({ params }: { params: Params }) {
 
   const model = readRequestSnapshot(request.productSnapshot);
   const changes = changeAreaLabels(request.changeAreas, request.product?.productType ?? null);
-  const whatsapp = request.phone?.replace(/\D/g, '').replace(/^0/, '972');
+  const whatsapp = whatsAppLink(
+    request.phone,
+    `שלום ${request.fullName.trim().split(/\s+/)[0]}, כאן ${SITE_NAME}. קיבלנו את בקשת העיצוב שלך (#${request.requestNumber}). `,
+  );
 
   return (
     <>
@@ -151,21 +156,21 @@ export default async function AdminRequestPage({ params }: { params: Params }) {
             </h2>
             <p className="mt-2 font-medium">{request.fullName}</p>
             {request.phone && (
-              <p className="flex gap-3">
+              <p>
                 <a href={`tel:${request.phone}`} className="underline-offset-4 hover:underline">
                   <bdi dir="ltr">{request.phone}</bdi>
                 </a>
-                {whatsapp && (
-                  <a
-                    href={`https://wa.me/${whatsapp}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="underline underline-offset-4"
-                  >
-                    וואטסאפ
-                  </a>
-                )}
               </p>
+            )}
+            {whatsapp && (
+              <a
+                href={whatsapp}
+                target="_blank"
+                rel="noreferrer"
+                className={`${WHATSAPP_BUTTON} mt-3`}
+              >
+                וואטסאפ ללקוח
+              </a>
             )}
             {request.email && (
               <p>

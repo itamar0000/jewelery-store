@@ -20,8 +20,48 @@ type Tx = Prisma.TransactionClient;
 
 export const DIAMOND_SIZE_CODE = 'diamond_carat';
 
-export async function listProductsForAdmin() {
+export type ProductListState = 'all' | 'visible' | 'hidden' | 'archived';
+
+export function isProductListState(value: unknown): value is ProductListState {
+  return value === 'all' || value === 'visible' || value === 'hidden' || value === 'archived';
+}
+
+export interface ProductListFilter {
+  /** Matched against the name, the address (slug) and every variant's SKU. */
+  readonly query?: string;
+  readonly categoryId?: string;
+  readonly state?: ProductListState;
+}
+
+function productListWhere(filter: ProductListFilter): Prisma.ProductWhereInput {
+  const where: Prisma.ProductWhereInput = {};
+  const query = filter.query?.trim();
+  if (query) {
+    where.OR = [
+      { nameHe: { contains: query, mode: 'insensitive' } },
+      { slug: { contains: query, mode: 'insensitive' } },
+      { variants: { some: { sku: { contains: query, mode: 'insensitive' } } } },
+    ];
+  }
+  if (filter.categoryId) where.primaryCategoryId = filter.categoryId;
+  if (filter.state === 'visible') Object.assign(where, { archivedAt: null, isActive: true });
+  if (filter.state === 'hidden') Object.assign(where, { archivedAt: null, isActive: false });
+  if (filter.state === 'archived') where.archivedAt = { not: null };
+  return where;
+}
+
+/** The primary categories that have products, for the list's filter. */
+export async function listProductCategoriesForAdmin() {
+  return prisma.category.findMany({
+    where: { primaryProducts: { some: {} } },
+    orderBy: { position: 'asc' },
+    select: { id: true, nameHe: true },
+  });
+}
+
+export async function listProductsForAdmin(filter: ProductListFilter = {}) {
   return prisma.product.findMany({
+    where: productListWhere(filter),
     orderBy: [
       { archivedAt: { sort: 'asc', nulls: 'first' } },
       { primaryCategory: { position: 'asc' } },

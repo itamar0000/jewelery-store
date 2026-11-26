@@ -4,19 +4,38 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { ActionForm } from '@/components/admin/ActionForm';
+import { OrderProgress } from '@/components/admin/OrderProgress';
 import { StatusPill } from '@/components/admin/StatusTabs';
-import { INPUT, LABEL } from '@/components/admin/styles';
+import { INPUT, LABEL, LINK_BUTTON, WHATSAPP_BUTTON } from '@/components/admin/styles';
 import { resolveImageUrl } from '@/lib/catalog/images';
 import { formatAgorot, formatDateTime } from '@/lib/admin/format';
+import {
+  canCancel,
+  canMarkPaid,
+  canMarkRefunded,
+  MANUAL_PAYMENT_METHODS,
+  nextStep,
+  previousStatus,
+} from '@/lib/admin/order-steps';
+import { MANUAL_FIX_FORBIDDEN } from '@/lib/admin/order-workflow';
 import {
   getOrderForAdmin,
   ORDER_STATUS_LABELS,
   ORDER_STATUSES,
   PAYMENT_STATUS_LABELS,
 } from '@/lib/admin/orders';
-import { changeOrderStatusAction, saveOrderNotesAction } from '@/lib/admin/panel-actions';
+import {
+  cancelOrderAction,
+  changeOrderStatusAction,
+  markOrderPaidAction,
+  markOrderRefundedAction,
+  moveOrderStepAction,
+  saveOrderNotesAction,
+} from '@/lib/admin/panel-actions';
 import { getAdminUser, requireAdminPage } from '@/lib/admin/session';
+import { orderWhatsAppMessage, whatsAppLink } from '@/lib/admin/whatsapp';
 import { prisma } from '@/lib/db';
+import { emailConfigured } from '@/lib/email/notify';
 import { notFoundMetadata } from '@/lib/seo/not-found';
 import { formatOrderNumber } from '@/lib/orders/order-number';
 
@@ -38,6 +57,15 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return { title: `הזמנה ${formatOrderNumber(value)}` };
 }
 
+/**
+ * One order, arranged around the question "what do I do now?" (D4D.42).
+ *
+ * The top panel shows where the order is and offers exactly one next action
+ * as a large button - record the payment, start making it, mark it ready,
+ * ship it. WhatsApp, a phone call and a printable job sheet sit beside it.
+ * Everything rarer - cancelling, a refund, a manual status fix - is lower on
+ * the page and asks before it acts.
+ */
 export default async function AdminOrderPage({ params }: { params: Params }) {
   await requireAdminPage();
   const { number } = await params;
@@ -46,6 +74,16 @@ export default async function AdminOrderPage({ params }: { params: Params }) {
   if (!order) notFound();
 
   const address = order.addresses.find((entry) => entry.type === 'SHIPPING');
+  const step = nextStep(order.status);
+  const back = previousStatus(order.status);
+  const showMarkPaid = canMarkPaid(order.status, order.paymentStatus);
+  const showRefund = canMarkRefunded(order.status, order.paymentStatus);
+  const whatsapp = whatsAppLink(order.phone, orderWhatsAppMessage(order));
+  const total = formatAgorot(order.totalAgorot);
+  const orderId = <input type="hidden" name="orderId" value={order.id} />;
+  const fixChoices = ORDER_STATUSES.filter(
+    (status) => !MANUAL_FIX_FORBIDDEN.includes(status) || status === order.status,
+  );
 
   return (
     <>
@@ -59,15 +97,162 @@ export default async function AdminOrderPage({ params }: { params: Params }) {
         <StatusPill label={ORDER_STATUS_LABELS[order.status]} />
       </div>
       <p className="text-muted-foreground mt-1 text-sm">
-        התקבלה {formatDateTime(order.placedAt)} · תשלום:{' '}
+        התקבלה {formatDateTime(order.placedAt)} · {order.customerName} · {total} · תשלום:{' '}
         {PAYMENT_STATUS_LABELS[order.paymentStatus] ?? order.paymentStatus}
       </p>
 
-      <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_20rem]">
+      {/* ------------------------------------------------ what to do now */}
+      <section
+        aria-labelledby="now-heading"
+        className="border-border-strong mt-6 space-y-6 border-2 p-5 sm:p-6"
+      >
+        <h2 id="now-heading" className="sr-only">
+          מה עושים עכשיו
+        </h2>
+        <OrderProgress status={order.status} />
+
+        {showMarkPaid && (
+          <div>
+            <p className="text-lg font-bold">
+              {order.status === 'CANCELLED' ? 'הלקוח שילם בכל זאת?' : 'מחכה לתשלום של '}
+              {order.status !== 'CANCELLED' && <bdi>{total}</bdi>}
+            </p>
+            <p className="text-muted-foreground mt-1 max-w-2xl text-sm">
+              {order.status === 'CANCELLED'
+                ? 'ההזמנה בוטלה כי לא שולמה. אם הכסף התקבל, רשמו אותו כאן וההזמנה תחזור לטיפול.'
+                : `לוחצים רק אחרי שהכסף התקבל בפועל - בקישור תשלום, בביט, בהעברה או במזומן.${emailConfigured() ? ' הלקוח יקבל אישור במייל.' : ''}`}
+            </p>
+            <ActionForm
+              action={markOrderPaidAction}
+              submitLabel="התקבל תשלום"
+              size="lg"
+              confirm={`לאשר שהתקבל תשלום של ${total} עבור הזמנה ${order.orderNumber}?`}
+              className="mt-4"
+            >
+              {orderId}
+              <fieldset>
+                <legend className={LABEL}>איך שולם?</legend>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {MANUAL_PAYMENT_METHODS.map((method, index) => (
+                    <label
+                      key={method.value}
+                      className="border-border has-[:checked]:border-foreground has-[:checked]:bg-muted flex min-h-11 cursor-pointer items-center gap-2 border px-3 text-sm"
+                    >
+                      <input
+                        type="radio"
+                        name="method"
+                        value={method.value}
+                        defaultChecked={index === 0}
+                        className="size-4"
+                      />
+                      {method.label}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              <label htmlFor="paid-note" className={`${LABEL} mt-4 block`}>
+                הערה <span className="text-muted-foreground font-normal">(לא חובה)</span>
+              </label>
+              <input id="paid-note" name="note" className={`${INPUT} mt-1.5 max-w-md`} />
+            </ActionForm>
+          </div>
+        )}
+
+        {step && (
+          <div>
+            <ActionForm action={moveOrderStepAction} submitLabel={step.label} size="lg">
+              {orderId}
+              <input type="hidden" name="toStatus" value={step.toStatus} />
+              <p className="text-muted-foreground text-sm">{step.hint}</p>
+              {step.toStatus === 'SHIPPED' && (
+                <>
+                  <label htmlFor="tracking" className={`${LABEL} mt-3 block`}>
+                    מספר מעקב של השליח{' '}
+                    <span className="text-muted-foreground font-normal">(לא חובה)</span>
+                  </label>
+                  <input
+                    id="tracking"
+                    name="trackingNumber"
+                    dir="ltr"
+                    maxLength={60}
+                    className={`${INPUT} mt-1.5 max-w-xs`}
+                  />
+                  {emailConfigured() && (
+                    <p className="text-muted-foreground mt-1 text-xs">
+                      הלקוח יקבל מייל שההזמנה נשלחה, עם המספר הזה.
+                    </p>
+                  )}
+                </>
+              )}
+            </ActionForm>
+          </div>
+        )}
+
+        {showRefund && (
+          <div>
+            <p className="text-lg font-bold">צריך להחזיר ללקוח {total}</p>
+            <p className="text-muted-foreground mt-1 max-w-2xl text-sm">
+              ההזמנה בוטלה אחרי שכבר שולמה. מחזירים את הכסף באותה דרך שבה שולם (בחברת הסליקה, בביט
+              או בהעברה), ואז לוחצים כאן כדי לרשום את זה.
+            </p>
+            <ActionForm
+              action={markOrderRefundedAction}
+              submitLabel="הכסף הוחזר ללקוח"
+              size="lg"
+              confirm="לרשום שהכסף הוחזר ללקוח?"
+              className="mt-2"
+            >
+              {orderId}
+            </ActionForm>
+          </div>
+        )}
+
+        {(order.status === 'DELIVERED' || order.status === 'COMPLETED') && (
+          <p className="text-success text-lg font-bold">ההזמנה הושלמה. אין צורך לעשות דבר.</p>
+        )}
+
+        <div className="border-border flex flex-wrap gap-3 border-t pt-5">
+          {whatsapp && (
+            <a href={whatsapp} target="_blank" rel="noreferrer" className={WHATSAPP_BUTTON}>
+              וואטסאפ ללקוח
+            </a>
+          )}
+          <a href={`tel:${order.phone}`} className={LINK_BUTTON}>
+            התקשרות <bdi dir="ltr">{order.phone}</bdi>
+          </a>
+          <Link
+            href={`/admin/orders/${order.orderNumber}/print`}
+            target="_blank"
+            className={LINK_BUTTON}
+          >
+            הדפסת דף עבודה
+          </Link>
+        </div>
+        {whatsapp && (
+          <p className="text-muted-foreground -mt-3 text-xs">
+            הוואטסאפ נפתח עם הודעה מוכנה שמתאימה לשלב של ההזמנה. אפשר לשנות אותה לפני השליחה.
+          </p>
+        )}
+
+        {back && (
+          <ActionForm
+            action={moveOrderStepAction}
+            submitLabel={`החזרה לשלב הקודם (${ORDER_STATUS_LABELS[back]})`}
+            variant="secondary"
+            confirm={`להחזיר את ההזמנה לשלב "${ORDER_STATUS_LABELS[back]}"?`}
+            className="[&_button]:h-9 [&_button]:text-xs"
+          >
+            {orderId}
+            <input type="hidden" name="toStatus" value={back} />
+          </ActionForm>
+        )}
+      </section>
+
+      <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_20rem]">
         <div className="space-y-10">
           <section aria-labelledby="items-heading">
             <h2 id="items-heading" className="text-lg font-bold">
-              פריטים
+              מה הוזמן
             </h2>
             <ul className="divide-border border-border mt-3 divide-y border-y">
               {order.lines.map((line) => {
@@ -119,7 +304,7 @@ export default async function AdminOrderPage({ params }: { params: Params }) {
               <dt className="text-muted-foreground">משלוח</dt>
               <dd className="text-end">{formatAgorot(order.shippingAgorot)}</dd>
               <dt className="font-semibold">סה״כ</dt>
-              <dd className="text-end font-semibold">{formatAgorot(order.totalAgorot)}</dd>
+              <dd className="text-end font-semibold">{total}</dd>
             </dl>
           </section>
 
@@ -128,7 +313,7 @@ export default async function AdminOrderPage({ params }: { params: Params }) {
               היסטוריה
             </h2>
             {order.statusEvents.length === 0 ? (
-              <p className="text-muted-foreground mt-3 text-sm">עוד לא היו שינויי סטטוס.</p>
+              <p className="text-muted-foreground mt-3 text-sm">עוד לא היו שינויים.</p>
             ) : (
               <ol className="mt-3 space-y-3 text-sm">
                 {order.statusEvents.map((event) => (
@@ -144,7 +329,11 @@ export default async function AdminOrderPage({ params }: { params: Params }) {
                     </p>
                     <p className="text-muted-foreground">
                       {formatDateTime(event.createdAt)}
-                      {event.actor ? ` · ${event.actor.displayName ?? event.actor.email}` : ''}
+                      {event.actor
+                        ? ` · ${event.actor.displayName ?? event.actor.email}`
+                        : event.fromStatus
+                          ? ' · אוטומטי'
+                          : ''}
                     </p>
                     {event.note && <p className="mt-1 whitespace-pre-line">{event.note}</p>}
                   </li>
@@ -175,6 +364,12 @@ export default async function AdminOrderPage({ params }: { params: Params }) {
                 <h3 className="font-medium">כתובת למשלוח</h3>
                 <p className="mt-1">
                   {address.fullName}
+                  {address.phone && address.phone !== order.phone && (
+                    <>
+                      {' '}
+                      · <bdi dir="ltr">{address.phone}</bdi>
+                    </>
+                  )}
                   <br />
                   {address.street} {address.houseNumber}
                   {address.apartment ? `, דירה ${address.apartment}` : ''}
@@ -187,48 +382,20 @@ export default async function AdminOrderPage({ params }: { params: Params }) {
                 )}
               </div>
             )}
-            {order.shippingMethodLabel && (
-              <p className="text-muted-foreground mt-2">שיטת משלוח: {order.shippingMethodLabel}</p>
+            {order.trackingNumber && (
+              <p className="mt-3">
+                מספר מעקב: <bdi dir="ltr">{order.trackingNumber}</bdi>
+              </p>
             )}
-          </section>
-
-          <section aria-labelledby="status-heading" className="border-border border p-4">
-            <h2 id="status-heading" className="font-bold">
-              עדכון סטטוס
-            </h2>
-            <ActionForm action={changeOrderStatusAction} submitLabel="עדכון">
-              <input type="hidden" name="orderId" value={order.id} />
-              <label htmlFor="order-status" className={`${LABEL} mt-3 block`}>
-                סטטוס
-              </label>
-              <select
-                id="order-status"
-                name="status"
-                defaultValue={order.status}
-                className={`${INPUT} mt-1.5`}
-              >
-                {ORDER_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {ORDER_STATUS_LABELS[status]}
-                  </option>
-                ))}
-              </select>
-              <label htmlFor="order-note" className={`${LABEL} mt-3 block`}>
-                הערה להיסטוריה <span className="text-muted-foreground font-normal">(לא חובה)</span>
-              </label>
-              <textarea id="order-note" name="note" rows={2} className={`${INPUT} mt-1.5`} />
-            </ActionForm>
-            <p className="text-muted-foreground mt-3 text-xs">
-              ביטול הזמנה משחרר את המלאי שהיא החזיקה. סטטוס התשלום מתעדכן רק מחברת הסליקה.
-            </p>
           </section>
 
           <section aria-labelledby="notes-heading">
             <h2 id="notes-heading" className="font-bold">
               הערות פנימיות
             </h2>
-            <ActionForm action={saveOrderNotesAction} submitLabel="שמירה">
-              <input type="hidden" name="orderId" value={order.id} />
+            <p className="text-muted-foreground mt-1 text-xs">רק אתם רואים אותן. הלקוח לא.</p>
+            <ActionForm action={saveOrderNotesAction} submitLabel="שמירת הערות">
+              {orderId}
               <label htmlFor="order-notes" className="sr-only">
                 הערות פנימיות
               </label>
@@ -241,6 +408,60 @@ export default async function AdminOrderPage({ params }: { params: Params }) {
               />
             </ActionForm>
           </section>
+
+          {canCancel(order.status) && (
+            <section aria-labelledby="cancel-heading" className="border-border border p-4">
+              <h2 id="cancel-heading" className="font-bold">
+                ביטול הזמנה
+              </h2>
+              <p className="text-muted-foreground mt-1 text-xs">
+                {order.paymentStatus === 'PAID'
+                  ? 'ההזמנה כבר שולמה. אחרי הביטול יופיע כפתור לרישום ההחזר ללקוח.'
+                  : 'לא שולם עליה כסף, אז אין מה להחזיר.'}
+              </p>
+              <ActionForm
+                action={cancelOrderAction}
+                submitLabel="ביטול ההזמנה"
+                variant="danger"
+                confirm={`לבטל את הזמנה ${order.orderNumber}? אפשר לתקן אחר כך דרך "תיקון ידני".`}
+              >
+                {orderId}
+                <label htmlFor="cancel-reason" className={`${LABEL} mt-3 block`}>
+                  סיבה <span className="text-muted-foreground font-normal">(לא חובה)</span>
+                </label>
+                <input id="cancel-reason" name="reason" className={`${INPUT} mt-1.5`} />
+              </ActionForm>
+            </section>
+          )}
+
+          <details className="border-border border p-4 text-sm">
+            <summary className="cursor-pointer font-medium">תיקון ידני (למקרים חריגים)</summary>
+            <p className="text-muted-foreground mt-2 text-xs">
+              רק אם הכפתורים למעלה לא מתאימים. תשלום והחזר כספי נרשמים בכפתורים שלהם.
+            </p>
+            <ActionForm action={changeOrderStatusAction} submitLabel="עדכון">
+              {orderId}
+              <label htmlFor="order-status" className={`${LABEL} mt-3 block`}>
+                סטטוס
+              </label>
+              <select
+                id="order-status"
+                name="status"
+                defaultValue={order.status}
+                className={`${INPUT} mt-1.5`}
+              >
+                {fixChoices.map((status) => (
+                  <option key={status} value={status}>
+                    {ORDER_STATUS_LABELS[status]}
+                  </option>
+                ))}
+              </select>
+              <label htmlFor="order-note" className={`${LABEL} mt-3 block`}>
+                הערה להיסטוריה <span className="text-muted-foreground font-normal">(לא חובה)</span>
+              </label>
+              <textarea id="order-note" name="note" rows={2} className={`${INPUT} mt-1.5`} />
+            </ActionForm>
+          </details>
         </aside>
       </div>
     </>

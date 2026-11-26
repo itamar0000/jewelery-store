@@ -2903,3 +2903,36 @@ a cool near-white to a strong cream, so a grid read as tiles of different tones
   (D4D.26), so no lighter rectangle shows behind the ring.
 - Production must receive the processed files, not the originals (see the README
   in that folder).
+
+## D4D.42 — An admin built around "what do I do now", and email on Resend
+
+The owner is not technical. The order page offered a list of nine statuses with
+any jump allowed, "שולמה" changed the status but not the payment, nobody was told
+when an order or request arrived, and abandoned payment pages sat in the open list
+forever.
+
+- **Orders move by buttons, one at a time** (`src/lib/admin/order-steps.ts`): a
+  progress line and one large next-step button (התחלתי להכין → התכשיט מוכן →
+  נשלח ללקוח → הלקוח קיבל), a small "back one step", cancel on its own with a
+  confirmation. The free status list survives under "תיקון ידני" and cannot name
+  PAID or REFUNDED.
+- **"התקבל תשלום" records a payment** (`order-workflow.ts`): a `Payment` row with
+  provider `manual` and the method, order and payment PAID together, stock holds
+  consumed - the end state the gateway webhook will also produce. "הכסף הוחזר"
+  records a refund of a cancelled, paid order.
+- **WhatsApp to the customer** with a message written for the order's stage,
+  **a printable job sheet** (engraving and sizes large, a cut-out shipping label),
+  and **a tracking number** on the order (migration `order_tracking_number`).
+- **"לטיפול" holds unpaid orders only while there is no gateway.** With one, they
+  have their own tab, and a daily Vercel Cron (`/api/cron/daily`, `CRON_SECRET`)
+  cancels orders unpaid for three days and returns expired stock holds.
+- **Email through Resend's HTTP API** (`src/lib/email/`), off until
+  `EMAIL_API_KEY` + `EMAIL_FROM` are set, never blocking the action it reports
+  (`after()`): shop on a new order (at once without a gateway, on payment with
+  one) and on a new custom request; customer on payment, on shipping and on a
+  request received.
+- **Phone layout**: cards instead of tables under `md`, a sideways-scrolling menu
+  with counts of what waits, filters for 100+ products (name/SKU, category, state),
+  and an in-admin help page (`/admin/help`).
+- **Response headers**: `X-Frame-Options: DENY` / `frame-ancestors 'none'`,
+  `nosniff`, `Referrer-Policy`.
